@@ -27,12 +27,16 @@ func checkOrigin(r *http.Request) bool {
 func reader(conn *websocket.Conn) {
 	for {
 		messageType, p, err := conn.ReadMessage()
+
 		if err != nil {
 			log.Println(err)
 			return
 		}
+
 		log.Println(string(p))
+
 		var message = []byte("[Server] Connection established.")
+
 		if err := conn.WriteMessage(messageType, message); err != nil {
 			log.Println(err)
 			return
@@ -42,9 +46,11 @@ func reader(conn *websocket.Conn) {
 
 func joinRace(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
 	reader(conn)
 }
