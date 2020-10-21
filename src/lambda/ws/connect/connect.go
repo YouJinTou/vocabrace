@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -22,7 +21,7 @@ func handle(_ context.Context, req events.APIGatewayWebsocketProxyRequest) (even
 	dynamo := dynamodb.New(session.New())
 	item := Item{
 		ConnectionID: req.RequestContext.ConnectionID,
-		Timestamp:    time.Now().UnixNano(),
+		Timestamp:    req.RequestContext.ConnectedAt,
 	}
 	marshalled, err := dynamodbattribute.MarshalMap(item)
 
