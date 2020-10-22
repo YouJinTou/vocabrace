@@ -27,9 +27,9 @@ type Request struct {
 	PoolLimit    int
 }
 
-// JoinCreatePoolIfNotExist joins a user to an existing pool
+// JoinOrCreate joins a user to an existing pool
 // (relative to their skill level), or creates a new one
-func JoinCreatePoolIfNotExist(r *Request) {
+func JoinOrCreate(r *Request) {
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String("eu-central-1")}))
 	dynamo := dynamodb.New(sess)
 	bucket := getPoolBucket(&r.UserID)
