@@ -62,7 +62,6 @@ func getPoolID(connectionID string, dynamo *dynamodb.DynamoDB) (string, error) {
 				S: aws.String(connectionID),
 			},
 		},
-		ConsistentRead:  aws.Bool(true),
 		AttributesToGet: []*string{aws.String("PoolID")},
 		TableName:       aws.String("connections"),
 	})

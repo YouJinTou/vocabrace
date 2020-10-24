@@ -67,7 +67,6 @@ func getAvailablePoolID(dynamo *dynamodb.DynamoDB, bucket string) *string {
 				S: aws.String(bucket),
 			},
 		},
-		ConsistentRead:  aws.Bool(true),
 		AttributesToGet: []*string{aws.String("CurrentAvailablePool")},
 		TableName:       aws.String("buckets"),
 	})
@@ -105,8 +104,7 @@ func poolHasCapacity(poolID string, dynamo *dynamodb.DynamoDB) bool {
 				S: aws.String(poolID),
 			},
 		},
-		ConsistentRead: aws.Bool(true),
-		TableName:      aws.String("pools"),
+		TableName: aws.String("pools"),
 	})
 
 	if err != nil || o.Item == nil {
