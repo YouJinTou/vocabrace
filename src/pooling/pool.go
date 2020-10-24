@@ -20,7 +20,7 @@ const _Advanced = "advanced"
 const _Expert = "expert"
 const _Godlike = "godlike"
 
-// Request encapsulates pool data
+// Request encapsulates pool data.
 type Request struct {
 	ConnectionID string
 	UserID       string
@@ -28,27 +28,73 @@ type Request struct {
 }
 
 // JoinOrCreate joins a user to an existing pool
-// (relative to their skill level), or creates a new one
+// (relative to their skill level), or creates a new one.
 func JoinOrCreate(r *Request) {
-	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String("eu-central-1")}))
-	dynamo := dynamodb.New(sess)
+	dynamo := dynamo()
 	bucket := getPoolBucket(&r.UserID)
-	var poolIDPtr = getAvailablePoolID(dynamo, bucket)
+	poolIDPtr := getAvailablePoolID(dynamo, bucket)
 	var poolID string
 
 	if poolIDPtr == nil {
-		poolID = createNewPool(bucket, r, dynamo)
+		poolID = new(bucket, r, dynamo)
 
 		addPoolToBucket(bucket, poolID, dynamo)
 	} else {
 		poolID = *poolIDPtr
 
-		if !poolHasCapacity(poolID, dynamo) {
-			poolID = createNewPool(bucket, r, dynamo)
-		}
+		joinPool(poolID, r.ConnectionID, dynamo)
 	}
 
-	joinPool(poolID, r.ConnectionID, dynamo)
+	mapConnectionToPool(r.ConnectionID, poolID, dynamo)
+}
+
+// Leave removes a connection from a given pool.
+func Leave(connectionID string) error {
+	dynamo := dynamo()
+	poolID, err := getPoolID(connectionID, dynamo)
+
+	if err != nil {
+		return err
+	}
+
+	key := map[string]*dynamodb.AttributeValue{
+		"ID": {
+			S: aws.String(poolID),
+		},
+	}
+	ue := aws.String("DELETE ConnectionIDs :cids")
+	eav := map[string]*dynamodb.AttributeValue{
+		":cids": {
+			SS: []*string{aws.String(connectionID)},
+		},
+	}
+	_, updateErr := dynamo.UpdateItem(&dynamodb.UpdateItemInput{
+		Key:                       key,
+		UpdateExpression:          ue,
+		ExpressionAttributeValues: eav,
+		TableName:                 aws.String("pools"),
+	})
+
+	if updateErr != nil {
+		return updateErr
+	}
+
+	_, deleteErr := dynamo.DeleteItem(&dynamodb.DeleteItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"ConnectionID": {
+				S: aws.String(connectionID),
+			},
+		},
+		TableName: aws.String("connections"),
+	})
+
+	return deleteErr
+}
+
+func dynamo() *dynamodb.DynamoDB {
+	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String("eu-central-1")}))
+	dynamo := dynamodb.New(sess)
+	return dynamo
 }
 
 func getPoolBucket(userID *string) string {
@@ -71,6 +117,7 @@ func getAvailablePoolID(dynamo *dynamodb.DynamoDB, bucket string) *string {
 				S: aws.String(bucket),
 			},
 		},
+		ConsistentRead:  aws.Bool(true),
 		AttributesToGet: []*string{aws.String("CurrentAvailablePool")},
 		TableName:       aws.String("buckets"),
 	})
@@ -88,10 +135,14 @@ func getAvailablePoolID(dynamo *dynamodb.DynamoDB, bucket string) *string {
 		return nil
 	}
 
+	if !poolHasCapacity(bucketItem.CurrentAvailablePool, dynamo) {
+		return nil
+	}
+
 	return &bucketItem.CurrentAvailablePool
 }
 
-func createNewPool(bucket string, r *Request, dynamo *dynamodb.DynamoDB) string {
+func new(bucket string, r *Request, dynamo *dynamodb.DynamoDB) string {
 	poolID := uuid.New().String()
 	_, err := dynamo.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
@@ -99,7 +150,7 @@ func createNewPool(bucket string, r *Request, dynamo *dynamodb.DynamoDB) string 
 				S: aws.String(poolID),
 			},
 			"ConnectionIDs": {
-				L: []*dynamodb.AttributeValue{},
+				SS: []*string{aws.String(r.ConnectionID)},
 			},
 			"Limit": {
 				N: aws.String(strconv.Itoa(r.PoolLimit)),
@@ -131,11 +182,13 @@ func poolHasCapacity(poolID string, dynamo *dynamodb.DynamoDB) bool {
 				S: aws.String(poolID),
 			},
 		},
-		TableName: aws.String("pools"),
+		ConsistentRead: aws.Bool(true),
+		TableName:      aws.String("pools"),
 	})
 
 	if err != nil || o.Item == nil {
 		fmt.Println(err)
+		return false
 	}
 
 	item := poolItem{}
@@ -150,15 +203,10 @@ func addPoolToBucket(bucket string, poolID string, dynamo *dynamodb.DynamoDB) {
 			S: aws.String(bucket),
 		},
 	}
-	ue := aws.String("SET PoolIDs = list_append(if_not_exists(PoolIDs, :empty_list), :pids), CurrentAvailablePool = :cap")
+	ue := aws.String("ADD PoolIDs :pids SET CurrentAvailablePool = :cap")
 	eav := map[string]*dynamodb.AttributeValue{
 		":pids": {
-			L: []*dynamodb.AttributeValue{
-				&dynamodb.AttributeValue{S: aws.String(poolID)},
-			},
-		},
-		":empty_list": {
-			L: []*dynamodb.AttributeValue{},
+			SS: []*string{aws.String(poolID)},
 		},
 		":cap": {
 			S: aws.String(poolID),
@@ -183,12 +231,10 @@ func joinPool(poolID string, connectionID string, dynamo *dynamodb.DynamoDB) {
 			S: aws.String(poolID),
 		},
 	}
-	ue := aws.String("SET ConnectionIDs = list_append(ConnectionIDs, :cids)")
+	ue := aws.String("ADD ConnectionIDs :cids")
 	eav := map[string]*dynamodb.AttributeValue{
 		":cids": {
-			L: []*dynamodb.AttributeValue{
-				&dynamodb.AttributeValue{S: aws.String(connectionID)},
-			},
+			SS: []*string{aws.String(connectionID)},
 		},
 	}
 	_, err := dynamo.UpdateItem(&dynamodb.UpdateItemInput{
@@ -202,4 +248,55 @@ func joinPool(poolID string, connectionID string, dynamo *dynamodb.DynamoDB) {
 		fmt.Println(err)
 		// TODO Do something...
 	}
+}
+
+type connection struct {
+	PoolID string
+}
+
+func getPoolID(connectionID string, dynamo *dynamodb.DynamoDB) (string, error) {
+	o, err := dynamo.GetItem(&dynamodb.GetItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"ConnectionID": {
+				S: aws.String(connectionID),
+			},
+		},
+		ConsistentRead:  aws.Bool(true),
+		AttributesToGet: []*string{aws.String("PoolID")},
+		TableName:       aws.String("connections"),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if o.Item == nil {
+		return "", nil
+	}
+
+	conn := connection{}
+	err = dynamodbattribute.UnmarshalMap(o.Item, &conn)
+
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	return conn.PoolID, nil
+}
+
+func mapConnectionToPool(connectionID, poolID string, dynamo *dynamodb.DynamoDB) error {
+	_, err := dynamo.PutItem(&dynamodb.PutItemInput{
+		Item: map[string]*dynamodb.AttributeValue{
+			"ConnectionID": {
+				S: aws.String(connectionID),
+			},
+			"PoolID": {
+				S: aws.String(poolID),
+			},
+		},
+		TableName: aws.String("connections"),
+	})
+
+	return err
 }
