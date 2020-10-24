@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
@@ -46,55 +45,6 @@ func JoinOrCreate(r *Request) {
 	}
 
 	mapConnectionToPool(r.ConnectionID, poolID, dynamo)
-}
-
-// Leave removes a connection from a given pool.
-func Leave(connectionID string) error {
-	dynamo := dynamo()
-	poolID, err := getPoolID(connectionID, dynamo)
-
-	if err != nil {
-		return err
-	}
-
-	key := map[string]*dynamodb.AttributeValue{
-		"ID": {
-			S: aws.String(poolID),
-		},
-	}
-	ue := aws.String("DELETE ConnectionIDs :cids")
-	eav := map[string]*dynamodb.AttributeValue{
-		":cids": {
-			SS: []*string{aws.String(connectionID)},
-		},
-	}
-	_, updateErr := dynamo.UpdateItem(&dynamodb.UpdateItemInput{
-		Key:                       key,
-		UpdateExpression:          ue,
-		ExpressionAttributeValues: eav,
-		TableName:                 aws.String("pools"),
-	})
-
-	if updateErr != nil {
-		return updateErr
-	}
-
-	_, deleteErr := dynamo.DeleteItem(&dynamodb.DeleteItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			"ConnectionID": {
-				S: aws.String(connectionID),
-			},
-		},
-		TableName: aws.String("connections"),
-	})
-
-	return deleteErr
-}
-
-func dynamo() *dynamodb.DynamoDB {
-	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String("eu-central-1")}))
-	dynamo := dynamodb.New(sess)
-	return dynamo
 }
 
 func getPoolBucket(userID *string) string {
@@ -140,33 +90,6 @@ func getAvailablePoolID(dynamo *dynamodb.DynamoDB, bucket string) *string {
 	}
 
 	return &bucketItem.CurrentAvailablePool
-}
-
-func new(bucket string, r *Request, dynamo *dynamodb.DynamoDB) string {
-	poolID := uuid.New().String()
-	_, err := dynamo.PutItem(&dynamodb.PutItemInput{
-		Item: map[string]*dynamodb.AttributeValue{
-			"ID": {
-				S: aws.String(poolID),
-			},
-			"ConnectionIDs": {
-				SS: []*string{aws.String(r.ConnectionID)},
-			},
-			"Limit": {
-				N: aws.String(strconv.Itoa(r.PoolLimit)),
-			},
-			"Bucket": {
-				S: aws.String(bucket),
-			},
-		},
-		TableName: aws.String("pools"),
-	})
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	return poolID
 }
 
 type poolItem struct {
@@ -250,41 +173,6 @@ func joinPool(poolID string, connectionID string, dynamo *dynamodb.DynamoDB) {
 	}
 }
 
-type connection struct {
-	PoolID string
-}
-
-func getPoolID(connectionID string, dynamo *dynamodb.DynamoDB) (string, error) {
-	o, err := dynamo.GetItem(&dynamodb.GetItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			"ConnectionID": {
-				S: aws.String(connectionID),
-			},
-		},
-		ConsistentRead:  aws.Bool(true),
-		AttributesToGet: []*string{aws.String("PoolID")},
-		TableName:       aws.String("connections"),
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	if o.Item == nil {
-		return "", nil
-	}
-
-	conn := connection{}
-	err = dynamodbattribute.UnmarshalMap(o.Item, &conn)
-
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	return conn.PoolID, nil
-}
-
 func mapConnectionToPool(connectionID, poolID string, dynamo *dynamodb.DynamoDB) error {
 	_, err := dynamo.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
@@ -299,4 +187,31 @@ func mapConnectionToPool(connectionID, poolID string, dynamo *dynamodb.DynamoDB)
 	})
 
 	return err
+}
+
+func new(bucket string, r *Request, dynamo *dynamodb.DynamoDB) string {
+	poolID := uuid.New().String()
+	_, err := dynamo.PutItem(&dynamodb.PutItemInput{
+		Item: map[string]*dynamodb.AttributeValue{
+			"ID": {
+				S: aws.String(poolID),
+			},
+			"ConnectionIDs": {
+				SS: []*string{aws.String(r.ConnectionID)},
+			},
+			"Limit": {
+				N: aws.String(strconv.Itoa(r.PoolLimit)),
+			},
+			"Bucket": {
+				S: aws.String(bucket),
+			},
+		},
+		TableName: aws.String("pools"),
+	})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return poolID
 }
