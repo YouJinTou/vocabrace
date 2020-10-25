@@ -1,4 +1,4 @@
-GOOS=linux go build -o disconnect disconnect.go
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o disconnect disconnect.go
 build-lambda-zip -output disconnect.zip disconnect ../config.prod.json
 aws lambda update-function-code \
     --function-name ondisconnect \
