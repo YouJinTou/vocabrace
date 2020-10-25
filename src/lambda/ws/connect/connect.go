@@ -24,5 +24,5 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		UserID:       uuid.New().String(),
 		PoolLimit:    5})
 
-	return lambdaws.Send(&req.RequestContext, "{ poolID: \"123\" }")
+	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
