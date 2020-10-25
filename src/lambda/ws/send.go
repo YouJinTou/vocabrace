@@ -10,23 +10,21 @@ import (
 )
 
 // Send sends a message to a connection ID.
-func Send(context *events.APIGatewayWebsocketProxyRequestContext, message string) (events.APIGatewayProxyResponse, error) {
-	endpoint := fmt.Sprintf("https://%s", context.DomainName)
+func Send(connectionID string, message string) (events.APIGatewayProxyResponse, error) {
 	session := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String("eu-central-1"),
 	}))
-	apiClient := apigatewaymanagementapi.New(session, &aws.Config{
-		Endpoint: aws.String(endpoint),
-	})
+	apiClient := apigatewaymanagementapi.New(session)
 	connectionInput := apigatewaymanagementapi.PostToConnectionInput{
-		ConnectionId: aws.String(context.ConnectionID),
+		ConnectionId: aws.String(connectionID),
 		Data:         []byte(message),
 	}
-	request, _ := apiClient.PostToConnectionRequest(&connectionInput)
-	postError := request.Send()
+	output, err := apiClient.PostToConnection(&connectionInput)
 
-	if postError != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 500}, postError
+	fmt.Println(output.String())
+
+	if err != nil {
+		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
