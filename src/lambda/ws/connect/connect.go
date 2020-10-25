@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
+
+	lambdaws "github.com/YouJinTou/vocabrace/lambda/ws"
 
 	"github.com/YouJinTou/vocabrace/pool"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
-	"github.com/tkanos/gonfig"
 )
 
 func main() {
@@ -17,7 +16,7 @@ func main() {
 }
 
 func handle(ctx context.Context, req events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	config := getConfig()
+	config := lambdaws.GetPoolConfig()
 	p := pool.New(config)
 	p.JoinOrCreate(&pool.Request{
 		ConnectionID: req.RequestContext.ConnectionID,
@@ -42,17 +41,4 @@ func handle(ctx context.Context, req events.APIGatewayWebsocketProxyRequest) (ev
 	// }
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
-}
-
-func getConfig() *pool.Config {
-	config := pool.Config{}
-	stage := os.Getenv("STAGE")
-	file := fmt.Sprintf("config.%s.json", stage)
-	err := gonfig.GetConf(file, &config)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return &config
 }
