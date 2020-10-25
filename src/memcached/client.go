@@ -24,7 +24,7 @@ func New(server string) *Client {
 func (c Client) Get(key string) (*memcache.Item, error) {
 	var err error = nil
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 5; i++ {
 		item, getErr := c.bfc.Get(key)
 
 		if getErr == nil {
@@ -33,7 +33,7 @@ func (c Client) Get(key string) (*memcache.Item, error) {
 			err = getErr
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(15 * time.Millisecond)
 	}
 
 	fmt.Println(err)
@@ -45,14 +45,14 @@ func (c Client) Get(key string) (*memcache.Item, error) {
 func (c Client) Set(item *memcache.Item) error {
 	var err error = nil
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 5; i++ {
 		err = c.bfc.Set(item)
 
 		if err == nil {
 			return err
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(15 * time.Millisecond)
 	}
 
 	if err != nil {
@@ -60,6 +60,11 @@ func (c Client) Set(item *memcache.Item) error {
 	}
 
 	return err
+}
+
+// Cas does a compare and swap
+func (c Client) Cas(item *memcache.Item) error {
+	return c.bfc.CompareAndSwap(item)
 }
 
 // Delete removes a key.
@@ -119,7 +124,7 @@ func (c Client) ListRemove(key, toRemove string) error {
 		if getErr != nil {
 			err = getErr
 
-			fmt.Println(fmt.Sprintf("Get miss: %s (lookup key), %s (addable).", key, toRemove))
+			fmt.Println(fmt.Sprintf("Get miss: %s (lookup key), %s (removable).", key, toRemove))
 
 			continue
 		}
