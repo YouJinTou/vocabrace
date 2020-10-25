@@ -29,9 +29,9 @@ func (c Client) Get(key string) (*memcache.Item, error) {
 
 		if getErr == nil {
 			return item, nil
-		} else {
-			err = getErr
 		}
+
+		err = getErr
 
 		time.Sleep(15 * time.Millisecond)
 	}
