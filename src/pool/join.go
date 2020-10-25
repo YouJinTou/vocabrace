@@ -2,6 +2,7 @@ package pool
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -9,15 +10,6 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/google/uuid"
 )
-
-const _Beginner = "beginner"
-const _Novice = "novice"
-const _LowerIntermediate = "lower_intermediate"
-const _Intermediate = "intermediate"
-const _UpperIntermediate = "intermediate"
-const _Advanced = "advanced"
-const _Expert = "expert"
-const _Godlike = "godlike"
 
 // Request encapsulates pool data.
 type Request struct {
@@ -39,16 +31,25 @@ func (p pool) isFull(limit int) bool {
 // (relative to their skill level), or creates a new one.
 func (p Pool) JoinOrCreate(r *Request) {
 	bucket := p.getPoolBucket(&r.UserID)
-	var poolID = p.getAvailablePool(bucket)
-	var pool = p.getPool(poolID)
 
-	if poolID == nil || pool.isFull(r.PoolLimit) {
-		pool = p.newPool(bucket)
+	for {
+		var poolID = p.getAvailablePool(bucket)
+		var pool = p.getPool(poolID)
 
-		p.updateBucket(bucket, pool.ID)
+		if pool == nil {
+			pool = p.newPool(bucket)
+
+			p.updateBucket(bucket, pool.ID)
+		}
+
+		if err := p.mapConnectionToPool(r.ConnectionID, pool, r.PoolLimit); err != nil {
+			pool = p.newPool(bucket)
+
+			p.updateBucket(bucket, pool.ID)
+		} else {
+			break
+		}
 	}
-
-	p.mapConnectionToPool(r.ConnectionID, pool)
 }
 
 func (p Pool) getPoolBucket(userID *string) string {
@@ -75,7 +76,7 @@ func (p Pool) getAvailablePool(bucket string) *string {
 }
 
 func (p Pool) minimizeRaceConditions() {
-	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+	time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
 }
 
 func (p Pool) getPool(poolID *string) *pool {
@@ -119,15 +120,38 @@ func (p Pool) newPool(bucket string) *pool {
 	}
 }
 
-func (p Pool) mapConnectionToPool(connectionID string, pool *pool) error {
-	if err := p.c.Set(&memcache.Item{
-		Key:   connectionID,
-		Value: []byte(pool.ID),
-	}); err != nil {
-		return err
+func (p Pool) mapConnectionToPool(connectionID string, pool *pool, poolLimit int) error {
+	for i := 0; i < 10; i++ {
+		item, getErr := p.c.Get(pool.ID)
+
+		if getErr != nil {
+			continue
+		}
+
+		var oldItems []string
+
+		json.Unmarshal(item.Value, &oldItems)
+
+		if len(oldItems) >= poolLimit {
+			return errors.New("pool is full")
+		}
+
+		newItems := append(oldItems, connectionID)
+		newItemsMarshalled, _ := json.Marshal(newItems)
+		item.Value = newItemsMarshalled
+		casErr := p.c.Cas(item)
+
+		if casErr == nil {
+			break
+		}
 	}
 
-	return p.c.ListAppend(pool.ID, connectionID)
+	setErr := p.c.Set(&memcache.Item{
+		Key:   connectionID,
+		Value: []byte(pool.ID),
+	})
+
+	return setErr
 }
 
 func (p Pool) updateBucket(bucket, poolID string) error {
