@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/google/uuid"
+	"github.com/memcachier/gomemcache/memcache"
 )
 
 // Request encapsulates pool data.
@@ -21,10 +21,7 @@ type Request struct {
 type pool struct {
 	ID          string
 	Connections []string
-}
-
-func (p pool) isFull(limit int) bool {
-	return len(p.Connections) >= limit
+	Item        *memcache.Item
 }
 
 // JoinOrCreate adds a user to an existing pool
@@ -33,17 +30,8 @@ func (p Pool) JoinOrCreate(r *Request) {
 	bucket := p.getPoolBucket(&r.UserID)
 
 	for {
-		var poolID = p.getAvailablePool(bucket)
-		var pool = p.getPool(poolID)
-
-		if pool == nil {
-			pool = p.newPool(bucket)
-
-			p.updateBucket(bucket, pool.ID)
-		}
-
-		if err := p.mapConnectionToPool(r.ConnectionID, pool, r.PoolLimit); err != nil {
-			pool = p.newPool(bucket)
+		if err := p.mapConnectionToPool(bucket, r); err != nil {
+			pool := p.newPool(bucket)
 
 			p.updateBucket(bucket, pool.ID)
 		} else {
@@ -76,7 +64,7 @@ func (p Pool) getAvailablePool(bucket string) *string {
 }
 
 func (p Pool) minimizeRaceConditions() {
-	time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
+	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 }
 
 func (p Pool) getPool(poolID *string) *pool {
@@ -97,6 +85,7 @@ func (p Pool) getPool(poolID *string) *pool {
 	return &pool{
 		ID:          *poolID,
 		Connections: connections,
+		Item:        item,
 	}
 }
 
@@ -120,26 +109,25 @@ func (p Pool) newPool(bucket string) *pool {
 	}
 }
 
-func (p Pool) mapConnectionToPool(connectionID string, pool *pool, poolLimit int) error {
-	for i := 0; i < 10; i++ {
-		item, getErr := p.c.Get(pool.ID)
+func (p Pool) mapConnectionToPool(bucket string, r *Request) error {
+	var poolID *string
 
-		if getErr != nil {
-			continue
+	for {
+		poolID = p.getAvailablePool(bucket)
+		pool := p.getPool(poolID)
+
+		if pool == nil {
+			return errors.New("no pool")
 		}
 
-		var oldItems []string
-
-		json.Unmarshal(item.Value, &oldItems)
-
-		if len(oldItems) >= poolLimit {
+		if len(pool.Connections) >= r.PoolLimit {
 			return errors.New("pool is full")
 		}
 
-		newItems := append(oldItems, connectionID)
-		newItemsMarshalled, _ := json.Marshal(newItems)
-		item.Value = newItemsMarshalled
-		casErr := p.c.Cas(item)
+		newConnections := append(pool.Connections, r.ConnectionID)
+		marshalled, _ := json.Marshal(newConnections)
+		pool.Item.Value = marshalled
+		casErr := p.c.Cas(pool.Item)
 
 		if casErr == nil {
 			break
@@ -147,8 +135,8 @@ func (p Pool) mapConnectionToPool(connectionID string, pool *pool, poolLimit int
 	}
 
 	setErr := p.c.Set(&memcache.Item{
-		Key:   connectionID,
-		Value: []byte(pool.ID),
+		Key:   r.ConnectionID,
+		Value: []byte(*poolID),
 	})
 
 	return setErr
