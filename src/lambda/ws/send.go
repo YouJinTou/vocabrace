@@ -13,10 +13,11 @@ import (
 func Send(context *events.APIGatewayWebsocketProxyRequestContext, message string) (events.APIGatewayProxyResponse, error) {
 	endpoint := fmt.Sprintf("https://%s", context.DomainName)
 	session := session.Must(session.NewSession(&aws.Config{
-		Region:   aws.String("eu-central-1"),
-		Endpoint: aws.String(endpoint),
+		Region: aws.String("eu-central-1"),
 	}))
-	apiClient := apigatewaymanagementapi.New(session)
+	apiClient := apigatewaymanagementapi.New(session, &aws.Config{
+		Endpoint: aws.String(endpoint),
+	})
 	connectionInput := apigatewaymanagementapi.PostToConnectionInput{
 		ConnectionId: aws.String(context.ConnectionID),
 		Data:         []byte(message),
@@ -24,7 +25,6 @@ func Send(context *events.APIGatewayWebsocketProxyRequestContext, message string
 	request, _ := apiClient.PostToConnectionRequest(&connectionInput)
 	postError := request.Send()
 
-	fmt.Println(postError)
 	if postError != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, postError
 	}
