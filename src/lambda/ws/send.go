@@ -10,11 +10,12 @@ import (
 )
 
 // Send sends a message to a connection ID.
-func Send(connectionID string, message string) (events.APIGatewayProxyResponse, error) {
+func Send(domain, stage, connectionID, message string) (events.APIGatewayProxyResponse, error) {
 	session := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String("eu-central-1"),
 	}))
-	apiClient := apigatewaymanagementapi.New(session)
+	endpoint := fmt.Sprintf("%s", domain)
+	apiClient := apigatewaymanagementapi.New(session, aws.NewConfig().WithRegion("eu-central-1").WithEndpointDiscovery(true).WithEndpoint(endpoint))
 	connectionInput := apigatewaymanagementapi.PostToConnectionInput{
 		ConnectionId: aws.String(connectionID),
 		Data:         []byte(message),
