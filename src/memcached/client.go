@@ -72,6 +72,11 @@ func (c Client) Delete(key string) error {
 	return c.bfc.Delete(key)
 }
 
+// Flush flushes the cache.
+func (c Client) Flush() error {
+	return c.bfc.FlushAll()
+}
+
 // ListAppend updates a key whose value is a list.
 func (c Client) ListAppend(key, toAdd string) error {
 	var err error = nil
