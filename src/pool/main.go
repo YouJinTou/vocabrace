@@ -28,6 +28,13 @@ func New(c *Config) Pool {
 	}
 }
 
+// Config holds configuration data.
+type Config struct {
+	MemcachedHost     string
+	MemcachedUsername string
+	MemcachedPassword string
+}
+
 // List lists all pools
 func (p Pool) List() {
 	item, err := p.c.Get("novice|pools")
