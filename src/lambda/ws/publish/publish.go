@@ -28,7 +28,6 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 		if _, sendErr := lambdaws.Send(c, "Testing."); sendErr != nil {
 			fmt.Println(sendErr.Error())
 		}
-		fmt.Printf("Sent to %s", c)
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
