@@ -35,6 +35,34 @@ type Config struct {
 	MemcachedPassword string
 }
 
+// GetPeers maps a connectionID to a pool and returns all peer connections.
+func (p Pool) GetPeers(connectionID string) ([]string, error) {
+	it, err := p.c.Get(connectionID)
+
+	if err != nil {
+		return nil, fmt.Errorf("not found for connection %s", connectionID)
+	}
+
+	poolID := string(it.Value)
+	getIt, getErr := p.c.Get(poolID)
+
+	if getErr != nil {
+		return nil, fmt.Errorf("not found for pool %s", poolID)
+	}
+
+	connectionIDs := []string{}
+	json.Unmarshal(getIt.Value, &connectionIDs)
+
+	for i, curr := range connectionIDs {
+		if curr == connectionID {
+			connectionIDs = append(connectionIDs[:i], connectionIDs[i+1:]...)
+			break
+		}
+	}
+
+	return connectionIDs, nil
+}
+
 // List lists all pools
 func (p Pool) List() {
 	item, err := p.c.Get("novice|pools")
