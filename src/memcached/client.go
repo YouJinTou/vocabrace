@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/memcachier/gomemcache/memcache"
 )
 
 // Client wraps the bradfitz's memcache.Client.
@@ -17,6 +17,16 @@ type Client struct {
 func New(server string) *Client {
 	return &Client{
 		bfc: memcache.New(server),
+	}
+}
+
+// NewAuth creates a client with credentials
+func NewAuth(server, username, password string) *Client {
+	client := memcache.New(server)
+	client.SetAuth(username, []byte(password))
+
+	return &Client{
+		bfc: client,
 	}
 }
 
