@@ -61,7 +61,7 @@ func (p Pool) getPoolBucket(userID *string) string {
 }
 
 func (p Pool) getAvailablePool(bucket string) *string {
-	time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+	p.minimizeRaceConditions()
 
 	item, err := p.c.Get(fmt.Sprintf("%s|currentAvailablePool", bucket))
 
@@ -72,6 +72,10 @@ func (p Pool) getAvailablePool(bucket string) *string {
 	poolID := string(item.Value)
 
 	return &poolID
+}
+
+func (p Pool) minimizeRaceConditions() {
+	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 }
 
 func (p Pool) getPool(poolID *string) *pool {
