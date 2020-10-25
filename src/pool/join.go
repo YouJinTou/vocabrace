@@ -26,11 +26,12 @@ type pool struct {
 
 // JoinOrCreate adds a user to an existing pool
 // (relative to their skill level), or creates a new one.
-func (p Pool) JoinOrCreate(r *Request) {
+func (p Pool) JoinOrCreate(r *Request) error {
+	var err error
 	bucket := p.getPoolBucket(&r.UserID)
 
-	for {
-		if err := p.mapConnectionToPool(bucket, r); err != nil {
+	for i := 0; i < 30; i++ {
+		if err = p.mapConnectionToPool(bucket, r); err != nil {
 			pool := p.newPool(bucket)
 
 			p.updateBucket(bucket, pool.ID)
@@ -38,6 +39,8 @@ func (p Pool) JoinOrCreate(r *Request) {
 			break
 		}
 	}
+
+	return err
 }
 
 func (p Pool) getPoolBucket(userID *string) string {
@@ -116,12 +119,8 @@ func (p Pool) mapConnectionToPool(bucket string, r *Request) error {
 		poolID = p.getAvailablePool(bucket)
 		pool := p.getPool(poolID)
 
-		if pool == nil {
-			return errors.New("no pool")
-		}
-
-		if len(pool.Connections) >= r.PoolLimit {
-			return errors.New("pool is full")
+		if pool == nil || len(pool.Connections) >= r.PoolLimit {
+			return errors.New("no suitable pool")
 		}
 
 		newConnections := append(pool.Connections, r.ConnectionID)
