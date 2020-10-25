@@ -2,22 +2,22 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
 
-	pool "github.com/YouJinTou/vocabrace/pooling"
+	"github.com/YouJinTou/vocabrace/pool"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/google/uuid"
+	"github.com/tkanos/gonfig"
 )
 
-// Item The DynamoDB item for the 'connections' table
-type Item struct {
-	ConnectionID string
-	Timestamp    int64
-}
-
 func handle(ctx context.Context, req events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	pool.JoinOrCreate(&pool.Request{
+	config := getConfig()
+	p := pool.New(config)
+	p.JoinOrCreate(&pool.Request{
 		ConnectionID: req.RequestContext.ConnectionID,
-		UserID:       "123",
+		UserID:       uuid.New().String(),
 		PoolLimit:    5})
 	// endpoint := fmt.Sprintf(
 	// 	"https://%s.execute-api.%s.amazonaws.com/%s",
@@ -42,4 +42,17 @@ func handle(ctx context.Context, req events.APIGatewayWebsocketProxyRequest) (ev
 
 func main() {
 	lambda.Start(handle)
+}
+
+func getConfig() *pool.Config {
+	config := pool.Config{}
+	stage := os.Getenv("STAGE")
+	file := fmt.Sprintf("config.%s.json", stage)
+	err := gonfig.GetConf(file, &config)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return &config
 }
