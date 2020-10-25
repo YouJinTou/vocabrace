@@ -15,3 +15,6 @@
 # vendor/
 
 .vscode
+
+config.*.json
+!config.sample.json

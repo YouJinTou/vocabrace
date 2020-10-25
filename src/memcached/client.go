@@ -13,15 +13,8 @@ type Client struct {
 	bfc *memcache.Client
 }
 
-// New creates a new client.
-func New(server string) *Client {
-	return &Client{
-		bfc: memcache.New(server),
-	}
-}
-
-// NewAuth creates a client with credentials
-func NewAuth(server, username, password string) *Client {
+// New creates a client with credentials
+func New(server, username, password string) *Client {
 	client := memcache.New(server)
 	client.SetAuth(username, []byte(password))
 

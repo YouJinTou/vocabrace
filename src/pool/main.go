@@ -22,9 +22,9 @@ type Pool struct {
 }
 
 // New creates a new pool.
-func New() Pool {
+func New(c *Config) Pool {
 	return Pool{
-		c: memcached.New("localhost:11211"),
+		c: memcached.New(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword),
 	}
 }
 
