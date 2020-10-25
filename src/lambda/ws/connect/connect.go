@@ -12,6 +12,10 @@ import (
 	"github.com/tkanos/gonfig"
 )
 
+func main() {
+	lambda.Start(handle)
+}
+
 func handle(ctx context.Context, req events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	config := getConfig()
 	p := pool.New(config)
@@ -38,10 +42,6 @@ func handle(ctx context.Context, req events.APIGatewayWebsocketProxyRequest) (ev
 	// }
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
-}
-
-func main() {
-	lambda.Start(handle)
 }
 
 func getConfig() *pool.Config {
