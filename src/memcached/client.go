@@ -62,6 +62,11 @@ func (c Client) Set(item *memcache.Item) error {
 	return err
 }
 
+// Delete removes a key.
+func (c Client) Delete(key string) error {
+	return c.bfc.Delete(key)
+}
+
 // ListAppend updates a key whose value is a list.
 func (c Client) ListAppend(key, toAdd string) error {
 	var err error = nil
@@ -99,6 +104,54 @@ func (c Client) ListAppend(key, toAdd string) error {
 		fmt.Println(fmt.Sprintf("Appended %s to %s", toAdd, key))
 	} else {
 		fmt.Println(fmt.Sprintf("Failed to CAS %s/%s", toAdd, key))
+	}
+
+	return err
+}
+
+// ListRemove updates a key whose value is a list.
+func (c Client) ListRemove(key, toRemove string) error {
+	var err error = nil
+
+	for i := 0; i < 1000; i++ {
+		item, getErr := c.bfc.Get(key)
+
+		if getErr != nil {
+			err = getErr
+
+			fmt.Println(fmt.Sprintf("Get miss: %s (lookup key), %s (addable).", key, toRemove))
+
+			continue
+		}
+
+		var items []string
+
+		json.Unmarshal(item.Value, &items)
+
+		for i, curr := range items {
+			if curr == toRemove {
+				items = append(items[:i], items[i+1:]...)
+				break
+			}
+		}
+
+		itemsMarshalled, _ := json.Marshal(items)
+		item.Value = itemsMarshalled
+		casErr := c.bfc.CompareAndSwap(item)
+
+		if casErr == nil {
+			err = nil
+
+			break
+		} else {
+			err = casErr
+		}
+	}
+
+	if err == nil {
+		fmt.Println(fmt.Sprintf("Removed %s from %s", toRemove, key))
+	} else {
+		fmt.Println(fmt.Sprintf("Failed to CAS %s/%s", toRemove, key))
 	}
 
 	return err
