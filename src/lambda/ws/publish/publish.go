@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	lambdaws "github.com/YouJinTou/vocabrace/lambda/ws"
 	"github.com/YouJinTou/vocabrace/pool"
@@ -24,7 +25,10 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 	}
 
 	for _, c := range connectionIDs {
-		lambdaws.Send(c, "Testing.")
+		if _, sendErr := lambdaws.Send(c, "Testing."); sendErr != nil {
+			fmt.Println(sendErr.Error())
+		}
+		fmt.Printf("Sent to %s", c)
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
