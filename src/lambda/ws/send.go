@@ -14,8 +14,9 @@ func Send(domain, stage, connectionID, message string) (events.APIGatewayProxyRe
 	session := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String("eu-central-1"),
 	}))
-	endpoint := fmt.Sprintf("%s", domain)
-	apiClient := apigatewaymanagementapi.New(session, aws.NewConfig().WithRegion("eu-central-1").WithEndpointDiscovery(true).WithEndpoint(endpoint))
+	endpoint := fmt.Sprintf("https://%s/%s/@connections/%s", domain, stage, connectionID)
+	apiClient := apigatewaymanagementapi.New(
+		session, aws.NewConfig().WithRegion("eu-central-1").WithEndpoint(endpoint))
 	connectionInput := apigatewaymanagementapi.PostToConnectionInput{
 		ConnectionId: aws.String(connectionID),
 		Data:         []byte(message),
@@ -25,6 +26,8 @@ func Send(domain, stage, connectionID, message string) (events.APIGatewayProxyRe
 	fmt.Println(output.String())
 
 	if err != nil {
+		fmt.Println(err.Error())
+
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
