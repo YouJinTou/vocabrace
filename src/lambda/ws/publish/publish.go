@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	lambdaws "github.com/YouJinTou/vocabrace/lambda/ws"
 	"github.com/YouJinTou/vocabrace/pool"
@@ -16,21 +17,31 @@ func main() {
 }
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	config := lambdaws.GetPoolConfig()
-	p := pool.New(config)
+	c := lambdaws.GetConfig()
+	p := pool.NewMemcached(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
 	connectionIDs, err := p.GetPeers(req.RequestContext.ConnectionID)
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
 
-	for _, c := range connectionIDs {
-		if _, sendErr := lambdaws.Send(req.RequestContext.DomainName, "qa", c, req.Body); sendErr != nil {
-			fmt.Println(sendErr.Error())
+	var wg sync.WaitGroup
 
-			return events.APIGatewayProxyResponse{StatusCode: 500, Body: sendErr.Error()}, nil
-		}
+	for _, cid := range connectionIDs {
+		wg.Add(1)
+
+		go send(&wg, req.RequestContext.DomainName, c.Stage, cid, req.Body)
 	}
 
+	wg.Wait()
+
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
+}
+
+func send(wg *sync.WaitGroup, domain, stage, connectionID, body string) {
+	defer wg.Done()
+
+	if _, err := lambdaws.Send(domain, stage, connectionID, body); err != nil {
+		fmt.Println(err.Error())
+	}
 }

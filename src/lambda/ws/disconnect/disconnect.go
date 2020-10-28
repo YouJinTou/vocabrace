@@ -15,8 +15,8 @@ func main() {
 }
 
 func handle(_ context.Context, req events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	config := lambdaws.GetPoolConfig()
-	p := pool.New(config)
+	c := lambdaws.GetConfig()
+	p := pool.NewMemcached(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
 	err := p.Leave(req.RequestContext.ConnectionID)
 
 	if err != nil {

@@ -16,13 +16,16 @@ func main() {
 }
 
 func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	config := lambdaws.GetPoolConfig()
-	p := pool.New(config)
-
-	p.JoinOrCreate(&pool.Request{
+	c := lambdaws.GetConfig()
+	p := pool.NewMemcached(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
+	err := p.JoinOrCreate(&pool.Request{
 		ConnectionID: req.RequestContext.ConnectionID,
 		UserID:       uuid.New().String(),
 		PoolLimit:    5})
+
+	if err != nil {
+		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
+	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }

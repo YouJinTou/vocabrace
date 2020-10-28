@@ -21,18 +21,11 @@ type Pool struct {
 	c *memcached.Client
 }
 
-// New creates a new pool.
-func New(c *Config) Pool {
+// NewMemcached creates a new pool using Memcached as a backend.
+func NewMemcached(host, username, password string) Pool {
 	return Pool{
-		c: memcached.New(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword),
+		c: memcached.New(host, username, password),
 	}
-}
-
-// Config holds configuration data.
-type Config struct {
-	MemcachedHost     string
-	MemcachedUsername string
-	MemcachedPassword string
 }
 
 // GetPeers maps a connectionID to a pool and returns all peer connections.
