@@ -9,12 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 )
 
-// Payload is the payload to post to a connection
-type Payload struct {
-	Action string `json:"action"`
-	Data   string `json:"data"`
-}
-
 // Send sends a message to a connection ID.
 func Send(domain, stage, connectionID, message string) (events.APIGatewayProxyResponse, error) {
 	session := session.Must(session.NewSession())
