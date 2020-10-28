@@ -9,21 +9,22 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 )
 
+// Payload is the payload to post to a connection
+type Payload struct {
+	Action string `json:"action"`
+	Data   string `json:"data"`
+}
+
 // Send sends a message to a connection ID.
 func Send(domain, stage, connectionID, message string) (events.APIGatewayProxyResponse, error) {
-	session := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("eu-central-1"),
-	}))
-	endpoint := fmt.Sprintf("https://%s/%s/@connections/%s", domain, stage, connectionID)
-	apiClient := apigatewaymanagementapi.New(
-		session, aws.NewConfig().WithRegion("eu-central-1").WithEndpoint(endpoint))
+	session := session.Must(session.NewSession())
+	endpoint := fmt.Sprintf("https://%s/%s/", domain, stage)
+	apiClient := apigatewaymanagementapi.New(session, aws.NewConfig().WithEndpoint(endpoint))
 	connectionInput := apigatewaymanagementapi.PostToConnectionInput{
 		ConnectionId: aws.String(connectionID),
 		Data:         []byte(message),
 	}
-	output, err := apiClient.PostToConnection(&connectionInput)
-
-	fmt.Println(output.String())
+	_, err := apiClient.PostToConnection(&connectionInput)
 
 	if err != nil {
 		fmt.Println(err.Error())
