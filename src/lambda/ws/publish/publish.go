@@ -27,6 +27,8 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 	for _, c := range connectionIDs {
 		if _, sendErr := lambdaws.Send(req.RequestContext.DomainName, "qa", c, "Testing."); sendErr != nil {
 			fmt.Println(sendErr.Error())
+
+			return events.APIGatewayProxyResponse{StatusCode: 500, Body: sendErr.Error()}, nil
 		}
 	}
 
