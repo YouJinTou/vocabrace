@@ -9,14 +9,22 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 )
 
+// Message is used in Send().
+type Message struct {
+	Domain       string
+	Stage        string
+	ConnectionID string
+	Message      string
+}
+
 // Send sends a message to a connection ID.
-func Send(domain, stage, connectionID, message string) (events.APIGatewayProxyResponse, error) {
+func Send(m *Message) (events.APIGatewayProxyResponse, error) {
 	session := session.Must(session.NewSession())
-	endpoint := fmt.Sprintf("https://%s/%s/", domain, stage)
+	endpoint := fmt.Sprintf("https://%s/%s/", m.Domain, m.Stage)
 	apiClient := apigatewaymanagementapi.New(session, aws.NewConfig().WithEndpoint(endpoint))
 	connectionInput := apigatewaymanagementapi.PostToConnectionInput{
-		ConnectionId: aws.String(connectionID),
-		Data:         []byte(message),
+		ConnectionId: aws.String(m.ConnectionID),
+		Data:         []byte(m.Message),
 	}
 	_, err := apiClient.PostToConnection(&connectionInput)
 

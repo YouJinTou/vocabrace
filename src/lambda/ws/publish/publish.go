@@ -41,7 +41,14 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 func send(wg *sync.WaitGroup, domain, stage, connectionID, body string) {
 	defer wg.Done()
 
-	if _, err := lambdaws.Send(domain, stage, connectionID, body); err != nil {
+	m := lambdaws.Message{
+		Domain:       domain,
+		Stage:        stage,
+		ConnectionID: connectionID,
+		Message:      body,
+	}
+
+	if _, err := lambdaws.Send(&m); err != nil {
 		fmt.Println(err.Error())
 	}
 }

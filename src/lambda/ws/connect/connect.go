@@ -27,5 +27,12 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
 
+	lambdaws.Send(&lambdaws.Message{
+		Domain:       req.RequestContext.DomainName,
+		Stage:        c.Stage,
+		ConnectionID: req.RequestContext.ConnectionID,
+		Message:      "User connected.",
+	})
+
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
