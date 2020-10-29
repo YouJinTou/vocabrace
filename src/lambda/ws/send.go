@@ -2,8 +2,8 @@ package lambdaws
 
 import (
 	"fmt"
+	"sync"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
@@ -18,7 +18,7 @@ type Message struct {
 }
 
 // Send sends a message to a connection ID.
-func Send(m *Message) (events.APIGatewayProxyResponse, error) {
+func Send(m *Message) error {
 	session := session.Must(session.NewSession())
 	endpoint := fmt.Sprintf("https://%s/%s/", m.Domain, m.Stage)
 	apiClient := apigatewaymanagementapi.New(session, aws.NewConfig().WithEndpoint(endpoint))
@@ -31,8 +31,29 @@ func Send(m *Message) (events.APIGatewayProxyResponse, error) {
 	if err != nil {
 		fmt.Println(err.Error())
 
-		return events.APIGatewayProxyResponse{StatusCode: 500}, err
+		return err
 	}
 
-	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
+	return nil
+}
+
+// SendToPeers sends a message to all peers.
+func SendToPeers(connectionIDs []string, m Message) {
+	var wg sync.WaitGroup
+
+	for _, cid := range connectionIDs {
+		wg.Add(1)
+
+		m.ConnectionID = cid
+
+		go send(&wg, &m)
+	}
+
+	wg.Wait()
+}
+
+func send(wg *sync.WaitGroup, m *Message) {
+	defer wg.Done()
+
+	Send(m)
 }

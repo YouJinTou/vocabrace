@@ -1,21 +1,22 @@
 package pooling
 
 // Leave removes a connection from a given pool.
-func (c Context) Leave(connectionID string) error {
+func (c Context) Leave(connectionID string) (*Pool, error) {
 	item, err := c.mc.Get(connectionID)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	poolID := string(item.Value)
-	removeErr := c.mc.ListRemove(poolID, connectionID)
+	_, removeErr := c.mc.ListRemove(poolID, connectionID)
 
 	if removeErr != nil {
-		return removeErr
+		return nil, removeErr
 	}
 
 	deleteErr := c.mc.Delete(connectionID)
+	pool, _ := c.getPool(&poolID)
 
-	return deleteErr
+	return pool, deleteErr
 }

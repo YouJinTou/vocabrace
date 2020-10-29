@@ -125,7 +125,8 @@ func (c Client) ListAppend(key, toAdd string) error {
 }
 
 // ListRemove updates a key whose value is a list.
-func (c Client) ListRemove(key, toRemove string) error {
+func (c Client) ListRemove(key, toRemove string) ([]string, error) {
+	var items []string = []string{}
 	var err error = nil
 
 	for i := 0; i < 1000; i++ {
@@ -138,8 +139,6 @@ func (c Client) ListRemove(key, toRemove string) error {
 
 			continue
 		}
-
-		var items []string
 
 		json.Unmarshal(item.Value, &items)
 
@@ -163,5 +162,5 @@ func (c Client) ListRemove(key, toRemove string) error {
 		fmt.Println(fmt.Sprintf("Failed to CAS %s/%s", toRemove, key))
 	}
 
-	return err
+	return items, err
 }

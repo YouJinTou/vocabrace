@@ -28,5 +28,17 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
 
+	peers, peersErr := con.GetPeers(req.RequestContext.ConnectionID)
+
+	if peersErr != nil {
+		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
+	}
+
+	lambdaws.SendToPeers(peers, lambdaws.Message{
+		Domain:  req.RequestContext.DomainName,
+		Stage:   c.Stage,
+		Message: "Just connected.",
+	})
+
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
