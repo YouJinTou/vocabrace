@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 
+	"github.com/YouJinTou/vocabrace/pooling"
+
 	lambdaws "github.com/YouJinTou/vocabrace/lambda/ws"
 
-	"github.com/YouJinTou/vocabrace/pool"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
@@ -17,8 +18,8 @@ func main() {
 
 func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	c := lambdaws.GetConfig()
-	p := pool.NewMemcached(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
-	err := p.JoinOrCreate(&pool.Request{
+	con := pooling.NewMemcachedContext(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
+	_, err := con.JoinOrCreate(&pooling.Request{
 		ConnectionID: req.RequestContext.ConnectionID,
 		UserID:       uuid.New().String(),
 		PoolLimit:    5})
@@ -26,13 +27,6 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
-
-	lambdaws.Send(&lambdaws.Message{
-		Domain:       req.RequestContext.DomainName,
-		Stage:        c.Stage,
-		ConnectionID: req.RequestContext.ConnectionID,
-		Message:      "User connected.",
-	})
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/YouJinTou/vocabrace/core"
+
 	"github.com/memcachier/gomemcache/memcache"
 )
 
@@ -141,13 +143,7 @@ func (c Client) ListRemove(key, toRemove string) error {
 
 		json.Unmarshal(item.Value, &items)
 
-		for i, curr := range items {
-			if curr == toRemove {
-				items = append(items[:i], items[i+1:]...)
-				break
-			}
-		}
-
+		items = core.SliceRemoveString(items, toRemove)
 		itemsMarshalled, _ := json.Marshal(items)
 		item.Value = itemsMarshalled
 		casErr := c.bfc.CompareAndSwap(item)

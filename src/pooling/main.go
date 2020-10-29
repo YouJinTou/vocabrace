@@ -1,8 +1,10 @@
-package pool
+package pooling
 
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/YouJinTou/vocabrace/core"
 
 	"github.com/YouJinTou/vocabrace/memcached"
 )
@@ -16,49 +18,51 @@ const _Advanced = "advanced"
 const _Expert = "expert"
 const _Godlike = "godlike"
 
-// Pool handles adding and removing connections from pools.
-type Pool struct {
-	c *memcached.Client
+// Context handles adding and removing connections from pools.
+type Context struct {
+	mc *memcached.Client
 }
 
-// NewMemcached creates a new pool using Memcached as a backend.
-func NewMemcached(host, username, password string) Pool {
-	return Pool{
-		c: memcached.New(host, username, password),
+// Pool carries pool data.
+type Pool struct {
+	ID            string
+	ConnectionIDs []string
+}
+
+// NewMemcachedContext creates a new context using Memcached as a backend.
+func NewMemcachedContext(host, username, password string) Context {
+	return Context{
+		mc: memcached.New(host, username, password),
 	}
 }
 
 // GetPeers maps a connectionID to a pool and returns all peer connections.
-func (p Pool) GetPeers(connectionID string) ([]string, error) {
-	it, err := p.c.Get(connectionID)
+func (c Context) GetPeers(connectionID string) ([]string, error) {
+	it, err := c.mc.Get(connectionID)
 
 	if err != nil {
 		return nil, fmt.Errorf("not found for connection %s", connectionID)
 	}
 
 	poolID := string(it.Value)
-	getIt, getErr := p.c.Get(poolID)
+	getIt, getErr := c.mc.Get(poolID)
 
 	if getErr != nil {
 		return nil, fmt.Errorf("not found for pool %s", poolID)
 	}
 
 	connectionIDs := []string{}
+
 	json.Unmarshal(getIt.Value, &connectionIDs)
 
-	for i, curr := range connectionIDs {
-		if curr == connectionID {
-			connectionIDs = append(connectionIDs[:i], connectionIDs[i+1:]...)
-			break
-		}
-	}
+	connectionIDs = core.SliceRemoveString(connectionIDs, connectionID)
 
 	return connectionIDs, nil
 }
 
 // List lists all pools
-func (p Pool) List() {
-	item, err := p.c.Get("novice|pools")
+func (c Context) List() {
+	item, err := c.mc.Get("novice|pools")
 
 	if err != nil {
 		return
@@ -70,7 +74,7 @@ func (p Pool) List() {
 	fmt.Println(fmt.Sprintf("Total pools: %d", len(pools)))
 
 	for _, curr := range pools {
-		item, _ := p.c.Get(curr)
+		item, _ := c.mc.Get(curr)
 
 		connections := []string{}
 		json.Unmarshal(item.Value, &connections)
