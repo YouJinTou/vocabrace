@@ -1,4 +1,4 @@
-package core
+package tools
 
 // SliceRemoveString removes a target string.
 func SliceRemoveString(strings []string, key string) []string {

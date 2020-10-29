@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/YouJinTou/vocabrace/core"
+	"github.com/YouJinTou/vocabrace/tools"
 
 	"github.com/YouJinTou/vocabrace/memcached"
 )
@@ -55,7 +55,7 @@ func (c Context) GetPeers(connectionID string) ([]string, error) {
 
 	json.Unmarshal(getIt.Value, &connectionIDs)
 
-	connectionIDs = core.SliceRemoveString(connectionIDs, connectionID)
+	connectionIDs = tools.SliceRemoveString(connectionIDs, connectionID)
 
 	return connectionIDs, nil
 }
