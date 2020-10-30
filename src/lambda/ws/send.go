@@ -46,14 +46,14 @@ func SendToPeers(connectionIDs []string, m Message) {
 
 		m.ConnectionID = cid
 
-		go send(&wg, &m)
+		go send(&wg, m)
 	}
 
 	wg.Wait()
 }
 
-func send(wg *sync.WaitGroup, m *Message) {
+func send(wg *sync.WaitGroup, m Message) {
 	defer wg.Done()
 
-	Send(m)
+	Send(&m)
 }
