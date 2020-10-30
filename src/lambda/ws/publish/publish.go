@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	lambdaws "github.com/YouJinTou/vocabrace/lambda/ws"
+	"github.com/YouJinTou/vocabrace/lambda/ws"
 	"github.com/YouJinTou/vocabrace/pooling"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -15,7 +15,7 @@ func main() {
 }
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	c := lambdaws.GetConfig()
+	c := ws.GetConfig()
 	con := pooling.NewMemcachedContext(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
 	connectionIDs, err := con.GetPeers(req.RequestContext.ConnectionID)
 
@@ -23,7 +23,7 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
 
-	lambdaws.SendToPeers(connectionIDs, lambdaws.Message{
+	ws.SendToPeers(connectionIDs, ws.Message{
 		Domain:  req.RequestContext.DomainName,
 		Stage:   c.Stage,
 		Message: req.Body,

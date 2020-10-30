@@ -1,4 +1,4 @@
-package lambdaws
+package ws
 
 import (
 	"fmt"

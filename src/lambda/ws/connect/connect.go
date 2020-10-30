@@ -5,7 +5,7 @@ import (
 
 	"github.com/YouJinTou/vocabrace/pooling"
 
-	lambdaws "github.com/YouJinTou/vocabrace/lambda/ws"
+	"github.com/YouJinTou/vocabrace/lambda/ws"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -17,7 +17,7 @@ func main() {
 }
 
 func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	c := lambdaws.GetConfig()
+	c := ws.GetConfig()
 	con := pooling.NewMemcachedContext(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
 	_, err := con.JoinOrCreate(&pooling.Request{
 		ConnectionID: req.RequestContext.ConnectionID,
@@ -34,7 +34,7 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
 
-	lambdaws.SendToPeers(peers, lambdaws.Message{
+	ws.SendToPeers(peers, ws.Message{
 		Domain:  req.RequestContext.DomainName,
 		Stage:   c.Stage,
 		Message: "Just connected.",
