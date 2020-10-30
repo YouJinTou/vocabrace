@@ -22,7 +22,7 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	_, err := con.JoinOrCreate(&pooling.Request{
 		ConnectionID: req.RequestContext.ConnectionID,
 		UserID:       uuid.New().String(),
-		PoolLimit:    5})
+		PoolLimit:    3})
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
