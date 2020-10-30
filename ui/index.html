@@ -1,11 +1,14 @@
 <html>
+    <div class="race-box"></div>
     <script>
-        const ws = new WebSocket('ws://localhost:8080/race');
-        
+        const ws = new WebSocket('wss://fw1obe5rth.execute-api.eu-central-1.amazonaws.com/qa');
+
         ws.onopen = (event) => {
             console.log(event);
-            
-            ws.send('Hi from the CLIENT!!');
+        }
+
+        ws.onclose = (event) => {
+            console.log(event);
         }
 
         ws.onerror = (error) => {
@@ -13,7 +16,7 @@
         }
 
         ws.onmessage = (message) => {
-            console.log(message);
+            document.getElementsByClassName('race-box')[0].appendChild(document.createTextNode(message.data))
         }
     </script>
 </html>
