@@ -1,6 +1,6 @@
 set -e
 
-STAGE=${1:-qa}
+STAGE=${1:-dev}
 
 echo Deploying to $STAGE
 
