@@ -1,16 +1,3 @@
-
-resource "null_resource" "disconnect" {
-  provisioner "local-exec" {
-    command = "go build -o disconnect disconnect.go && build-lambda-zip -output ../../../../tf/modules/pooling/disconnect.zip disconnect ../config.${var.stage}.json"
-    working_dir = "../../src/lambda/pooling/disconnect"
-    environment = {
-      GOOS = "linux"
-      GOARCH = "amd64"
-      CGO_ENABLED = "0"
-    }
-  }
-}
-
 module "disconnect" {
   source = "../lambda"
   aws_region = var.aws_region

@@ -1,15 +1,3 @@
-resource "null_resource" "connect" {
-  provisioner "local-exec" {
-    command = "go build -o connect connect.go && build-lambda-zip -output ../../../../tf/modules/pooling/connect.zip connect ../config.${var.stage}.json"
-    working_dir = "../../src/lambda/pooling/connect"
-    environment = {
-      GOOS = "linux"
-      GOARCH = "amd64"
-      CGO_ENABLED = "0"
-    }
-  }
-}
-
 module "connect" {
   source = "../lambda"
   aws_region = var.aws_region
@@ -23,7 +11,6 @@ module "connect" {
   function_can_invoke_api_gateway = true
   api_gateway_can_invoke_function = true
   api_gateway_source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/$connect"
-  depends_on = [null_resource.connect]
 }
 
 resource "aws_apigatewayv2_route" "connect" {
