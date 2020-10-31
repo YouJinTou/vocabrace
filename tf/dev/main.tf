@@ -16,7 +16,17 @@ locals {
   stage = "dev"
 }
 
+resource "null_resource" "remove_builds" {
+  triggers = {
+    always_run = timestamp()
+  }
+  provisioner "local-exec" {
+    command = "rm -rf builds"
+  }
+}
+
 module "pooling" {
   source = "../modules/pooling"
   stage = local.stage
+  depends_on = [null_resource.remove_builds]
 }
