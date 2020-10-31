@@ -1,4 +1,3 @@
-
 resource "null_resource" "connect" {
   provisioner "local-exec" {
     command = "go build -o connect connect.go && build-lambda-zip -output ../../../../tf/modules/pooling/connect.zip connect ../config.${var.stage}.json"
@@ -12,33 +11,18 @@ resource "null_resource" "connect" {
 }
 
 module "connect" {
-  source = "terraform-aws-modules/lambda/aws"
+  source = "../lambda"
+  aws_region = var.aws_region
+  aws_account_id = var.aws_account_id
+  filename = "./connect.zip"
   function_name = "${var.stage}_connect"
-  description   = "Invoked by the API Gateway Websocket runtime when a client connects."
-  handler       = "connect"
-  runtime       = "go1.x"
-  source_path = [
-    {
-      path = "${path.module}/connect.zip"
-      pip_requirements = false
-    }
-  ]
-  attach_cloudwatch_logs_policy = false
-  attach_policy = true
-  policy = aws_iam_policy.pooling.arn
-  create_current_version_allowed_triggers = false
-  allowed_triggers = {
-    APIGatewayPoolingConnect = {
-      service = "apigateway"
-      source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/$connect"
-    }
-  }
+  handler = "connect"
   environment_variables = {
-    STAGE = var.stage
+    STAGE: var.stage
   }
-  tags = {
-    stage = var.stage
-  }
+  function_can_invoke_api_gateway = true
+  api_gateway_can_invoke_function = true
+  api_gateway_source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/$connect"
   depends_on = [null_resource.connect]
 }
 

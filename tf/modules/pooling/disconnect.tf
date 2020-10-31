@@ -12,33 +12,18 @@ resource "null_resource" "disconnect" {
 }
 
 module "disconnect" {
-  source = "terraform-aws-modules/lambda/aws"
+  source = "../lambda"
+  aws_region = var.aws_region
+  aws_account_id = var.aws_account_id
+  filename = "./disconnect.zip"
   function_name = "${var.stage}_disconnect"
-  description   = "Invoked by the API Gateway Websocket runtime when a client disconnects."
-  handler       = "disconnect"
-  runtime       = "go1.x"
-  source_path = [
-    {
-      path = "${path.module}/disconnect.zip"
-      pip_requirements = false
-    }
-  ]
-  attach_policy = true
-  policy = aws_iam_policy.pooling.arn
-  create_current_version_allowed_triggers = false
-  allowed_triggers = {
-    APIGatewayPoolingConnect = {
-      service = "apigateway"
-      source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/$disconnect"
-    }
-  }
+  handler = "disconnect"
   environment_variables = {
-    STAGE = var.stage
+    STAGE: var.stage
   }
-  tags = {
-    stage = var.stage
-  }
-  depends_on = [null_resource.disconnect]
+  function_can_invoke_api_gateway = true
+  api_gateway_can_invoke_function = true
+  api_gateway_source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/$disconnect"
 }
 
 resource "aws_apigatewayv2_route" "disconnect" {

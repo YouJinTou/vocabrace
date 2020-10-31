@@ -12,18 +12,7 @@ resource "aws_apigatewayv2_stage" "pooling" {
 resource "aws_apigatewayv2_deployment" "pooling" {
   api_id      = aws_apigatewayv2_api.pooling.id
   description = "Terraform deployment"
-
-  triggers = {
-    redeployment = sha1(join(",", list(
-      jsonencode(aws_apigatewayv2_integration.connect),
-      jsonencode(aws_apigatewayv2_route.connect),
-      jsonencode(aws_apigatewayv2_integration.disconnect),
-      jsonencode(aws_apigatewayv2_route.disconnect),
-      jsonencode(aws_apigatewayv2_integration.publish),
-      jsonencode(aws_apigatewayv2_route.publish),
-    )))
-  }
-
+  depends_on = [module.connect, module.disconnect, module.publish]
   lifecycle {
     create_before_destroy = true
   }

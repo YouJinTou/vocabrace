@@ -11,32 +11,18 @@ resource "null_resource" "publish" {
 }
 
 module "publish" {
-  source = "terraform-aws-modules/lambda/aws"
+  source = "../lambda"
+  aws_region = var.aws_region
+  aws_account_id = var.aws_account_id
+  filename = "./publish.zip"
   function_name = "${var.stage}_publish"
-  description   = "Invoked by the API Gateway Websocket runtime when a client publishes a message."
-  handler       = "publish"
-  runtime       = "go1.x"
-  source_path = [
-    {
-      path = "${path.module}/publish.zip"
-      pip_requirements = false
-    }
-  ]
-  attach_policy = true
-  policy = aws_iam_policy.pooling.arn
-  create_current_version_allowed_triggers = false
-  allowed_triggers = {
-    APIGatewayPoolingConnect = {
-      service = "apigateway"
-      source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/$publish"
-    }
-  }
+  handler = "publish"
   environment_variables = {
-    STAGE = var.stage
+    STAGE: var.stage
   }
-  tags = {
-    stage = var.stage
-  }
+  function_can_invoke_api_gateway = true
+  api_gateway_can_invoke_function = true
+  api_gateway_source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/publish"
   depends_on = [null_resource.publish]
 }
 
