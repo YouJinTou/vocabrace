@@ -23,6 +23,16 @@ module "connect" {
       pip_requirements = false
     }
   ]
+  attach_cloudwatch_logs_policy = false
+  attach_policy = true
+  policy = aws_iam_policy.pooling.arn
+  create_current_version_allowed_triggers = false
+  allowed_triggers = {
+    APIGatewayPoolingConnect = {
+      service = "apigateway"
+      source_arn = "${aws_apigatewayv2_api.pooling.execution_arn}/*/$connect"
+    }
+  }
   environment_variables = {
     STAGE = var.stage
   }
