@@ -1,5 +1,9 @@
 <html>
-    <div class="race-box"></div>
+    <input class="message-box" type="text" placeholder="Send a message" />
+    <button onclick="sendMessage()">Send</button>
+
+    <div class="chat-box"></div>
+
     <script>
         const ws = new WebSocket('wss://wy7fwv1dl0.execute-api.eu-central-1.amazonaws.com/dev');
 
@@ -16,7 +20,36 @@
         }
 
         ws.onmessage = (message) => {
-            document.getElementsByClassName('race-box')[0].appendChild(document.createTextNode(message.data))
+            let text = JSON.parse(message.data)['data']
+            
+            attachToChat(text);
+        }
+
+        function sendMessage() {
+            let messageBox = document.getElementsByClassName('message-box')[0];
+
+            if (!messageBox.value) {
+                return;
+            }
+
+            let message = {
+                'action': 'publish',
+                'data': messageBox.value
+            };
+
+            ws.send(JSON.stringify(message));
+
+            attachToChat(messageBox.value);
+
+            messageBox.value = '';
+        }
+
+        function attachToChat(message) {
+            let newLine = document.createElement('div');
+            newLine.innerHTML += message;
+            let chatBox = document.getElementsByClassName('chat-box')[0];
+            
+            chatBox.appendChild(newLine);
         }
     </script>
 </html>
