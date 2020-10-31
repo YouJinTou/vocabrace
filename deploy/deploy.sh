@@ -4,7 +4,7 @@ STAGE=${1:-dev}
 
 echo Deploying to $STAGE
 
-cd ../src/lambda/ws/connect
+cd ../src/lambda/pooling/connect
 . deploy.sh $STAGE
 cd ../disconnect
 . deploy.sh $STAGE

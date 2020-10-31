@@ -16,7 +16,7 @@ locals {
   stage = "dev"
 }
 
-module "ws" {
-  source = "../modules/ws"
+module "pooling" {
+  source = "../modules/pooling"
   stage = local.stage
 }
