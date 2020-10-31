@@ -23,5 +23,4 @@ module "pooling" {
   stage = local.stage
   aws_account_id = data.aws_caller_identity.current.account_id
   aws_region = var.aws_region
-  depends_on = [null_resource.remove_builds]
 }
