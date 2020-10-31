@@ -6,7 +6,7 @@ resource "aws_apigatewayv2_api" "pooling" {
 
 resource "aws_apigatewayv2_stage" "pooling" {
   api_id = aws_apigatewayv2_api.pooling.id
-  name   = "v1"
+  name   = var.stage
 }
 
 resource "aws_apigatewayv2_deployment" "pooling" {
