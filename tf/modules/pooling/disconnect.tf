@@ -2,7 +2,7 @@ module "disconnect" {
   source = "../lambda"
   aws_region = var.aws_region
   aws_account_id = var.aws_account_id
-  filename = "./disconnect.zip"
+  filename = "../payloads/disconnect.zip"
   function_name = "${var.stage}_disconnect"
   handler = "disconnect"
   environment_variables = {

@@ -2,7 +2,7 @@ module "publish" {
   source = "../lambda"
   aws_region = var.aws_region
   aws_account_id = var.aws_account_id
-  filename = "./publish.zip"
+  filename = "../payloads/publish.zip"
   function_name = "${var.stage}_publish"
   handler = "publish"
   environment_variables = {
