@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/YouJinTou/vocabrace/lambda/ws"
+	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
 	"github.com/YouJinTou/vocabrace/pooling"
 
 	"github.com/aws/aws-lambda-go/events"
