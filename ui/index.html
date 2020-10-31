@@ -1,55 +1,56 @@
 <html>
-    <input class="message-box" type="text" placeholder="Send a message" />
-    <button onclick="sendMessage()">Send</button>
+<input class="message-box" type="text" placeholder="Send a message" />
+<button onclick="sendMessage()">Send</button>
 
-    <div class="chat-box"></div>
+<div class="chat-box"></div>
 
-    <script>
-        const ws = new WebSocket('wss://wy7fwv1dl0.execute-api.eu-central-1.amazonaws.com/dev');
+<script>
+    const ws = new WebSocket('wss://wy7fwv1dl0.execute-api.eu-central-1.amazonaws.com/dev');
 
-        ws.onopen = (event) => {
-            console.log(event);
+    ws.onopen = (event) => {
+        console.log(event);
+    }
+
+    ws.onclose = (event) => {
+        console.log(event);
+    }
+
+    ws.onerror = (error) => {
+        console.log(error);
+    }
+
+    ws.onmessage = (message) => {
+        let text = JSON.parse(message.data)['data']
+
+        attachToChat(text);
+    }
+
+    function sendMessage() {
+        let messageBox = document.getElementsByClassName('message-box')[0];
+
+        if (!messageBox.value) {
+            return;
         }
 
-        ws.onclose = (event) => {
-            console.log(event);
-        }
+        let message = {
+            'action': 'publish',
+            'data': messageBox.value
+        };
 
-        ws.onerror = (error) => {
-            console.log(error);
-        }
+        ws.send(JSON.stringify(message));
 
-        ws.onmessage = (message) => {
-            let text = JSON.parse(message.data)['data']
-            
-            attachToChat(text);
-        }
+        attachToChat(messageBox.value);
 
-        function sendMessage() {
-            let messageBox = document.getElementsByClassName('message-box')[0];
+        messageBox.value = '';
+    }
 
-            if (!messageBox.value) {
-                return;
-            }
+    function attachToChat(message) {
+        let newLine = document.createElement('div');
+        newLine.innerHTML += message;
+        let chatBox = document.getElementsByClassName('chat-box')[0];
 
-            let message = {
-                'action': 'publish',
-                'data': messageBox.value
-            };
+        chatBox.appendChild(newLine);
+    }
+</script>
 
-            ws.send(JSON.stringify(message));
-
-            attachToChat(messageBox.value);
-
-            messageBox.value = '';
-        }
-
-        function attachToChat(message) {
-            let newLine = document.createElement('div');
-            newLine.innerHTML += message;
-            let chatBox = document.getElementsByClassName('chat-box')[0];
-            
-            chatBox.appendChild(newLine);
-        }
-    </script>
 </html>
