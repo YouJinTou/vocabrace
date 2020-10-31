@@ -19,3 +19,5 @@ mv publish.zip ../../../../tf/dev
 cd ../../../../tf/$1
 
 terraform apply
+
+cd ..
