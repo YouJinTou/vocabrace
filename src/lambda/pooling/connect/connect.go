@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -41,7 +42,7 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
 
-	notifyConductor(p, c)
+	notifyConductor(p, c, req.RequestContext.DomainName)
 
 	ws.SendToPeers(peers, ws.Message{
 		Domain:  req.RequestContext.DomainName,
@@ -52,12 +53,16 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
 
-func notifyConductor(p *pooling.Pool, c *ws.Config) {
+func notifyConductor(p *pooling.Pool, c *ws.Config, domain string) {
 	sess := session.Must(session.NewSession())
 	svc := sqs.New(sess)
 	queueName := fmt.Sprintf("%s_conductor", c.Stage)
+	marshalled, _ := json.Marshal(ws.PoolPayload{
+		Domain: domain,
+		PoolID: p.ID,
+	})
 	svc.SendMessage(&sqs.SendMessageInput{
 		QueueUrl:    aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
-		MessageBody: aws.String(p.ID),
+		MessageBody: aws.String(string(marshalled)),
 	})
 }

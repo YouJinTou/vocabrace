@@ -17,6 +17,12 @@ type Message struct {
 	Message      string
 }
 
+// PoolPayload encapsulated data needed to push a message to a pool of connections.
+type PoolPayload struct {
+	Domain string
+	PoolID string
+}
+
 // Send sends a message to a connection ID.
 func Send(m *Message) error {
 	session := session.Must(session.NewSession())

@@ -11,12 +11,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// ConductorPayload encapsulated data needed to push a message to a pool of connections.
-type ConductorPayload struct {
-	Domain string
-	PoolID string
-}
-
 func main() {
 	lambda.Start(handle)
 }
@@ -26,14 +20,14 @@ func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 	con := pooling.NewMemcachedContext(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
 
 	for _, message := range sqsEvent.Records {
-		payload := ConductorPayload{}
+		payload := ws.PoolPayload{}
 
 		json.Unmarshal([]byte(message.Body), &payload)
 
 		pool, err := con.GetPool(payload.PoolID)
 
 		if err != nil {
-			fmt.Println("Pool not found.")
+			fmt.Println(fmt.Sprintf("Pool %s not found.", payload.PoolID))
 
 			continue
 		}
