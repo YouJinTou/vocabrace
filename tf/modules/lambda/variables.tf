@@ -37,3 +37,13 @@ variable api_gateway_source_arn {
     type = string
     default = ""
 }
+
+variable sqs_can_invoke_function {
+    type = bool
+    default = false
+}
+
+variable sqs_source_arn {
+    type = string
+    default = ""
+}

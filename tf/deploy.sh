@@ -1,23 +1,32 @@
-cd ../src/lambda/pooling/connect
+tf_root=$PWD
+lambda_root="$tf_root""/../src/lambda"
+
+cd $lambda_root/conductor
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o conductor conductor.go
+build-lambda-zip -output conductor.zip conductor config.$1.json
+rm conductor
+mv conductor.zip $tf_root/payloads
+
+cd $lambda_root/pooling/connect
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o connect connect.go
 build-lambda-zip -output connect.zip connect ../config.$1.json
 rm connect
-mv connect.zip ../../../../tf/payloads
+mv connect.zip $tf_root/payloads
 
-cd ../disconnect
+cd $lambda_root/pooling/disconnect
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o disconnect disconnect.go
 build-lambda-zip -output disconnect.zip disconnect ../config.$1.json
 rm disconnect
-mv disconnect.zip ../../../../tf/payloads
+mv disconnect.zip $tf_root/payloads
 
-cd ../publish
+cd $lambda_root/pooling/publish
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o publish publish.go
 build-lambda-zip -output publish.zip publish ../config.$1.json
 rm publish
-mv publish.zip ../../../../tf/payloads
+mv publish.zip $tf_root/payloads
 
-cd ../../../../tf/$1
+cd $tf_root/$1
 
 terraform apply -auto-approve
 
-cd ..
+cd $tf_root

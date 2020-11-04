@@ -74,3 +74,17 @@ resource "aws_lambda_permission" "api_gateway_permission" {
   principal     = "apigateway.amazonaws.com"
   source_arn = var.api_gateway_source_arn
 }
+
+resource "aws_lambda_event_source_mapping" "sqs" {
+  count = var.sqs_can_invoke_function ? 1 : 0
+  batch_size        = 10
+  event_source_arn  = var.sqs_source_arn
+  function_name     = aws_lambda_function.function.function_name
+  depends_on = [aws_lambda_function.function]
+}
+
+resource "aws_iam_role_policy_attachment" "sqs" {
+  count = var.sqs_can_invoke_function ? 1 : 0
+  role       = aws_iam_role.role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+}
