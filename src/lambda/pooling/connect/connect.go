@@ -61,6 +61,7 @@ func notifyConductor(p *pooling.Pool, c *ws.Config, domain string) {
 		Domain: domain,
 		PoolID: p.ID,
 	})
+
 	svc.SendMessage(&sqs.SendMessageInput{
 		QueueUrl:    aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
 		MessageBody: aws.String(string(marshalled)),
