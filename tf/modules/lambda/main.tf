@@ -54,6 +54,12 @@ resource "aws_iam_role_policy_attachment" "api_gateway" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "administrator" {
+  count = var.is_administrator ? 1 : 0
+  role       = aws_iam_role.role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
 resource "aws_lambda_function" "function" {
   filename      = var.filename
   function_name = var.function_name
@@ -80,7 +86,6 @@ resource "aws_lambda_event_source_mapping" "sqs" {
   batch_size        = 10
   event_source_arn  = var.sqs_source_arn
   function_name     = aws_lambda_function.function.function_name
-  depends_on = [aws_lambda_function.function]
 }
 
 resource "aws_iam_role_policy_attachment" "sqs" {

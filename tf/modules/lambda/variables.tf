@@ -6,6 +6,11 @@ variable aws_region {
     type = string
 }
 
+variable is_administrator {
+    type = bool
+    default = true
+}
+
 variable filename {
     type = string
 }

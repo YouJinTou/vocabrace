@@ -38,6 +38,17 @@ func (c Context) JoinOrCreate(r *Request) (*Pool, error) {
 	return pool, err
 }
 
+// GetPool gets a pool by ID.
+func (c Context) GetPool(poolID string) (*Pool, error) {
+	p, _ := c.getPool(&poolID)
+
+	if p == nil {
+		return nil, errors.New("pool not found")
+	}
+
+	return p, nil
+}
+
 func (c Context) getPoolBucket(userID *string) string {
 	if userID == nil {
 		return _Beginner

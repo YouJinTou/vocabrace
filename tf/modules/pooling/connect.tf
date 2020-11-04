@@ -7,7 +7,8 @@ module "connect" {
   handler = "connect"
   environment_variables = {
     STAGE: var.stage
-    CONDUCTOR_QUEUE_ARN: var.conductor_queue_arn
+    REGION: var.aws_region
+    ACCOUNT_ID: var.aws_account_id
   }
   function_can_invoke_api_gateway = true
   api_gateway_can_invoke_function = true

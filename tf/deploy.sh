@@ -1,9 +1,9 @@
 tf_root=$PWD
 lambda_root="$tf_root""/../src/lambda"
 
-cd $lambda_root/conductor
+cd $lambda_root/pooling/conductor
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o conductor conductor.go
-build-lambda-zip -output conductor.zip conductor config.$1.json
+build-lambda-zip -output conductor.zip conductor ../config.$1.json
 rm conductor
 mv conductor.zip $tf_root/payloads
 

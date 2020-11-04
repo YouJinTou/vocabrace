@@ -11,7 +11,6 @@ module "conductor" {
     function_can_invoke_api_gateway = true
     sqs_can_invoke_function = true
     sqs_source_arn = aws_sqs_queue.conductor.arn
-    depends_on = [aws_sqs_queue.conductor]
 }
 
 resource "aws_sqs_queue" "conductor" {

@@ -10,8 +10,3 @@ variable aws_account_id {
 variable aws_region {
     type = string
 }
-
-variable conductor_queue_arn {
-    type = string
-    description = "The conductor's queue ARN."
-}
