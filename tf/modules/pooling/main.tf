@@ -17,3 +17,14 @@ resource "aws_apigatewayv2_deployment" "pooling" {
     create_before_destroy = true
   }
 }
+
+resource "aws_dynamodb_table" "buckets" {
+  name           = "${var.stage}_buckets"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "ID"
+  attribute {
+    name = "ID"
+    type = "S"
+  }
+}
