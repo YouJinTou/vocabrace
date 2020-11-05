@@ -89,22 +89,22 @@ func main() {
 // JoinOrCreate joins or creates a pool.
 func (dpp DynamoDBPoolingProvider) JoinOrCreate(r *Request) (*Pool, error) {
 	for {
-		w, getErr := getDbBucketWrapper(r)
+		w, getErr := dpp.getDbBucketWrapper(r)
 
 		if getErr != nil {
 			continue
 		}
 
 		if !w.dbb.exists() {
-			newB, err := createDbBucket(r)
+			newB, err := dpp.createDbBucket(r)
 			if err == nil {
 				w.dbb = newB
 			}
 		}
 
-		mapConnection(w, r)
+		dpp.mapConnection(w, r)
 
-		p, setErr := setPool(w, r)
+		p, setErr := dpp.setPool(w, r)
 
 		if setErr != nil {
 			continue
@@ -114,8 +114,8 @@ func (dpp DynamoDBPoolingProvider) JoinOrCreate(r *Request) (*Pool, error) {
 	}
 }
 
-func getDbBucketWrapper(r *Request) (*dbBucketWrapper, error) {
-	result, err := dynamo().GetItem(&dynamodb.GetItemInput{
+func (dpp DynamoDBPoolingProvider) getDbBucketWrapper(r *Request) (*dbBucketWrapper, error) {
+	result, err := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_buckets", r.Stage)),
 		Key: map[string]*dynamodb.AttributeValue{
 			"ID": {
@@ -128,7 +128,7 @@ func getDbBucketWrapper(r *Request) (*dbBucketWrapper, error) {
 	dynamodbattribute.UnmarshalMap(result.Item, &w.dbb)
 
 	if w.dbb.CAP != nil {
-		result, _ := dynamo().GetItem(&dynamodb.GetItemInput{
+		result, _ := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
 			TableName: aws.String(fmt.Sprintf("%s_buckets", r.Stage)),
 			Key: map[string]*dynamodb.AttributeValue{
 				"ID": {
@@ -147,14 +147,14 @@ func getDbBucketWrapper(r *Request) (*dbBucketWrapper, error) {
 	return &w, err
 }
 
-func createDbBucket(r *Request) (*dbBucket, error) {
+func (dpp DynamoDBPoolingProvider) createDbBucket(r *Request) (*dbBucket, error) {
 	b := dbBucket{
 		ID:        r.Bucket,
 		CAP:       nil,
 		UpdatedAt: tools.FutureTimestamp(0),
 	}
 	marshaled, _ := dynamodbattribute.MarshalMap(b)
-	_, err := dynamo().PutItem(&dynamodb.PutItemInput{
+	_, err := dpp.dynamo().PutItem(&dynamodb.PutItemInput{
 		TableName:           aws.String(fmt.Sprintf("%s_buckets", r.Stage)),
 		Item:                marshaled,
 		ConditionExpression: aws.String("attribute_not_exists(UpdatedAt)"),
@@ -163,7 +163,7 @@ func createDbBucket(r *Request) (*dbBucket, error) {
 	return &b, err
 }
 
-func mapConnection(w *dbBucketWrapper, r *Request) {
+func (dpp DynamoDBPoolingProvider) mapConnection(w *dbBucketWrapper, r *Request) {
 	cap := w.CAPPool
 
 	if cap == nil || cap.isFull() {
@@ -180,7 +180,7 @@ func mapConnection(w *dbBucketWrapper, r *Request) {
 	}
 }
 
-func setPool(w *dbBucketWrapper, r *Request) (*Pool, error) {
+func (dpp DynamoDBPoolingProvider) setPool(w *dbBucketWrapper, r *Request) (*Pool, error) {
 	key := map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(r.Bucket)}}
 	eav := map[string]*dynamodb.AttributeValue{
 		":ua":  {N: aws.String(tools.FutureTimestampStr(86400))},
@@ -212,7 +212,7 @@ func setPool(w *dbBucketWrapper, r *Request) (*Pool, error) {
 		ConditionExpression:       aws.String("UpdatedAt = :lua"),
 		ReturnValues:              aws.String("ALL_NEW"),
 	}
-	result, err := dynamo().UpdateItem(input)
+	result, err := dpp.dynamo().UpdateItem(input)
 	pool := Pool{}
 	dynamodbattribute.UnmarshalMap(result.Attributes[*w.dbb.CAP].M, &pool)
 	pool.Bucket = r.Bucket
@@ -220,7 +220,7 @@ func setPool(w *dbBucketWrapper, r *Request) (*Pool, error) {
 	return &pool, err
 }
 
-func dynamo() *dynamodb.DynamoDB {
+func (dpp DynamoDBPoolingProvider) dynamo() *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession())
 	return dynamodb.New(sess)
 }
