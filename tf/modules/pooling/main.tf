@@ -28,3 +28,14 @@ resource "aws_dynamodb_table" "buckets" {
     type = "S"
   }
 }
+
+resource "aws_dynamodb_table" "connections" {
+  name           = "${var.stage}_connections"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "ID"
+  attribute {
+    name = "ID"
+    type = "S"
+  }
+}
