@@ -54,7 +54,7 @@ func getPool(connectionID string, c *ws.Config) (*pooling.Pool, error) {
 
 	i, pErr := dynamo.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_pools", c.Stage)),
-		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: o.Item["ID"].S}},
+		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: o.Item["PoolID"].S}},
 	})
 	pool := pooling.Pool{}
 	dynamodbattribute.UnmarshalMap(i.Item, &pool)
