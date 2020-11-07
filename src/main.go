@@ -23,10 +23,7 @@ func main() {
 		p, err := provider.JoinOrCreate(jocr)
 		fmt.Println(p)
 		fmt.Println(err)
-		li := &pooling.LeaveInput{
-			ConnectionID: jocr.ConnectionID,
-			Bucket:       jocr.Bucket,
-		}
+
 		x, _ := provider.GetPool(&pooling.GetPoolInput{
 			PoolID: p.ID,
 			Bucket: p.Bucket,
@@ -37,6 +34,10 @@ func main() {
 			Bucket:       p.Bucket,
 		})
 		fmt.Println(y)
+		li := &pooling.LeaveInput{
+			ConnectionID: jocr.ConnectionID,
+			Bucket:       jocr.Bucket,
+		}
 		p2, err2 := provider.Leave(li)
 		fmt.Println(p2)
 		fmt.Println(err2)
