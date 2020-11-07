@@ -39,10 +39,10 @@ func NewBoard() *Board {
 }
 
 // SetCell sets a tile at a particular cell.
-func (b Board) SetCell(r, c int, t Tile) Board {
+func (b *Board) SetCell(r, c int, t Tile) Board {
 	index := b.getCellIndex(r, c)
 	b.cells[index].tile = t
-	return b
+	return *b
 }
 
 func (b *Board) getCellIndex(r, c int) int {
