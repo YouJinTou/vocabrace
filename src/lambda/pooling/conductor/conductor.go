@@ -20,15 +20,15 @@ func main() {
 
 func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 	c := ws.GetConfig()
-	provider := dynamodbpooling.NewDynamoDBProvider()
+	provider := dynamodbpooling.NewDynamoDBProvider(c.Stage)
 
 	for _, message := range sqsEvent.Records {
 		payload := ws.PoolPayload{}
 
 		json.Unmarshal([]byte(message.Body), &payload)
 
-		pool, err := provider.GetPool(payload.PoolID, &pooling.Request{
-			Stage:  c.Stage,
+		pool, err := provider.GetPool(&pooling.GetPoolInput{
+			PoolID: payload.PoolID,
 			Bucket: payload.Bucket,
 		})
 

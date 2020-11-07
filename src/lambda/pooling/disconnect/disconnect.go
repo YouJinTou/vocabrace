@@ -19,12 +19,10 @@ func main() {
 
 func handle(_ context.Context, req events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	c := ws.GetConfig()
-	provider := dynamodbpooling.NewDynamoDBProvider()
-	pool, err := provider.Leave(&pooling.Request{
+	provider := dynamodbpooling.NewDynamoDBProvider(c.Stage)
+	pool, err := provider.Leave(&pooling.LeaveInput{
 		ConnectionID: req.RequestContext.ConnectionID,
-		UserID:       "user_id",
 		Bucket:       pooling.Novice,
-		Stage:        c.Stage,
 	})
 
 	if err != nil {

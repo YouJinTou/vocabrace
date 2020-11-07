@@ -19,7 +19,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -28,11 +27,12 @@ func main() {
 
 func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	c := ws.GetConfig()
-	provider := dynamodbpooling.NewDynamoDBProvider()
-	p, err := provider.JoinOrCreate(&pooling.Request{
+	provider := dynamodbpooling.NewDynamoDBProvider(c.Stage)
+	p, err := provider.JoinOrCreate(&pooling.JoinOrCreateInput{
 		ConnectionID: req.RequestContext.ConnectionID,
-		UserID:       uuid.New().String(),
-		PoolLimit:    3})
+		PoolLimit:    2,
+		Bucket:       pooling.Novice,
+	})
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil

@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 
+	"github.com/YouJinTou/vocabrace/pooling"
+
 	dynamodbpooling "github.com/YouJinTou/vocabrace/pooling/providers/dynamodb"
 
 	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
@@ -17,8 +19,11 @@ func main() {
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	c := ws.GetConfig()
-	provider := dynamodbpooling.NewDynamoDBProvider()
-	connectionIDs, err := provider.GetPeers(req.RequestContext.ConnectionID)
+	provider := dynamodbpooling.NewDynamoDBProvider(c.Stage)
+	connectionIDs, err := provider.GetPeers(&pooling.GetPeersInput{
+		ConnectionID: req.RequestContext.ConnectionID,
+		Bucket:       pooling.Novice,
+	})
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
