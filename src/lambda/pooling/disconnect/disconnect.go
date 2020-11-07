@@ -55,7 +55,7 @@ func tryRemoveFromPool(ID string) {
 	dynamo := dynamodb.New(sess)
 	_, err := dynamo.UpdateItem(&dynamodb.UpdateItemInput{
 		TableName:        aws.String(fmt.Sprintf("%s_pools", c.Stage)),
-		Key:              map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(PoolID)}},
+		Key:              map[string]*dynamodb.AttributeValue{"ID": {S: poolID}},
 		UpdateExpression: aws.String("DELETE ConnectionIDs :cid"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":cid": {SS: []*string{aws.String(ID)}},
