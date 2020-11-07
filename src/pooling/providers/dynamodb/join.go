@@ -192,5 +192,7 @@ func (dpp DynamoDBProvider) setConnection(poolID, connectionID string) {
 		UpdateExpression: aws.String("SET PoolID = :pid, LiveUntil = :lu"),
 	})
 
-	panic(err.Error())
+	if err != nil {
+		panic(err.Error())
+	}
 }
