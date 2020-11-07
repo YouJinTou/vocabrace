@@ -5,33 +5,33 @@ const _BoardHeight = 15
 
 // Cell composes a board.
 type Cell struct {
-	tile                Tile
-	row                 int
-	col                 int
-	isDoubleLetterScore bool
-	isTripleLetterScore bool
-	isDoubleWordScore   bool
-	isTripleWordScore   bool
+	Tile                Tile
+	Row                 int
+	Col                 int
+	IsDoubleLetterScore bool
+	IsTripleLetterScore bool
+	IsDoubleWordScore   bool
+	IsTripleWordScore   bool
 }
 
 // Board is a 15x15 field of cells.
 type Board struct {
-	cells [_BoardHeight * _BoardWidth]Cell
+	Cells [_BoardHeight * _BoardWidth]Cell
 }
 
 // NewBoard creates a board.
 func NewBoard() *Board {
 	board := Board{
-		cells: [_BoardHeight * _BoardWidth]Cell{},
+		Cells: [_BoardHeight * _BoardWidth]Cell{},
 	}
 
 	for r := 0; r < _BoardHeight; r++ {
 		for c := 0; c < _BoardWidth; c++ {
 			cell := Cell{
-				row: r,
-				col: c,
+				Row: r,
+				Col: c,
 			}
-			board.cells[board.getCellIndex(r, c)] = cell
+			board.Cells[board.getCellIndex(r, c)] = cell
 		}
 	}
 
@@ -41,7 +41,7 @@ func NewBoard() *Board {
 // SetCell sets a tile at a particular cell.
 func (b *Board) SetCell(r, c int, t Tile) Board {
 	index := b.getCellIndex(r, c)
-	b.cells[index].tile = t
+	b.Cells[index].Tile = t
 	return *b
 }
 

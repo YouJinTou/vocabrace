@@ -1,23 +1,23 @@
 package scrabble
 
-import (
-	"fmt"
-)
+import "encoding/json"
 
 // Game holds a game's state.
 type Game struct {
-	board *Board
-	bag   *Bag
+	Board *Board
+	Bag   *Bag
 }
 
 // NewGame creates a new game.
 func NewGame() *Game {
 	return &Game{
-		board: NewBoard(),
-		bag:   NewBag(English),
+		Board: NewBoard(),
+		Bag:   NewBag(English),
 	}
 }
 
-func (g *Game) Print() {
-	fmt.Println("HEEE")
+// JSON stringifies the game state to a JSON string.
+func (g *Game) JSON() string {
+	b, _ := json.Marshal(g)
+	return string(b)
 }

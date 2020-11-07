@@ -11,8 +11,8 @@ import (
 
 func main() {
 	g := scrabble.NewGame()
-	g.Print()
-
+	gameStr := g.JSON()
+	fmt.Println(gameStr)
 	for i := 0; i < 7; i++ {
 		jocr := &pooling.JoinOrCreateInput{
 			ConnectionID: uuid.New().String(),
