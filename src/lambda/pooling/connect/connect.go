@@ -30,7 +30,7 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	provider := dynamodbpooling.NewDynamoDBProvider(c.Stage)
 	p, err := provider.JoinOrCreate(&pooling.JoinOrCreateInput{
 		ConnectionID: req.RequestContext.ConnectionID,
-		PoolLimit:    2,
+		PoolLimit:    3,
 		Bucket:       pooling.Novice,
 	})
 
