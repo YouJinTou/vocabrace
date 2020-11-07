@@ -39,7 +39,7 @@ resource "aws_dynamodb_table" "connections" {
     type = "S"
   }
   ttl {
-    attribute_name = "live_until"
+    attribute_name = "LiveUntil"
     enabled        = true
   }
 }
