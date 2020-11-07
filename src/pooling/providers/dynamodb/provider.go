@@ -1,6 +1,7 @@
 package dynamodbpooling
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/YouJinTou/vocabrace/pooling"
@@ -45,6 +46,10 @@ func (dpp DynamoDBProvider) GetPool(i *pooling.GetPoolInput) (*pooling.Pool, err
 	p := pooling.Pool{Bucket: i.Bucket}
 	dynamodbattribute.UnmarshalMap(result.Item[i.PoolID].M, &p)
 
+	if p.ID == "" {
+		return nil, errors.New("could not find pool")
+	}
+
 	return &p, err
 }
 
@@ -82,6 +87,10 @@ func (dpp DynamoDBProvider) getConnection(connectionID string) (connection, erro
 	})
 	c := connection{}
 	dynamodbattribute.UnmarshalMap(result.Item, &c)
+
+	if c.ID == "" {
+		return c, errors.New("could not find connection")
+	}
 
 	return c, err
 }

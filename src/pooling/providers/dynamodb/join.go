@@ -182,12 +182,15 @@ func (dpp DynamoDBProvider) setPool(w *dbBucketWrapper, i *pooling.JoinOrCreateI
 }
 
 func (dpp DynamoDBProvider) setConnection(poolID, connectionID string) {
-	dpp.dynamo.UpdateItem(&dynamodb.UpdateItemInput{
+	_, err := dpp.dynamo.UpdateItem(&dynamodb.UpdateItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_connections", dpp.stage)),
 		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(connectionID)}},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":pid": {S: aws.String(poolID)},
+			":lu":  {N: aws.String(tools.FutureTimestampStr(3600))},
 		},
-		UpdateExpression: aws.String("SET PoolID = :pid"),
+		UpdateExpression: aws.String("SET PoolID = :pid, LiveUntil = :lu"),
 	})
+
+	panic(err.Error())
 }
