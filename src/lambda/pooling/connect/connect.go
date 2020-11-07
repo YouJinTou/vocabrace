@@ -36,10 +36,10 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		Game:         game,
 	})
 
-	svc.SendMessage(&sqs.SendMessageInput{
+	_, err := svc.SendMessage(&sqs.SendMessageInput{
 		QueueUrl:    aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
 		MessageBody: aws.String(string(marshalled)),
 	})
 
-	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
+	return events.APIGatewayProxyResponse{StatusCode: 200}, err
 }

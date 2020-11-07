@@ -67,6 +67,8 @@ resource "aws_lambda_function" "function" {
   handler       = var.handler
   source_code_hash = filebase64sha256(var.filename)
   runtime = "go1.x"
+  timeout = var.timeout
+  reserved_concurrent_executions = var.reserved_concurrent_executions
   environment {
     variables = var.environment_variables
   }
@@ -94,9 +96,23 @@ resource "aws_iam_role_policy_attachment" "sqs" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
-resource "aws_lambda_event_source_mapping" "dynamo" {
-  count = var.dynamodb_can_invoke_function ? 1 : 0
-  event_source_arn  = var.dynamodb_stream_arn
-  function_name     = aws_lambda_function.function.arn
-  starting_position = "LATEST"
+resource "aws_cloudwatch_event_target" "target" {
+  count = var.cloudwatch_can_invoke_function ? 1 : 0
+  rule      = aws_cloudwatch_event_rule.rule[0].name
+  arn       = aws_lambda_function.function.arn
+}
+
+resource "aws_cloudwatch_event_rule" "rule" {
+  count = var.cloudwatch_can_invoke_function ? 1 : 0
+  name_prefix        = aws_lambda_function.function.function_name
+  schedule_expression = var.cloudwatch_event_rule
+}
+
+resource "aws_lambda_permission" "rule_permission" {
+  count = var.cloudwatch_can_invoke_function ? 1 : 0
+  statement_id  = "AllowExecutionFromCloudWatchRule"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.function.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.rule[0].arn
 }

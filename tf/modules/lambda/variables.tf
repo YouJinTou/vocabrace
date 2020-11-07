@@ -53,12 +53,22 @@ variable sqs_source_arn {
     default = ""
 }
 
-variable dynamodb_can_invoke_function {
+variable cloudwatch_can_invoke_function {
     type = bool
     default = false
 }
 
-variable dynamodb_stream_arn {
+variable cloudwatch_event_rule {
     type = string
-    default  = ""
+    default = ""
+}
+
+variable timeout {
+    type = number
+    default = 3
+}
+
+variable reserved_concurrent_executions {
+    type = number
+    default = -1
 }

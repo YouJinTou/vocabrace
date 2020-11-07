@@ -52,64 +52,73 @@ func main() {
 
 func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 	c := ws.GetConfig()
-	fmt.Println("preparing batch")
-	fmt.Println(sqsEvent.Records[0].ReceiptHandle)
-	poolReady, batch := prepareBatch(sqsEvent, c)
 
-	if !poolReady {
-		fmt.Println("Pool NOT ready.")
-		return nil
+	for {
+		poolReady, batch := prepareBatch(c)
+
+		if !poolReady {
+			continue
+		}
+
+		pool := createPool(batch)
+
+		flagDisconnections(pool, c)
+
+		if handleDisconnections(pool, c) {
+			continue
+		}
+
+		setPool(pool, c)
+
+		ws.SendMany(pool.ConnectionIDs(), ws.Message{
+			Domain:  pool.Domain,
+			Stage:   c.Stage,
+			Message: "POOLER WORKS!",
+		})
+
+		clearQueue(pool, c, false)
 	}
-
-	fmt.Println("Creating pool.")
-	pool := createPool(batch)
-
-	fmt.Println("Flagging dsiconnections.")
-	flagDisconnections(pool, c)
-
-	fmt.Println("Handling dsiconnections.")
-	if handleDisconnections(pool, c) {
-		return nil
-	}
-
-	fmt.Println("Setting pool.")
-	setPool(pool, c)
-
-	fmt.Println("Broadcasting.")
-	ws.SendMany(pool.ConnectionIDs(), ws.Message{
-		Domain:  pool.Domain,
-		Stage:   c.Stage,
-		Message: "POOLER WORKS!",
-	})
-
-	fmt.Println("Clearing.")
-	clearQueue(pool, c, false)
-
-	return nil
 }
 
-func prepareBatch(event events.SQSEvent, c *ws.Config) (bool, []events.SQSMessage) {
-	fmt.Println(len(event.Records))
-	if c.PoolLimit > len(event.Records) {
-		return false, []events.SQSMessage{}
+func prepareBatch(c *ws.Config) (bool, []*sqs.Message) {
+	queueName := fmt.Sprintf("%s_%s_pooler", c.Stage, "scrabble")
+	messages := []*sqs.Message{}
+	maxMessages := c.PoolLimit
+
+	for i := 0; i < 3; i++ {
+		o, _ := svc().ReceiveMessage(&sqs.ReceiveMessageInput{
+			QueueUrl:            aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
+			WaitTimeSeconds:     aws.Int64(8),
+			MaxNumberOfMessages: aws.Int64(int64(maxMessages)),
+			VisibilityTimeout:   aws.Int64(25),
+		})
+		messages = append(messages, o.Messages...)
+		maxMessages = maxMessages - len(messages)
+
+		if len(messages) >= c.PoolLimit {
+			messages = messages[0:c.PoolLimit]
+			break
+		}
 	}
 
-	batch := event.Records[0:c.PoolLimit]
+	if len(messages) < c.PoolLimit {
+		return false, []*sqs.Message{}
+	}
 
-	return true, batch
+	return true, messages
 }
 
-func createPool(batch []events.SQSMessage) *pool {
+func createPool(batch []*sqs.Message) *pool {
 	p := pool{Connections: []*connection{}}
 	for _, message := range batch {
 		payload := ws.PoolerPayload{}
-		json.Unmarshal([]byte(message.Body), &payload)
+		json.Unmarshal([]byte(*message.Body), &payload)
 		p.Bucket = payload.Bucket
 		p.Domain = payload.Domain
 		p.Game = payload.Game
 		p.Connections = append(p.Connections, &connection{
 			ID:            payload.ConnectionID,
-			ReceiptHandle: message.ReceiptHandle,
+			ReceiptHandle: *message.ReceiptHandle,
 		})
 	}
 	return &p
@@ -117,7 +126,7 @@ func createPool(batch []events.SQSMessage) *pool {
 
 func setPool(p *pool, c *ws.Config) {
 	ID := uuid.New().String()
-	dynamo().PutItem(&dynamodb.PutItemInput{
+	_, pErr := dynamo().PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_pools", c.Stage)),
 		Item: map[string]*dynamodb.AttributeValue{
 			"ID":            {S: aws.String(ID)},
@@ -127,6 +136,11 @@ func setPool(p *pool, c *ws.Config) {
 			"LiveUntil":     {N: aws.String(tools.FutureTimestampStr(36000))},
 		},
 	})
+
+	if pErr != nil {
+		panic(pErr.Error())
+	}
+
 	requests := []*dynamodb.WriteRequest{}
 	for _, cid := range p.ConnectionIDs() {
 		requests = append(requests, &dynamodb.WriteRequest{
@@ -139,11 +153,15 @@ func setPool(p *pool, c *ws.Config) {
 			},
 		})
 	}
-	dynamo().BatchWriteItem(&dynamodb.BatchWriteItemInput{
+	_, err := dynamo().BatchWriteItem(&dynamodb.BatchWriteItemInput{
 		RequestItems: map[string][]*dynamodb.WriteRequest{
 			fmt.Sprintf("%s_connections", c.Stage): requests,
 		},
 	})
+
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func flagDisconnections(p *pool, c *ws.Config) {
@@ -156,11 +174,15 @@ func flagDisconnections(p *pool, c *ws.Config) {
 
 	kaa.SetKeys(cids)
 
-	o, _ := dynamo().BatchGetItem(&dynamodb.BatchGetItemInput{
+	o, err := dynamo().BatchGetItem(&dynamodb.BatchGetItemInput{
 		RequestItems: map[string]*dynamodb.KeysAndAttributes{
 			fmt.Sprintf("%s_disconnections", c.Stage): kaa,
 		},
 	})
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	for _, items := range o.Responses {
 		for _, kv := range items {
@@ -174,7 +196,7 @@ func flagDisconnections(p *pool, c *ws.Config) {
 }
 
 func handleDisconnections(p *pool, c *ws.Config) bool {
-	return !clearQueue(p, c, true)
+	return clearQueue(p, c, true)
 }
 
 func clearQueue(p *pool, c *ws.Config, disconnectionsOnly bool) bool {
@@ -196,11 +218,16 @@ func clearQueue(p *pool, c *ws.Config, disconnectionsOnly bool) bool {
 	}
 
 	if len(entries) > 0 {
-		svc.DeleteMessageBatch(&sqs.DeleteMessageBatchInput{
+		_, err := svc.DeleteMessageBatch(&sqs.DeleteMessageBatchInput{
 			Entries:  entries,
 			QueueUrl: aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
 		})
-		hasDeleted = true
+
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			hasDeleted = true
+		}
 	}
 
 	return hasDeleted
