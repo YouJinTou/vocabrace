@@ -33,12 +33,15 @@ func Send(m *Message) error {
 		ConnectionId: aws.String(m.ConnectionID),
 		Data:         []byte(m.Message),
 	}
-	_, err := apiClient.PostToConnection(&connectionInput)
 
-	if err != nil {
+	for i := 0; i < 3; i++ {
+		_, err := apiClient.PostToConnection(&connectionInput)
+
+		if err == nil {
+			return nil
+		}
+
 		fmt.Println(err.Error())
-
-		return err
 	}
 
 	return nil
