@@ -13,24 +13,24 @@ import (
 )
 
 // Leave removes a connection from the pool.
-func (dpp DynamoDBProvider) Leave(r *pooling.Request) (*pooling.Pool, error) {
+func (dpp DynamoDBProvider) Leave(i *pooling.LeaveInput) (*pooling.Pool, error) {
 	for {
-		c, cErr := dpp.getConnection(r)
+		c, cErr := dpp.getConnection(i.ConnectionID)
 
 		if cErr != nil {
 			panic(cErr.Error())
 		}
 
-		b, bErr := dpp.getDbBucket(r)
+		b, bErr := dpp.getDbBucket(i.Bucket)
 
 		if bErr != nil {
 			panic(bErr.Error())
 		}
 
 		result, err := dpp.dynamo().UpdateItem(&dynamodb.UpdateItemInput{
-			TableName: aws.String(fmt.Sprintf("%s_buckets", r.Stage)),
+			TableName: aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
 			Key: map[string]*dynamodb.AttributeValue{
-				"ID": {S: aws.String(r.Bucket)},
+				"ID": {S: aws.String(i.Bucket)},
 			},
 			ExpressionAttributeNames: map[string]*string{"#p": aws.String(c.PoolID)},
 			ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
@@ -47,10 +47,10 @@ func (dpp DynamoDBProvider) Leave(r *pooling.Request) (*pooling.Pool, error) {
 			continue
 		}
 
-		dpp.detach(r.ConnectionID)
+		dpp.detach(i.ConnectionID)
 
 		pool := pooling.Pool{
-			Bucket: r.Bucket,
+			Bucket: i.Bucket,
 		}
 		dynamodbattribute.UnmarshalMap(result.Attributes[c.PoolID].M, &pool)
 

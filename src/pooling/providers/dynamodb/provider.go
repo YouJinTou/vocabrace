@@ -12,7 +12,8 @@ import (
 
 // DynamoDBProvider implements Provider.
 type DynamoDBProvider struct {
-	d *dynamodb.DynamoDB
+	d     *dynamodb.DynamoDB
+	stage string
 }
 
 type connection struct {
@@ -21,41 +22,46 @@ type connection struct {
 }
 
 // NewDynamoDBProvider creates a new pooling provider using DynamoDB as a backend.
-func NewDynamoDBProvider() pooling.Provider {
-	return DynamoDBProvider{}
+func NewDynamoDBProvider(stage string) pooling.Provider {
+	return DynamoDBProvider{
+		stage: stage,
+	}
 }
 
 // GetPool gets a pool.
-func (dpp DynamoDBProvider) GetPool(ID string, r *pooling.Request) (*pooling.Pool, error) {
+func (dpp DynamoDBProvider) GetPool(i *pooling.GetPoolInput) (*pooling.Pool, error) {
 	result, err := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
-		TableName:                aws.String(fmt.Sprintf("%s_buckets", r.Stage)),
-		Key:                      map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(r.Bucket)}},
-		ExpressionAttributeNames: map[string]*string{"#p": aws.String(ID)},
+		TableName:                aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
+		Key:                      map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(i.Bucket)}},
+		ExpressionAttributeNames: map[string]*string{"#p": aws.String(i.PoolID)},
 		ProjectionExpression:     aws.String("#p"),
 	})
-	p := pooling.Pool{}
-	dynamodbattribute.UnmarshalMap(result.Item, &p)
+	p := pooling.Pool{Bucket: i.Bucket}
+	dynamodbattribute.UnmarshalMap(result.Item[i.PoolID].M, &p)
 
 	return &p, err
 }
 
 // GetPeers gets a connection's pool peers.
-func (dpp DynamoDBProvider) GetPeers(r *pooling.Request) ([]string, error) {
-	c, cErr := dpp.getConnection(r)
+func (dpp DynamoDBProvider) GetPeers(i *pooling.GetPeersInput) ([]string, error) {
+	c, cErr := dpp.getConnection(i.ConnectionID)
 	peers := []string{}
 
 	if cErr != nil {
 		return peers, cErr
 	}
 
-	p, pErr := dpp.GetPool(c.PoolID, r)
+	p, pErr := dpp.GetPool(&pooling.GetPoolInput{
+		Bucket: i.Bucket,
+		PoolID: c.PoolID,
+	})
 
 	if pErr != nil {
 		return peers, pErr
 	}
 
 	for _, cid := range p.ConnectionIDs {
-		if r.ConnectionID != cid {
+		if i.ConnectionID != cid {
 			peers = append(peers, cid)
 		}
 	}
@@ -63,10 +69,10 @@ func (dpp DynamoDBProvider) GetPeers(r *pooling.Request) ([]string, error) {
 	return peers, nil
 }
 
-func (dpp DynamoDBProvider) getConnection(r *pooling.Request) (connection, error) {
+func (dpp DynamoDBProvider) getConnection(connectionID string) (connection, error) {
 	result, err := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(fmt.Sprintf("%s_connections", r.Stage)),
-		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(r.ConnectionID)}},
+		TableName: aws.String(fmt.Sprintf("%s_connections", dpp.stage)),
+		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(connectionID)}},
 	})
 	c := connection{}
 	dynamodbattribute.UnmarshalMap(result.Item, &c)

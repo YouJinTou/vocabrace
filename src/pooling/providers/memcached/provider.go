@@ -2,6 +2,7 @@ package memcachedpooling
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/YouJinTou/vocabrace/pooling"
@@ -22,12 +23,23 @@ func NewMemcachedProvider(host, username, password string) pooling.Provider {
 	}
 }
 
+// GetPool gets a pool by ID.
+func (c MemcachedProvider) GetPool(i *pooling.GetPoolInput) (*pooling.Pool, error) {
+	p, _ := c.getPool(&i.PoolID)
+
+	if p == nil {
+		return nil, errors.New("pool not found")
+	}
+
+	return p, nil
+}
+
 // GetPeers maps a connectionID to a pool and returns all peer connections.
-func (c MemcachedProvider) GetPeers(r *pooling.Request) ([]string, error) {
-	it, err := c.mc.Get(r.ConnectionID)
+func (c MemcachedProvider) GetPeers(i *pooling.GetPeersInput) ([]string, error) {
+	it, err := c.mc.Get(i.ConnectionID)
 
 	if err != nil {
-		return nil, fmt.Errorf("not found for connection %s", r.ConnectionID)
+		return nil, fmt.Errorf("not found for connection %s", i.ConnectionID)
 	}
 
 	poolID := string(it.Value)
@@ -41,7 +53,7 @@ func (c MemcachedProvider) GetPeers(r *pooling.Request) ([]string, error) {
 
 	json.Unmarshal(getIt.Value, &connectionIDs)
 
-	connectionIDs = tools.SliceRemoveString(connectionIDs, r.ConnectionID)
+	connectionIDs = tools.SliceRemoveString(connectionIDs, i.ConnectionID)
 
 	return connectionIDs, nil
 }

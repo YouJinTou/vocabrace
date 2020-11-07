@@ -21,21 +21,37 @@ func (p *Pool) GetPeers(connectionID string) []string {
 	return peers
 }
 
-// Request encapsulates pool request data.
-type Request struct {
+// JoinOrCreateInput is the input to JoinOrCreate.
+type JoinOrCreateInput struct {
 	ConnectionID string
-	UserID       string
 	Bucket       string
 	PoolLimit    int
-	Stage        string
+}
+
+// LeaveInput is the input to Leave.
+type LeaveInput struct {
+	ConnectionID string
+	Bucket       string
+}
+
+// GetPoolInput is the input to GetPool.
+type GetPoolInput struct {
+	PoolID string
+	Bucket string
+}
+
+// GetPeersInput is the input to GetPeers.
+type GetPeersInput struct {
+	ConnectionID string
+	Bucket       string
 }
 
 // Provider abstracts a pooling provider.
 type Provider interface {
-	JoinOrCreate(r *Request) (*Pool, error)
-	Leave(r *Request) (*Pool, error)
-	GetPool(poolID string, r *Request) (*Pool, error)
-	GetPeers(request *Request) ([]string, error)
+	JoinOrCreate(i *JoinOrCreateInput) (*Pool, error)
+	Leave(i *LeaveInput) (*Pool, error)
+	GetPool(i *GetPoolInput) (*Pool, error)
+	GetPeers(i *GetPeersInput) ([]string, error)
 }
 
 // Beginner is the beginner bucket.

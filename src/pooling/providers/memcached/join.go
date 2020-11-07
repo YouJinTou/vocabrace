@@ -15,42 +15,21 @@ import (
 
 // JoinOrCreate adds a user to an existing pool
 // (relative to their skill level), or creates a new one.
-func (c MemcachedProvider) JoinOrCreate(r *pooling.Request) (*pooling.Pool, error) {
+func (c MemcachedProvider) JoinOrCreate(i *pooling.JoinOrCreateInput) (*pooling.Pool, error) {
 	var pool *pooling.Pool
 	var err error
-	bucket := c.getPoolBucket(&r.UserID)
 
-	for i := 0; i < 30; i++ {
-		if pool, err = c.mapConnectionToPool(bucket, r); err != nil {
-			pool = c.newPool(bucket)
+	for j := 0; j < 30; j++ {
+		if pool, err = c.mapConnectionToPool(i); err != nil {
+			pool = c.newPool(i.Bucket)
 
-			c.updateBucket(bucket, pool.ID)
+			c.updateBucket(i.Bucket, pool.ID)
 		} else {
 			return pool, err
 		}
 	}
 
 	return pool, err
-}
-
-// GetPool gets a pool by ID.
-func (c MemcachedProvider) GetPool(poolID string, r *pooling.Request) (*pooling.Pool, error) {
-	p, _ := c.getPool(&poolID)
-
-	if p == nil {
-		return nil, errors.New("pool not found")
-	}
-
-	return p, nil
-}
-
-func (c MemcachedProvider) getPoolBucket(userID *string) string {
-	if userID == nil {
-		return pooling.Beginner
-	}
-
-	// Look up user's level
-	return pooling.Novice
 }
 
 func (c MemcachedProvider) getAvailablePoolID(bucket string) *string {
@@ -112,19 +91,19 @@ func (c MemcachedProvider) newPool(bucket string) *pooling.Pool {
 	}
 }
 
-func (c MemcachedProvider) mapConnectionToPool(bucket string, r *pooling.Request) (*pooling.Pool, error) {
+func (c MemcachedProvider) mapConnectionToPool(i *pooling.JoinOrCreateInput) (*pooling.Pool, error) {
 	var pool *pooling.Pool
 	var item *memcache.Item
 
 	for {
-		poolID := c.getAvailablePoolID(bucket)
+		poolID := c.getAvailablePoolID(i.Bucket)
 		pool, item = c.getPool(poolID)
 
-		if pool == nil || len(pool.ConnectionIDs) >= r.PoolLimit {
+		if pool == nil || len(pool.ConnectionIDs) >= i.PoolLimit {
 			return pool, errors.New("no suitable pool")
 		}
 
-		newConnections := append(pool.ConnectionIDs, r.ConnectionID)
+		newConnections := append(pool.ConnectionIDs, i.ConnectionID)
 		marshalled, _ := json.Marshal(newConnections)
 		item.Value = marshalled
 		casErr := c.mc.Cas(item)
@@ -137,7 +116,7 @@ func (c MemcachedProvider) mapConnectionToPool(bucket string, r *pooling.Request
 	}
 
 	setErr := c.mc.Set(&memcache.Item{
-		Key:   r.ConnectionID,
+		Key:   i.ConnectionID,
 		Value: []byte(pool.ID),
 	})
 
