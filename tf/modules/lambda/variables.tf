@@ -52,3 +52,13 @@ variable sqs_source_arn {
     type = string
     default = ""
 }
+
+variable dynamodb_can_invoke_function {
+    type = bool
+    default = false
+}
+
+variable dynamodb_stream_arn {
+    type = string
+    default  = ""
+}

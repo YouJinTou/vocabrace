@@ -93,3 +93,10 @@ resource "aws_iam_role_policy_attachment" "sqs" {
   role       = aws_iam_role.role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
+
+resource "aws_lambda_event_source_mapping" "dynamo" {
+  count = var.dynamodb_can_invoke_function ? 1 : 0
+  event_source_arn  = var.dynamodb_stream_arn
+  function_name     = aws_lambda_function.function.arn
+  starting_position = "LATEST"
+}

@@ -9,12 +9,11 @@ import (
 
 // Config holds configuration data.
 type Config struct {
-	MemcachedHost     string
-	MemcachedUsername string
-	MemcachedPassword string
-	Stage             string `env:"STAGE"`
-	Region            string `env:"REGION"`
-	AccountID         string `env:"ACCOUNT_ID"`
+	Stage        string `env:"STAGE"`
+	Region       string `env:"REGION"`
+	AccountID    string `env:"ACCOUNT_ID"`
+	PoolLimit    int    `env:"POOL_LIMIT"`
+	PoolLimitStr string `env:"POOL_LIMIT"`
 }
 
 // GetConfig gets the config.

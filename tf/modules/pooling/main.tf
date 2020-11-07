@@ -18,19 +18,8 @@ resource "aws_apigatewayv2_deployment" "pooling" {
   }
 }
 
-resource "aws_dynamodb_table" "buckets" {
-  name           = "${var.stage}_buckets"
-  read_capacity  = 1
-  write_capacity = 1
-  hash_key       = "ID"
-  attribute {
-    name = "ID"
-    type = "S"
-  }
-}
-
-resource "aws_dynamodb_table" "connections" {
-  name           = "${var.stage}_connections"
+resource "aws_dynamodb_table" "pools" {
+  name           = "${var.stage}_pools"
   read_capacity  = 1
   write_capacity = 1
   hash_key       = "ID"

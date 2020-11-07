@@ -26,3 +26,18 @@ resource "aws_apigatewayv2_integration" "disconnect" {
   integration_method        = "POST"
   integration_uri           = module.disconnect.this_lambda_function_invoke_arn
 }
+
+resource "aws_dynamodb_table" "disconnections" {
+  name           = "${var.stage}_disconnections"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "ID"
+  attribute {
+    name = "ID"
+    type = "S"
+  }
+  ttl {
+    attribute_name = "LiveUntil"
+    enabled        = true
+  }
+}

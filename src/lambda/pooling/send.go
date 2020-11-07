@@ -17,11 +17,12 @@ type Message struct {
 	Message      string
 }
 
-// PoolPayload encapsulated data needed to push a message to a pool of connections.
-type PoolPayload struct {
-	Domain string
-	PoolID string
-	Bucket string
+// PoolerPayload encapsulated data needed to push a message to the pooler.
+type PoolerPayload struct {
+	Domain       string
+	ConnectionID string
+	Bucket       string
+	Game         string
 }
 
 // Send sends a message to a connection ID.
@@ -47,8 +48,8 @@ func Send(m *Message) error {
 	return nil
 }
 
-// SendToPeers sends a message to all peers.
-func SendToPeers(connectionIDs []string, m Message) {
+// SendMany sends a message to all peers.
+func SendMany(connectionIDs []string, m Message) {
 	var wg sync.WaitGroup
 
 	for _, cid := range connectionIDs {

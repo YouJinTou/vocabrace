@@ -2,15 +2,16 @@ package main
 
 import (
 	"context"
-
-	"github.com/YouJinTou/vocabrace/pooling"
-
-	dynamodbpooling "github.com/YouJinTou/vocabrace/pooling/providers/dynamodb"
+	"fmt"
 
 	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
+	"github.com/YouJinTou/vocabrace/tools"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 func main() {
@@ -18,22 +19,20 @@ func main() {
 }
 
 func handle(_ context.Context, req events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	c := ws.GetConfig()
-	provider := dynamodbpooling.NewDynamoDBProvider(c.Stage)
-	pool, err := provider.Leave(&pooling.LeaveInput{
-		ConnectionID: req.RequestContext.ConnectionID,
-		Bucket:       pooling.Novice,
-	})
-
-	if err != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 500}, err
-	}
-
-	ws.SendToPeers(pool.ConnectionIDs, ws.Message{
-		Domain:  req.RequestContext.DomainName,
-		Stage:   c.Stage,
-		Message: "Client has left.",
-	})
+	markDisconnection(req.RequestContext.ConnectionID)
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
+}
+
+func markDisconnection(ID string) {
+	c := ws.GetConfig()
+	sess := session.Must(session.NewSession())
+	dynamo := dynamodb.New(sess)
+	dynamo.PutItem(&dynamodb.PutItemInput{
+		TableName: aws.String(fmt.Sprintf("%s_disconnections", c.Stage)),
+		Item: map[string]*dynamodb.AttributeValue{
+			"ID":        {S: aws.String(ID)},
+			"LiveUntil": {N: aws.String(tools.FutureTimestampStr(7200))},
+		},
+	})
 }
