@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
+	"github.com/YouJinTou/vocabrace/pooling"
 	"github.com/YouJinTou/vocabrace/tools"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -41,7 +42,7 @@ func markDisconnection(ID string) {
 
 func tryRemoveFromPool(ID string) {
 	c := ws.GetConfig()
-	poolID, gErr := ws.GetPoolID(ID, c)
+	poolID, gErr := pooling.GetPoolID(ID, c.Stage)
 
 	if gErr != nil {
 		fmt.Println(gErr.Error())
