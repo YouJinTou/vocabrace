@@ -1,4 +1,4 @@
-package pooling
+package memcachedpooling
 
 import (
 	"encoding/json"
@@ -7,21 +7,16 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/YouJinTou/vocabrace/pooling"
+
 	"github.com/google/uuid"
 	"github.com/memcachier/gomemcache/memcache"
 )
 
-// Request encapsulates pool data.
-type Request struct {
-	ConnectionID string
-	UserID       string
-	PoolLimit    int
-}
-
 // JoinOrCreate adds a user to an existing pool
 // (relative to their skill level), or creates a new one.
-func (c Context) JoinOrCreate(r *Request) (*Pool, error) {
-	var pool *Pool
+func (c MemcachedProvider) JoinOrCreate(r *pooling.Request) (*pooling.Pool, error) {
+	var pool *pooling.Pool
 	var err error
 	bucket := c.getPoolBucket(&r.UserID)
 
@@ -39,7 +34,7 @@ func (c Context) JoinOrCreate(r *Request) (*Pool, error) {
 }
 
 // GetPool gets a pool by ID.
-func (c Context) GetPool(poolID string) (*Pool, error) {
+func (c MemcachedProvider) GetPool(poolID string, r *pooling.Request) (*pooling.Pool, error) {
 	p, _ := c.getPool(&poolID)
 
 	if p == nil {
@@ -49,16 +44,16 @@ func (c Context) GetPool(poolID string) (*Pool, error) {
 	return p, nil
 }
 
-func (c Context) getPoolBucket(userID *string) string {
+func (c MemcachedProvider) getPoolBucket(userID *string) string {
 	if userID == nil {
-		return _Beginner
+		return pooling.Beginner
 	}
 
 	// Look up user's level
-	return _Novice
+	return pooling.Novice
 }
 
-func (c Context) getAvailablePoolID(bucket string) *string {
+func (c MemcachedProvider) getAvailablePoolID(bucket string) *string {
 	c.minimizeRaceConditions()
 
 	item, err := c.mc.Get(fmt.Sprintf("%s|currentAvailablePool", bucket))
@@ -72,11 +67,11 @@ func (c Context) getAvailablePoolID(bucket string) *string {
 	return &poolID
 }
 
-func (c Context) minimizeRaceConditions() {
+func (c MemcachedProvider) minimizeRaceConditions() {
 	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 }
 
-func (c Context) getPool(poolID *string) (*Pool, *memcache.Item) {
+func (c MemcachedProvider) getPool(poolID *string) (*pooling.Pool, *memcache.Item) {
 	if poolID == nil {
 		return nil, nil
 	}
@@ -91,13 +86,13 @@ func (c Context) getPool(poolID *string) (*Pool, *memcache.Item) {
 
 	json.Unmarshal(item.Value, &connections)
 
-	return &Pool{
+	return &pooling.Pool{
 		ID:            *poolID,
 		ConnectionIDs: connections,
 	}, item
 }
 
-func (c Context) newPool(bucket string) *Pool {
+func (c MemcachedProvider) newPool(bucket string) *pooling.Pool {
 	poolID := uuid.New().String()
 	emptyListBytes, _ := json.Marshal([]string{})
 
@@ -111,14 +106,14 @@ func (c Context) newPool(bucket string) *Pool {
 		Value: []byte(poolID),
 	})
 
-	return &Pool{
+	return &pooling.Pool{
 		ID:            poolID,
 		ConnectionIDs: []string{},
 	}
 }
 
-func (c Context) mapConnectionToPool(bucket string, r *Request) (*Pool, error) {
-	var pool *Pool
+func (c MemcachedProvider) mapConnectionToPool(bucket string, r *pooling.Request) (*pooling.Pool, error) {
+	var pool *pooling.Pool
 	var item *memcache.Item
 
 	for {
@@ -149,7 +144,7 @@ func (c Context) mapConnectionToPool(bucket string, r *Request) (*Pool, error) {
 	return pool, setErr
 }
 
-func (c Context) updateBucket(bucket, poolID string) error {
+func (c MemcachedProvider) updateBucket(bucket, poolID string) error {
 	key := fmt.Sprintf("%s|pools", bucket)
 	_, err := c.mc.Get(key)
 

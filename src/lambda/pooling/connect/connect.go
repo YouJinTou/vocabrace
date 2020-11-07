@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	dynamodbpooling "github.com/YouJinTou/vocabrace/pooling/providers/dynamodb"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
 
@@ -26,8 +28,8 @@ func main() {
 
 func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	c := ws.GetConfig()
-	con := pooling.NewMemcachedContext(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
-	p, err := con.JoinOrCreate(&pooling.Request{
+	provider := dynamodbpooling.NewDynamoDBProvider()
+	p, err := provider.JoinOrCreate(&pooling.Request{
 		ConnectionID: req.RequestContext.ConnectionID,
 		UserID:       uuid.New().String(),
 		PoolLimit:    3})
@@ -36,13 +38,9 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
 	}
 
-	peers, peersErr := con.GetPeers(req.RequestContext.ConnectionID)
-
-	if peersErr != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil
-	}
-
 	notifyConductor(p, c, req.RequestContext.DomainName)
+
+	peers := p.GetPeers(req.RequestContext.ConnectionID)
 
 	ws.SendToPeers(peers, ws.Message{
 		Domain:  req.RequestContext.DomainName,
@@ -60,6 +58,7 @@ func notifyConductor(p *pooling.Pool, c *ws.Config, domain string) {
 	marshalled, _ := json.Marshal(ws.PoolPayload{
 		Domain: domain,
 		PoolID: p.ID,
+		Bucket: p.Bucket,
 	})
 
 	svc.SendMessage(&sqs.SendMessageInput{

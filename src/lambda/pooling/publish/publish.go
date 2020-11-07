@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 
+	dynamodbpooling "github.com/YouJinTou/vocabrace/pooling/providers/dynamodb"
+
 	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
-	"github.com/YouJinTou/vocabrace/pooling"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,8 +17,8 @@ func main() {
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	c := ws.GetConfig()
-	con := pooling.NewMemcachedContext(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
-	connectionIDs, err := con.GetPeers(req.RequestContext.ConnectionID)
+	provider := dynamodbpooling.NewDynamoDBProvider()
+	connectionIDs, err := provider.GetPeers(req.RequestContext.ConnectionID)
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, nil

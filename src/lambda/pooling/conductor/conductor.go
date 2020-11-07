@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
 	"github.com/YouJinTou/vocabrace/pooling"
+
+	dynamodbpooling "github.com/YouJinTou/vocabrace/pooling/providers/dynamodb"
+
+	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -17,14 +20,17 @@ func main() {
 
 func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 	c := ws.GetConfig()
-	con := pooling.NewMemcachedContext(c.MemcachedHost, c.MemcachedUsername, c.MemcachedPassword)
+	provider := dynamodbpooling.NewDynamoDBProvider()
 
 	for _, message := range sqsEvent.Records {
 		payload := ws.PoolPayload{}
 
 		json.Unmarshal([]byte(message.Body), &payload)
 
-		pool, err := con.GetPool(payload.PoolID)
+		pool, err := provider.GetPool(payload.PoolID, &pooling.Request{
+			Stage:  c.Stage,
+			Bucket: payload.Bucket,
+		})
 
 		if err != nil {
 			fmt.Println(fmt.Sprintf("Pool %s not found.", payload.PoolID))

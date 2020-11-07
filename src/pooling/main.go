@@ -1,84 +1,63 @@
 package pooling
 
-import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/YouJinTou/vocabrace/tools"
-
-	"github.com/YouJinTou/vocabrace/memcached"
-)
-
-const _Beginner = "beginner"
-const _Novice = "novice"
-const _LowerIntermediate = "lower_intermediate"
-const _Intermediate = "intermediate"
-const _UpperIntermediate = "intermediate"
-const _Advanced = "advanced"
-const _Expert = "expert"
-const _Godlike = "godlike"
-
-// Context handles adding and removing connections from pools.
-type Context struct {
-	mc *memcached.Client
-}
-
 // Pool carries pool data.
 type Pool struct {
 	ID            string
 	ConnectionIDs []string
+	Bucket        string
+	Limit         int
 }
 
-// NewMemcachedContext creates a new context using Memcached as a backend.
-func NewMemcachedContext(host, username, password string) Context {
-	return Context{
-		mc: memcached.New(host, username, password),
+// GetPeers gets a connection's pool peers.
+func (p *Pool) GetPeers(connectionID string) []string {
+	peers := []string{}
+
+	for _, cid := range p.ConnectionIDs {
+		if cid != connectionID {
+			peers = append(peers, cid)
+		}
 	}
+
+	return peers
 }
 
-// GetPeers maps a connectionID to a pool and returns all peer connections.
-func (c Context) GetPeers(connectionID string) ([]string, error) {
-	it, err := c.mc.Get(connectionID)
-
-	if err != nil {
-		return nil, fmt.Errorf("not found for connection %s", connectionID)
-	}
-
-	poolID := string(it.Value)
-	getIt, getErr := c.mc.Get(poolID)
-
-	if getErr != nil {
-		return nil, fmt.Errorf("not found for pool %s", poolID)
-	}
-
-	connectionIDs := []string{}
-
-	json.Unmarshal(getIt.Value, &connectionIDs)
-
-	connectionIDs = tools.SliceRemoveString(connectionIDs, connectionID)
-
-	return connectionIDs, nil
+// Request encapsulates pool request data.
+type Request struct {
+	ConnectionID string
+	UserID       string
+	Bucket       string
+	PoolLimit    int
+	Stage        string
 }
 
-// List lists all pools
-func (c Context) List() {
-	item, err := c.mc.Get("novice|pools")
-
-	if err != nil {
-		return
-	}
-
-	pools := []string{}
-	json.Unmarshal(item.Value, &pools)
-
-	fmt.Println(fmt.Sprintf("Total pools: %d", len(pools)))
-
-	for _, curr := range pools {
-		item, _ := c.mc.Get(curr)
-
-		connections := []string{}
-		json.Unmarshal(item.Value, &connections)
-
-		fmt.Println(fmt.Sprintf("%s: %d", curr, len(connections)))
-	}
+// Provider abstracts a pooling provider.
+type Provider interface {
+	JoinOrCreate(r *Request) (*Pool, error)
+	Leave(r *Request) (*Pool, error)
+	GetPool(poolID string, r *Request) (*Pool, error)
+	GetPeers(request *Request) ([]string, error)
 }
+
+// Beginner is the beginner bucket.
+const Beginner = "beginner"
+
+// Novice is the novice bucket.
+const Novice = "novice"
+
+// LowerIntermediate is the lower_intermediate bucket.
+const LowerIntermediate = "lower_intermediate"
+
+// Intermediate is the intermediate bucket.
+const Intermediate = "intermediate"
+
+// UpperIntermediate is the upper_intermediate bucket.
+const UpperIntermediate = "upper_intermediate"
+
+// Advanced is the advanced bucket.
+const Advanced = "advanced"
+
+// Expert is the expert bucket.
+const Expert = "expert"
+
+// Godlike is the godlike bucket.
+const Godlike = "godlike"

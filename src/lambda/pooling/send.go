@@ -21,6 +21,7 @@ type Message struct {
 type PoolPayload struct {
 	Domain string
 	PoolID string
+	Bucket string
 }
 
 // Send sends a message to a connection ID.

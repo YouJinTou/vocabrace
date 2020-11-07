@@ -1,10 +1,10 @@
-package main
+package dynamodbpooling
 
 import (
 	"fmt"
 	"strconv"
-	"time"
 
+	"github.com/YouJinTou/vocabrace/pooling"
 	"github.com/YouJinTou/vocabrace/tools"
 
 	"github.com/google/uuid"
@@ -12,17 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
-
-// Pool carries pool data.
-type Pool struct {
-	ID            string
-	ConnectionIDs []string
-	Bucket        string
-	Limit         int
-}
 
 type dbBucket struct {
 	ID        string
@@ -50,44 +41,8 @@ func (dbp *dbPool) isFull() bool {
 	return len(dbp.ConnectionIDs) >= dbp.Limit
 }
 
-// Request encapsulates pool data.
-type Request struct {
-	ConnectionID string
-	UserID       string
-	Bucket       string
-	PoolLimit    int
-	Stage        string
-}
-
-// PoolingProvider abstracts a pooling provider.
-type PoolingProvider interface {
-	JoinOrCreate(r *Request) (*Pool, error)
-}
-
-// DynamoDBPoolingProvider implements PoolingProvider.
-type DynamoDBPoolingProvider struct {
-}
-
-// NewDynamoDBPoolingProvider creates a new DynamoDBPoolingProvider.
-func NewDynamoDBPoolingProvider() PoolingProvider {
-	return DynamoDBPoolingProvider{}
-}
-
-func main() {
-	for i := 0; i < 11; i++ {
-		go NewDynamoDBPoolingProvider().JoinOrCreate(&Request{
-			ConnectionID: uuid.New().String(),
-			UserID:       uuid.New().String(),
-			Bucket:       "novice",
-			PoolLimit:    3,
-			Stage:        "dev",
-		})
-	}
-	time.Sleep(10 * time.Second)
-}
-
 // JoinOrCreate joins or creates a pool.
-func (dpp DynamoDBPoolingProvider) JoinOrCreate(r *Request) (*Pool, error) {
+func (dpp DynamoDBProvider) JoinOrCreate(r *pooling.Request) (*pooling.Pool, error) {
 	for {
 		w, getErr := dpp.getDbBucketWrapper(r)
 
@@ -110,11 +65,13 @@ func (dpp DynamoDBPoolingProvider) JoinOrCreate(r *Request) (*Pool, error) {
 			continue
 		}
 
+		dpp.setConnection(p.ID, r)
+
 		return p, nil
 	}
 }
 
-func (dpp DynamoDBPoolingProvider) getDbBucketWrapper(r *Request) (*dbBucketWrapper, error) {
+func (dpp DynamoDBProvider) getDbBucket(r *pooling.Request) (*dbBucket, error) {
 	result, err := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_buckets", r.Stage)),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -124,8 +81,15 @@ func (dpp DynamoDBPoolingProvider) getDbBucketWrapper(r *Request) (*dbBucketWrap
 		},
 		ProjectionExpression: aws.String("ID, CAP, UpdatedAt"),
 	})
-	w := dbBucketWrapper{}
-	dynamodbattribute.UnmarshalMap(result.Item, &w.dbb)
+	b := dbBucket{}
+	dynamodbattribute.UnmarshalMap(result.Item, &b)
+
+	return &b, err
+}
+
+func (dpp DynamoDBProvider) getDbBucketWrapper(r *pooling.Request) (*dbBucketWrapper, error) {
+	dbb, err := dpp.getDbBucket(r)
+	w := dbBucketWrapper{dbb: dbb}
 
 	if w.dbb.CAP != nil {
 		result, _ := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
@@ -147,7 +111,7 @@ func (dpp DynamoDBPoolingProvider) getDbBucketWrapper(r *Request) (*dbBucketWrap
 	return &w, err
 }
 
-func (dpp DynamoDBPoolingProvider) createDbBucket(r *Request) (*dbBucket, error) {
+func (dpp DynamoDBProvider) createDbBucket(r *pooling.Request) (*dbBucket, error) {
 	b := dbBucket{
 		ID:        r.Bucket,
 		CAP:       nil,
@@ -163,7 +127,7 @@ func (dpp DynamoDBPoolingProvider) createDbBucket(r *Request) (*dbBucket, error)
 	return &b, err
 }
 
-func (dpp DynamoDBPoolingProvider) mapConnection(w *dbBucketWrapper, r *Request) {
+func (dpp DynamoDBProvider) mapConnection(w *dbBucketWrapper, r *pooling.Request) {
 	cap := w.CAPPool
 
 	if cap == nil || cap.isFull() {
@@ -180,10 +144,10 @@ func (dpp DynamoDBPoolingProvider) mapConnection(w *dbBucketWrapper, r *Request)
 	}
 }
 
-func (dpp DynamoDBPoolingProvider) setPool(w *dbBucketWrapper, r *Request) (*Pool, error) {
+func (dpp DynamoDBProvider) setPool(w *dbBucketWrapper, r *pooling.Request) (*pooling.Pool, error) {
 	key := map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(r.Bucket)}}
 	eav := map[string]*dynamodb.AttributeValue{
-		":ua":  {N: aws.String(tools.FutureTimestampStr(86400))},
+		":ua":  {N: aws.String(tools.FutureTimestampStr(0))},
 		":lua": {N: aws.String(strconv.Itoa(w.dbb.UpdatedAt))},
 	}
 	var ue string
@@ -213,14 +177,21 @@ func (dpp DynamoDBPoolingProvider) setPool(w *dbBucketWrapper, r *Request) (*Poo
 		ReturnValues:              aws.String("ALL_NEW"),
 	}
 	result, err := dpp.dynamo().UpdateItem(input)
-	pool := Pool{}
+	pool := pooling.Pool{
+		Bucket: r.Bucket,
+	}
 	dynamodbattribute.UnmarshalMap(result.Attributes[*w.dbb.CAP].M, &pool)
-	pool.Bucket = r.Bucket
 
 	return &pool, err
 }
 
-func (dpp DynamoDBPoolingProvider) dynamo() *dynamodb.DynamoDB {
-	sess := session.Must(session.NewSession())
-	return dynamodb.New(sess)
+func (dpp DynamoDBProvider) setConnection(poolID string, r *pooling.Request) {
+	dpp.dynamo().UpdateItem(&dynamodb.UpdateItemInput{
+		TableName: aws.String(fmt.Sprintf("%s_connections", r.Stage)),
+		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(r.ConnectionID)}},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":pid": {S: aws.String(poolID)},
+		},
+		UpdateExpression: aws.String("SET PoolID = :pid"),
+	})
 }
