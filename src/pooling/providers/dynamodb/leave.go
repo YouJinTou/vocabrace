@@ -27,7 +27,7 @@ func (dpp DynamoDBProvider) Leave(i *pooling.LeaveInput) (*pooling.Pool, error) 
 			panic(bErr.Error())
 		}
 
-		result, err := dpp.dynamo().UpdateItem(&dynamodb.UpdateItemInput{
+		result, err := dpp.dynamo.UpdateItem(&dynamodb.UpdateItemInput{
 			TableName: aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
 			Key: map[string]*dynamodb.AttributeValue{
 				"ID": {S: aws.String(i.Bucket)},
@@ -59,8 +59,8 @@ func (dpp DynamoDBProvider) Leave(i *pooling.LeaveInput) (*pooling.Pool, error) 
 }
 
 func (dpp DynamoDBProvider) detach(connectionID string) {
-	_, err := dpp.dynamo().DeleteItem(&dynamodb.DeleteItemInput{
-		TableName:    aws.String(fmt.Sprintf("%s_connections", "dev")),
+	_, err := dpp.dynamo.DeleteItem(&dynamodb.DeleteItemInput{
+		TableName:    aws.String(fmt.Sprintf("%s_connections", dpp.stage)),
 		Key:          map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(connectionID)}},
 		ReturnValues: aws.String("ALL_OLD"),
 	})

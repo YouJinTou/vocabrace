@@ -12,8 +12,8 @@ import (
 
 // DynamoDBProvider implements Provider.
 type DynamoDBProvider struct {
-	d     *dynamodb.DynamoDB
-	stage string
+	dynamo *dynamodb.DynamoDB
+	stage  string
 }
 
 type connection struct {
@@ -23,16 +23,22 @@ type connection struct {
 
 // NewDynamoDBProvider creates a new pooling provider using DynamoDB as a backend.
 func NewDynamoDBProvider(stage string) pooling.Provider {
+	sess := session.Must(session.NewSession())
+	dynamo := dynamodb.New(sess)
+
 	return DynamoDBProvider{
-		stage: stage,
+		dynamo: dynamo,
+		stage:  stage,
 	}
 }
 
 // GetPool gets a pool.
 func (dpp DynamoDBProvider) GetPool(i *pooling.GetPoolInput) (*pooling.Pool, error) {
-	result, err := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
-		TableName:                aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
-		Key:                      map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(i.Bucket)}},
+	result, err := dpp.dynamo.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {S: aws.String(i.Bucket)},
+		},
 		ExpressionAttributeNames: map[string]*string{"#p": aws.String(i.PoolID)},
 		ProjectionExpression:     aws.String("#p"),
 	})
@@ -70,7 +76,7 @@ func (dpp DynamoDBProvider) GetPeers(i *pooling.GetPeersInput) ([]string, error)
 }
 
 func (dpp DynamoDBProvider) getConnection(connectionID string) (connection, error) {
-	result, err := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
+	result, err := dpp.dynamo.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_connections", dpp.stage)),
 		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(connectionID)}},
 	})
@@ -78,13 +84,4 @@ func (dpp DynamoDBProvider) getConnection(connectionID string) (connection, erro
 	dynamodbattribute.UnmarshalMap(result.Item, &c)
 
 	return c, err
-}
-
-func (dpp DynamoDBProvider) dynamo() *dynamodb.DynamoDB {
-	if dpp.d == nil {
-		sess := session.Must(session.NewSession())
-		dpp.d = dynamodb.New(sess)
-	}
-
-	return dpp.d
 }

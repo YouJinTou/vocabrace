@@ -72,7 +72,7 @@ func (dpp DynamoDBProvider) JoinOrCreate(i *pooling.JoinOrCreateInput) (*pooling
 }
 
 func (dpp DynamoDBProvider) getDbBucket(bucket string) (*dbBucket, error) {
-	result, err := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
+	result, err := dpp.dynamo.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
 		Key: map[string]*dynamodb.AttributeValue{
 			"ID": {S: aws.String(bucket)},
@@ -90,7 +90,7 @@ func (dpp DynamoDBProvider) getDbBucketWrapper(bucket string) (*dbBucketWrapper,
 	w := dbBucketWrapper{dbb: dbb}
 
 	if w.dbb.CAP != nil {
-		result, _ := dpp.dynamo().GetItem(&dynamodb.GetItemInput{
+		result, _ := dpp.dynamo.GetItem(&dynamodb.GetItemInput{
 			TableName: aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
 			Key: map[string]*dynamodb.AttributeValue{
 				"ID": {S: aws.String(bucket)},
@@ -114,7 +114,7 @@ func (dpp DynamoDBProvider) createDbBucket(bucket string) (*dbBucket, error) {
 		UpdatedAt: tools.FutureTimestamp(0),
 	}
 	marshaled, _ := dynamodbattribute.MarshalMap(b)
-	_, err := dpp.dynamo().PutItem(&dynamodb.PutItemInput{
+	_, err := dpp.dynamo.PutItem(&dynamodb.PutItemInput{
 		TableName:           aws.String(fmt.Sprintf("%s_buckets", dpp.stage)),
 		Item:                marshaled,
 		ConditionExpression: aws.String("attribute_not_exists(UpdatedAt)"),
@@ -172,7 +172,7 @@ func (dpp DynamoDBProvider) setPool(w *dbBucketWrapper, i *pooling.JoinOrCreateI
 		ConditionExpression:       aws.String("UpdatedAt = :lua"),
 		ReturnValues:              aws.String("ALL_NEW"),
 	}
-	result, err := dpp.dynamo().UpdateItem(input)
+	result, err := dpp.dynamo.UpdateItem(input)
 	pool := pooling.Pool{
 		Bucket: i.Bucket,
 	}
@@ -182,7 +182,7 @@ func (dpp DynamoDBProvider) setPool(w *dbBucketWrapper, i *pooling.JoinOrCreateI
 }
 
 func (dpp DynamoDBProvider) setConnection(poolID, connectionID string) {
-	dpp.dynamo().UpdateItem(&dynamodb.UpdateItemInput{
+	dpp.dynamo.UpdateItem(&dynamodb.UpdateItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_connections", dpp.stage)),
 		Key:       map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(connectionID)}},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
