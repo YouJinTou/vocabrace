@@ -8,12 +8,16 @@ const _StartingTileCount = 100
 
 // Bag represents a bag.
 type Bag struct {
-	tiles []Tile
+	tiles []*Tile
 }
 
 // NewBag creates a new bag.
 func NewBag(language language) *Bag {
-	tiles := language()
+	alphabet := language()
+	tiles := []*Tile{BlankTile(), BlankTile()}
+	for t := 0; t < 98; t++ {
+		tiles = append(tiles, alphabet[rand.Intn(len(alphabet))].Copy())
+	}
 	bag := Bag{
 		tiles: tiles,
 	}
@@ -26,12 +30,12 @@ func (b *Bag) Count() int {
 }
 
 // Draw selects a number of random tiles from the bag.
-func (b *Bag) Draw(n int) []Tile {
+func (b *Bag) Draw(n int) []*Tile {
 	if n > b.Count() {
 		n = b.Count()
 	}
 
-	tiles := []Tile{}
+	tiles := []*Tile{}
 
 	for i := 0; i < n; i++ {
 		idx := rand.Intn(b.Count())
