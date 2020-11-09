@@ -75,7 +75,7 @@ func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 		ws.SendMany(pool.ConnectionIDs(), ws.Message{
 			Domain:  pool.Domain,
 			Stage:   c.Stage,
-			Message: "POOLER WORKS!",
+			Message: loadInitialState(pool.Game, pool.ConnectionIDs()),
 		})
 
 		clearQueue(pool, c, false)
