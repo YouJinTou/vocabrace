@@ -28,7 +28,7 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 	pool, err := pooling.GetPool(req.RequestContext.ConnectionID, c.Stage)
 
 	if err != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error()}, err
+		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
 	ws.OnAction(&ws.ReceiverData{

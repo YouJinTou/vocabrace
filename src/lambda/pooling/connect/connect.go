@@ -40,5 +40,9 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		MessageBody: aws.String(string(marshalled)),
 	})
 
-	return events.APIGatewayProxyResponse{StatusCode: 200}, err
+	if err != nil {
+		return events.APIGatewayProxyResponse{StatusCode: 500}, err
+	}
+
+	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
