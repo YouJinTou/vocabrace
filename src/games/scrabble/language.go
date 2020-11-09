@@ -5,7 +5,6 @@ type language func() []Tile
 // English produces a full set of tiles for the Latin alphabet.
 func English() []Tile {
 	return []Tile{
-		*BlankTile(),
 		Tile{"A", 1},
 		Tile{"B", 3},
 		Tile{"C", 3},
