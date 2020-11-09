@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -57,6 +58,7 @@ func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 		poolReady, batch := prepareBatch(c)
 
 		if !poolReady {
+			time.Sleep(time.Second * 1)
 			continue
 		}
 
