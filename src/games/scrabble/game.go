@@ -13,6 +13,12 @@ type Game struct {
 	ToMove  *Player
 }
 
+// DeltaState shows the changes since the previous turn.
+type DeltaState struct {
+	ToMoveID   string
+	LastAction string
+}
+
 // NewGame creates a new game.
 func NewGame(players []*Player) *Game {
 	bag := NewBag(English)
@@ -25,6 +31,11 @@ func NewGame(players []*Player) *Game {
 		Players: players,
 		ToMove:  players[rand.Intn(len(players))],
 	}
+}
+
+// GetDelta shows the changes since the last move.
+func (g *Game) GetDelta() DeltaState {
+	return DeltaState{}
 }
 
 // JSON stringifies the game state to a JSON string.
