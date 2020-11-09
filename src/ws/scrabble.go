@@ -45,7 +45,7 @@ func scrabbleOnAction(data *ReceiverData) {
 	err := json.Unmarshal([]byte(data.Body), &current)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(fmt.Sprintf("Data: %s Dump: %s", data, err.Error()))
 		return
 	}
 
