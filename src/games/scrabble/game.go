@@ -7,11 +7,11 @@ import (
 
 // Game holds a full game's state.
 type Game struct {
-	Board    Board    `json:"b"`
-	Bag      Bag      `json:"bg"`
-	Players  []Player `json:"p"`
-	ToMove   Player   `json:"m"`
-	Language string   `json:"l"`
+	Board    *Board    `json:"b"`
+	Bag      *Bag      `json:"bg"`
+	Players  []*Player `json:"p"`
+	ToMove   *Player   `json:"m"`
+	Language string    `json:"l"`
 }
 
 // DeltaState shows the changes since the previous turn.
@@ -21,7 +21,7 @@ type DeltaState struct {
 }
 
 // NewGame creates a new game.
-func NewGame(players []Player) *Game {
+func NewGame(players []*Player) *Game {
 	bag := NewBag(English)
 	for _, p := range players {
 		p.Tiles = bag.Draw(7)

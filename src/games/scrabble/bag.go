@@ -12,7 +12,7 @@ type Bag struct {
 }
 
 // NewBag creates a new bag.
-func NewBag(language language) Bag {
+func NewBag(language language) *Bag {
 	alphabet := language()
 	tiles := []*Tile{BlankTile(), BlankTile()}
 	for t := 0; t < 98; t++ {
@@ -21,7 +21,7 @@ func NewBag(language language) Bag {
 	bag := Bag{
 		Tiles: tiles,
 	}
-	return bag
+	return &bag
 }
 
 // Count returns the current number of tiles in the bag.
@@ -30,12 +30,12 @@ func (b *Bag) Count() int {
 }
 
 // Draw selects a number of random tiles from the bag.
-func (b *Bag) Draw(n int) []Tile {
+func (b *Bag) Draw(n int) []*Tile {
 	if n > b.Count() {
 		n = b.Count()
 	}
 
-	tiles := []Tile{}
+	tiles := []*Tile{}
 
 	for i := 0; i < n; i++ {
 		idx := rand.Intn(b.Count())
@@ -43,7 +43,7 @@ func (b *Bag) Draw(n int) []Tile {
 		b.Tiles[idx] = b.Tiles[b.Count()-1]
 		b.Tiles = b.Tiles[:b.Count()-1]
 
-		tiles = append(tiles, *t)
+		tiles = append(tiles, t)
 	}
 
 	return tiles

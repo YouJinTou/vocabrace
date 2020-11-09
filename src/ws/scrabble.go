@@ -11,7 +11,7 @@ type scrabblews struct{}
 
 func (s *scrabblews) OnStart(data *ReceiverData) {
 	type start struct {
-		Tiles  []scrabble.Tile
+		Tiles  []*scrabble.Tile
 		ToMove string
 	}
 	players := s.loadPlayers(data.ConnectionIDs)
@@ -70,10 +70,10 @@ func (s *scrabblews) OnAction(data *ReceiverData) {
 	})
 }
 
-func (s *scrabblews) loadPlayers(connectionIDs []string) []scrabble.Player {
-	players := []scrabble.Player{}
+func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
+	players := []*scrabble.Player{}
 	for _, cid := range connectionIDs {
-		players = append(players, scrabble.Player{
+		players = append(players, &scrabble.Player{
 			ID:     cid,
 			Name:   cid,
 			Points: 0,

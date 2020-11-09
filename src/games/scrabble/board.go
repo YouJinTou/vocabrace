@@ -15,7 +15,7 @@ type Board struct {
 }
 
 // NewBoard creates a board.
-func NewBoard() Board {
+func NewBoard() *Board {
 	board := Board{
 		Cells: [_BoardHeight * _BoardWidth]Cell{},
 	}
@@ -28,7 +28,7 @@ func NewBoard() Board {
 		}
 	}
 
-	return board
+	return &board
 }
 
 // SetCell sets a tile at a particular cell.
