@@ -1,18 +1,29 @@
 package scrabble
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"math/rand"
+)
 
-// Game holds a game's state.
+// Game holds a full game's state.
 type Game struct {
-	Board *Board
-	Bag   *Bag
+	Board   *Board
+	Bag     *Bag
+	Players []*Player
+	ToMove  *Player
 }
 
 // NewGame creates a new game.
-func NewGame() *Game {
+func NewGame(players []*Player) *Game {
+	bag := NewBag(English)
+	for _, p := range players {
+		p.Tiles = bag.Draw(7)
+	}
 	return &Game{
-		Board: NewBoard(),
-		Bag:   NewBag(English),
+		Board:   NewBoard(),
+		Bag:     bag,
+		Players: players,
+		ToMove:  players[rand.Intn(len(players))],
 	}
 }
 
