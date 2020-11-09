@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 
-	"github.com/YouJinTou/vocabrace/pooling"
+	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
 
-	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
+	"github.com/YouJinTou/vocabrace/pooling"
+	"github.com/YouJinTou/vocabrace/ws"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,7 +17,7 @@ func main() {
 }
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	c := ws.GetConfig()
+	c := lambdapooling.GetConfig()
 	pool, err := pooling.GetPool(req.RequestContext.ConnectionID, c.Stage)
 
 	if err != nil {

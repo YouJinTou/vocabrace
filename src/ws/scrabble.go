@@ -1,37 +1,38 @@
-package main
+package ws
 
 import (
 	"encoding/json"
 
 	"github.com/YouJinTou/vocabrace/games/scrabble"
-	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
 )
 
-func onStart(pool *pool) {
+func scrabbleOnStart(data *ReceiverData) {
 	type start struct {
 		Tiles  []*scrabble.Tile
 		ToMove string
 	}
-	players := loadPlayers(pool.ConnectionIDs())
+	players := scrabbleLoadPlayers(data.ConnectionIDs)
 	game := scrabble.NewGame(players)
-	messages := []*ws.Message{}
+	messages := []*Message{}
+
 	for _, p := range game.Players {
 		startState := start{
 			Tiles:  p.Tiles,
 			ToMove: game.ToMove.Name,
 		}
 		b, _ := json.Marshal(startState)
-		messages = append(messages, &ws.Message{
-			Domain:       pool.Domain,
-			Stage:        pool.Stage,
+		messages = append(messages, &Message{
+			Domain:       data.Domain,
+			Stage:        data.Stage,
 			ConnectionID: p.ID,
 			Message:      string(b),
 		})
 	}
-	ws.SendManyUnique(messages)
+
+	SendManyUnique(messages)
 }
 
-func loadPlayers(connectionIDs []string) []*scrabble.Player {
+func scrabbleLoadPlayers(connectionIDs []string) []*scrabble.Player {
 	players := []*scrabble.Player{}
 	for _, cid := range connectionIDs {
 		players = append(players, &scrabble.Player{

@@ -9,20 +9,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 )
 
-// Message is used in Send().
+// ReceiverData encapsulates receiver data for AWS API Gateway websockets.
+type ReceiverData struct {
+	ConnectionIDs []string
+	Domain        string
+	Stage         string
+	Game          string
+}
+
+// Message is used in sending data over a websocket.
 type Message struct {
 	Domain       string
 	Stage        string
 	ConnectionID string
 	Message      string
-}
-
-// PoolerPayload encapsulated data needed to push a message to the pooler.
-type PoolerPayload struct {
-	Domain       string
-	ConnectionID string
-	Bucket       string
-	Game         string
 }
 
 // Send sends a message to a connection ID.

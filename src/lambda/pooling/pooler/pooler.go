@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/YouJinTou/vocabrace/ws"
+
+	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
+
 	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-sdk-go/service/sqs"
 
-	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -53,7 +56,7 @@ func main() {
 }
 
 func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
-	c := ws.GetConfig()
+	c := lambdapooling.GetConfig()
 
 	for {
 		poolReady, batch := prepareBatch(c)
@@ -73,13 +76,18 @@ func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 
 		setPool(pool, c)
 
-		onStart(pool)
+		ws.OnStart(&ws.ReceiverData{
+			ConnectionIDs: pool.ConnectionIDs(),
+			Domain:        pool.Domain,
+			Stage:         pool.Stage,
+			Game:          pool.Game,
+		})
 
 		clearQueue(pool, c, false)
 	}
 }
 
-func prepareBatch(c *ws.Config) (bool, []*sqs.Message) {
+func prepareBatch(c *lambdapooling.Config) (bool, []*sqs.Message) {
 	queueName := fmt.Sprintf("%s_%s_pooler", c.Stage, "scrabble")
 	messages := []*sqs.Message{}
 	maxMessages := c.PoolLimit
@@ -107,10 +115,10 @@ func prepareBatch(c *ws.Config) (bool, []*sqs.Message) {
 	return true, messages
 }
 
-func createPool(batch []*sqs.Message, c *ws.Config) *pool {
+func createPool(batch []*sqs.Message, c *lambdapooling.Config) *pool {
 	p := pool{Connections: []*connection{}, Stage: c.Stage}
 	for _, message := range batch {
-		payload := ws.PoolerPayload{}
+		payload := lambdapooling.PoolerPayload{}
 		json.Unmarshal([]byte(*message.Body), &payload)
 		p.Bucket = payload.Bucket
 		p.Domain = payload.Domain
@@ -123,7 +131,7 @@ func createPool(batch []*sqs.Message, c *ws.Config) *pool {
 	return &p
 }
 
-func setPool(p *pool, c *ws.Config) {
+func setPool(p *pool, c *lambdapooling.Config) {
 	ID := uuid.New().String()
 	_, pErr := dynamo().PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_pools", c.Stage)),
@@ -163,7 +171,7 @@ func setPool(p *pool, c *ws.Config) {
 	}
 }
 
-func flagDisconnections(p *pool, c *ws.Config) {
+func flagDisconnections(p *pool, c *lambdapooling.Config) {
 	kaa := &dynamodb.KeysAndAttributes{}
 	cids := []map[string]*dynamodb.AttributeValue{}
 
@@ -194,11 +202,11 @@ func flagDisconnections(p *pool, c *ws.Config) {
 	}
 }
 
-func handleDisconnections(p *pool, c *ws.Config) bool {
+func handleDisconnections(p *pool, c *lambdapooling.Config) bool {
 	return clearQueue(p, c, true)
 }
 
-func clearQueue(p *pool, c *ws.Config, disconnectionsOnly bool) bool {
+func clearQueue(p *pool, c *lambdapooling.Config, disconnectionsOnly bool) bool {
 	svc := svc()
 	queueName := fmt.Sprintf("%s_%s_pooler", c.Stage, p.Game)
 	entries := []*sqs.DeleteMessageBatchRequestEntry{}

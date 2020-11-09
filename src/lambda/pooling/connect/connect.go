@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
+	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 
 	"github.com/YouJinTou/vocabrace/tools"
-
-	ws "github.com/YouJinTou/vocabrace/lambda/pooling"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -23,13 +23,13 @@ func main() {
 }
 
 func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	c := ws.GetConfig()
+	c := lambdapooling.GetConfig()
 	sess := session.Must(session.NewSession())
 	svc := sqs.New(sess)
 	game := req.QueryStringParameters["game"]
 	bucket := req.QueryStringParameters["bucket"]
 	queueName := fmt.Sprintf("%s_%s_pooler", c.Stage, game)
-	marshalled, _ := json.Marshal(ws.PoolerPayload{
+	marshalled, _ := json.Marshal(lambdapooling.PoolerPayload{
 		Domain:       req.RequestContext.DomainName,
 		ConnectionID: req.RequestContext.ConnectionID,
 		Bucket:       bucket,
