@@ -35,7 +35,6 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 		Bucket:       bucket,
 		Game:         game,
 	})
-
 	_, err := svc.SendMessage(&sqs.SendMessageInput{
 		QueueUrl:    aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
 		MessageBody: aws.String(string(marshalled)),
