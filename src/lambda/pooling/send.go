@@ -48,6 +48,19 @@ func Send(m *Message) error {
 	return nil
 }
 
+// SendManyUnique sends a unique message per connection.
+func SendManyUnique(messages []*Message) {
+	var wg sync.WaitGroup
+
+	for _, m := range messages {
+		wg.Add(1)
+
+		go send(&wg, *m)
+	}
+
+	wg.Wait()
+}
+
 // SendMany sends a message to all peers.
 func SendMany(connectionIDs []string, m Message) {
 	var wg sync.WaitGroup
