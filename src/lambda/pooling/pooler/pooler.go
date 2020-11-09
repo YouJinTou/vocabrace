@@ -22,6 +22,7 @@ import (
 )
 
 type pool struct {
+	ID          string
 	Connections []*connection
 	Domain      string
 	Bucket      string
@@ -81,6 +82,7 @@ func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 			Domain:        pool.Domain,
 			Stage:         pool.Stage,
 			Game:          pool.Game,
+			PoolID:        pool.ID,
 		})
 
 		clearQueue(pool, c, false)
@@ -132,11 +134,11 @@ func createPool(batch []*sqs.Message, c *lambdapooling.Config) *pool {
 }
 
 func setPool(p *pool, c *lambdapooling.Config) {
-	ID := uuid.New().String()
+	p.ID = uuid.New().String()
 	_, pErr := dynamo().PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_pools", c.Stage)),
 		Item: map[string]*dynamodb.AttributeValue{
-			"ID":            {S: aws.String(ID)},
+			"ID":            {S: aws.String(p.ID)},
 			"ConnectionIDs": {SS: p.ConnectionIDsPtr()},
 			"Bucket":        {S: aws.String(p.Bucket)},
 			"Limit":         {N: aws.String(c.PoolLimitStr)},
@@ -154,7 +156,7 @@ func setPool(p *pool, c *lambdapooling.Config) {
 			PutRequest: &dynamodb.PutRequest{
 				Item: map[string]*dynamodb.AttributeValue{
 					"ID":        {S: aws.String(cid)},
-					"PoolID":    {S: aws.String(ID)},
+					"PoolID":    {S: aws.String(p.ID)},
 					"LiveUntil": {N: aws.String(tools.FutureTimestampStr(7200))},
 				},
 			},

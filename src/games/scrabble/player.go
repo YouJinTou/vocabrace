@@ -2,8 +2,8 @@ package scrabble
 
 // Player encapsulates player data.
 type Player struct {
-	ID     string
-	Name   string
-	Points int
-	Tiles  []*Tile
+	ID     string `json:"id"`
+	Name   string `json:"n"`
+	Points int    `json:"p"`
+	Tiles  []Tile `json:"t"`
 }

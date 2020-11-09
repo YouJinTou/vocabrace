@@ -35,6 +35,7 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 		Game:          getGame(data),
 		Domain:        req.RequestContext.DomainName,
 		Stage:         c.Stage,
+		PoolID:        pool.ID,
 		Body:          data,
 		ConnectionIDs: pool.ConnectionIDs,
 		Initiator:     req.RequestContext.ConnectionID,

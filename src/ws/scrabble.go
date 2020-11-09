@@ -7,12 +7,14 @@ import (
 	"github.com/YouJinTou/vocabrace/games/scrabble"
 )
 
-func scrabbleOnStart(data *ReceiverData) {
+type scrabblews struct{}
+
+func (s *scrabblews) OnStart(data *ReceiverData) {
 	type start struct {
-		Tiles  []*scrabble.Tile
+		Tiles  []scrabble.Tile
 		ToMove string
 	}
-	players := scrabbleLoadPlayers(data.ConnectionIDs)
+	players := s.loadPlayers(data.ConnectionIDs)
 	game := scrabble.NewGame(players)
 	messages := []*Message{}
 
@@ -30,10 +32,14 @@ func scrabbleOnStart(data *ReceiverData) {
 		})
 	}
 
+	if sErr := saveState(data, game); sErr != nil {
+		panic(sErr.Error())
+	}
+
 	SendManyUnique(messages)
 }
 
-func scrabbleOnAction(data *ReceiverData) {
+func (s *scrabblews) OnAction(data *ReceiverData) {
 	type turn struct {
 		IsPlace       bool
 		IsExchange    bool
@@ -64,10 +70,10 @@ func scrabbleOnAction(data *ReceiverData) {
 	})
 }
 
-func scrabbleLoadPlayers(connectionIDs []string) []*scrabble.Player {
-	players := []*scrabble.Player{}
+func (s *scrabblews) loadPlayers(connectionIDs []string) []scrabble.Player {
+	players := []scrabble.Player{}
 	for _, cid := range connectionIDs {
-		players = append(players, &scrabble.Player{
+		players = append(players, scrabble.Player{
 			ID:     cid,
 			Name:   cid,
 			Points: 0,

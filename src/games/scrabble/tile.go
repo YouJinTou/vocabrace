@@ -2,8 +2,8 @@ package scrabble
 
 // Tile represents a tile.
 type Tile struct {
-	Letter string
-	Value  int
+	Letter string `json:"l"`
+	Value  int    `json:"v"`
 }
 
 // NewTile creates a new tile.

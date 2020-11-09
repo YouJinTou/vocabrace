@@ -15,6 +15,7 @@ type ReceiverData struct {
 	ConnectionIDs []string
 	Domain        string
 	Stage         string
+	PoolID        string
 	Game          string
 	Body          string
 }
