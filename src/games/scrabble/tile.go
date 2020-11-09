@@ -18,3 +18,11 @@ func BlankTile() *Tile {
 		Value:  0,
 	}
 }
+
+// Copy copies a tile.
+func (t *Tile) Copy() *Tile {
+	return &Tile{
+		Letter: t.Letter,
+		Value:  t.Value,
+	}
+}
