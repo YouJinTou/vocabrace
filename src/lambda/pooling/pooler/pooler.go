@@ -23,6 +23,7 @@ type pool struct {
 	Domain      string
 	Bucket      string
 	Game        string
+	Stage       string
 }
 
 type connection struct {
@@ -62,7 +63,7 @@ func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 			continue
 		}
 
-		pool := createPool(batch)
+		pool := createPool(batch, c)
 
 		flagDisconnections(pool, c)
 
@@ -72,11 +73,7 @@ func handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 
 		setPool(pool, c)
 
-		ws.SendMany(pool.ConnectionIDs(), ws.Message{
-			Domain:  pool.Domain,
-			Stage:   c.Stage,
-			Message: loadInitialState(pool.Game, pool.ConnectionIDs()),
-		})
+		onStart(pool)
 
 		clearQueue(pool, c, false)
 	}
@@ -110,8 +107,8 @@ func prepareBatch(c *ws.Config) (bool, []*sqs.Message) {
 	return true, messages
 }
 
-func createPool(batch []*sqs.Message) *pool {
-	p := pool{Connections: []*connection{}}
+func createPool(batch []*sqs.Message, c *ws.Config) *pool {
+	p := pool{Connections: []*connection{}, Stage: c.Stage}
 	for _, message := range batch {
 		payload := ws.PoolerPayload{}
 		json.Unmarshal([]byte(*message.Body), &payload)

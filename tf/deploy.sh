@@ -2,7 +2,7 @@ tf_root=$PWD
 lambda_root="$tf_root""/../src/lambda"
 
 cd $lambda_root/pooling/pooler
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o pooler pooler.go
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o pooler pooler.go scrabble.go
 build-lambda-zip -output pooler.zip pooler ../config.$1.json
 rm pooler
 mv pooler.zip $tf_root/payloads
