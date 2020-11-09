@@ -11,10 +11,22 @@ import (
 
 // ReceiverData encapsulates receiver data for AWS API Gateway websockets.
 type ReceiverData struct {
+	Initiator     string
 	ConnectionIDs []string
 	Domain        string
 	Stage         string
 	Game          string
+	Body          string
+}
+
+func (rd *ReceiverData) otherConnections() []string {
+	connections := []string{}
+	for _, cid := range rd.ConnectionIDs {
+		if cid != rd.Initiator {
+			connections = append(connections, cid)
+		}
+	}
+	return connections
 }
 
 // Message is used in sending data over a websocket.

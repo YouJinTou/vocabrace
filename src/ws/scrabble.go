@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/YouJinTou/vocabrace/games/scrabble"
 )
@@ -30,6 +31,37 @@ func scrabbleOnStart(data *ReceiverData) {
 	}
 
 	SendManyUnique(messages)
+}
+
+func scrabbleOnAction(data *ReceiverData) {
+	type turn struct {
+		IsPlace       bool
+		IsExchange    bool
+		IsPass        bool
+		Word          string
+		ExchangeCount int
+	}
+	current := turn{}
+	err := json.Unmarshal([]byte(data.Body), &current)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	if current.IsExchange {
+		return
+	}
+
+	if current.IsPass {
+		return
+	}
+
+	SendMany(data.otherConnections(), Message{
+		Domain:  data.Domain,
+		Stage:   data.Stage,
+		Message: "Player placed word!",
+	})
 }
 
 func scrabbleLoadPlayers(connectionIDs []string) []*scrabble.Player {
