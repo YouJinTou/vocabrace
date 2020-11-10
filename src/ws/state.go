@@ -53,3 +53,20 @@ func saveState(data *ReceiverData, v interface{}) error {
 
 	return uErr
 }
+
+func loadState(data *ReceiverData, v interface{}) {
+	sess := session.Must(session.NewSession())
+	dynamo := dynamodb.New(sess)
+	i, err := dynamo.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(fmt.Sprintf("%s_pools", data.Stage)),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {S: aws.String(data.PoolID)},
+		},
+	})
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	dynamodbattribute.UnmarshalMap(i.Item["GameState"].M, v)
+}

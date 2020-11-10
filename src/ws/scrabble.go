@@ -55,6 +55,9 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 		return
 	}
 
+	game := &scrabble.Game{}
+	loadState(data, game)
+
 	if current.IsExchange {
 		return
 	}
