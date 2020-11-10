@@ -38,7 +38,7 @@ func (s scrabblews) OnStart(data *ReceiverData) {
 	for _, p := range game.Players {
 		startState := start{
 			Tiles:  p.Tiles,
-			ToMove: game.ToMove.Name,
+			ToMove: game.ToMove().Name,
 		}
 		b, _ := json.Marshal(startState)
 		messages = append(messages, &Message{
@@ -105,7 +105,7 @@ func (s *scrabblews) exchange(turn *turn, g *scrabble.Game) *result {
 	if err != nil {
 		return &result{&game, "EXCHANGE FAILED", err}
 	}
-	return &result{&game, "EXCHANGED", err}
+	return &result{&game, game.GetDeltaJSON(), err}
 }
 
 func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
@@ -121,7 +121,7 @@ func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
 }
 
 func (s *scrabblews) validateTurn(data *ReceiverData, g *scrabble.Game) error {
-	if data.Initiator != g.ToMove.ID {
+	if data.Initiator != g.ToMoveID {
 		return errors.New("invalid player turn")
 	}
 

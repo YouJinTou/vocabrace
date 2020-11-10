@@ -56,3 +56,9 @@ func testPlayer() *Player {
 	}
 	return &p
 }
+
+func testPlayerArgs(ID string) *Player {
+	p := testPlayer()
+	p.ID = ID
+	return p
+}
