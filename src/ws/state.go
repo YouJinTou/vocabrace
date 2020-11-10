@@ -9,29 +9,28 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-type onStart func(*ReceiverData)
-type onAction func(*ReceiverData)
+type state interface {
+	OnStart(*ReceiverData)
+	OnAction(*ReceiverData)
+}
 
-// OnStart executes communication logic at the start of a game.
-func OnStart(data *ReceiverData) {
+func load(data *ReceiverData) state {
 	switch data.Game {
 	case "scrabble":
-		s := scrabblews{}
-		s.OnStart(data)
+		return scrabblews{}
 	default:
 		panic(fmt.Sprintf("invalid game %s", data.Game))
 	}
 }
 
+// OnStart executes communication logic at the start of a game.
+func OnStart(data *ReceiverData) {
+	load(data).OnStart(data)
+}
+
 // OnAction executes communication logic when a player takes an action.
 func OnAction(data *ReceiverData) {
-	switch data.Game {
-	case "scrabble":
-		s := scrabblews{}
-		s.OnAction(data)
-	default:
-		panic(fmt.Sprintf("invalid game %s", data.Game))
-	}
+	load(data).OnAction(data)
 }
 
 func saveState(data *ReceiverData, v interface{}) error {

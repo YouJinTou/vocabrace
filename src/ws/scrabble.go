@@ -9,7 +9,7 @@ import (
 
 type scrabblews struct{}
 
-func (s *scrabblews) OnStart(data *ReceiverData) {
+func (s scrabblews) OnStart(data *ReceiverData) {
 	type start struct {
 		Tiles  []*scrabble.Tile
 		ToMove string
@@ -39,7 +39,7 @@ func (s *scrabblews) OnStart(data *ReceiverData) {
 	SendManyUnique(messages)
 }
 
-func (s *scrabblews) OnAction(data *ReceiverData) {
+func (s scrabblews) OnAction(data *ReceiverData) {
 	type turn struct {
 		IsPlace       bool
 		IsExchange    bool
