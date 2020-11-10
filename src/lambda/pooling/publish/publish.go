@@ -13,11 +13,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-type payload struct {
-	Action string
-	Data   string
-}
-
 func main() {
 	lambda.Start(handle)
 }
@@ -45,6 +40,9 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 }
 
 func getData(body string) string {
+	type payload struct {
+		Data string
+	}
 	p := payload{}
 	err := json.Unmarshal([]byte(body), &p)
 
