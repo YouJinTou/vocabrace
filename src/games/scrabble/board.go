@@ -11,21 +11,13 @@ type Cell struct {
 
 // Board is a 15x15 field of cells.
 type Board struct {
-	Cells [_BoardHeight * _BoardWidth]Cell `json:"c"`
+	Cells []Cell `json:"c"`
 }
 
 // NewBoard creates a board.
 func NewBoard() *Board {
 	board := Board{
-		Cells: [_BoardHeight * _BoardWidth]Cell{},
-	}
-
-	for r := 0; r < _BoardHeight; r++ {
-		for c := 0; c < _BoardWidth; c++ {
-			idx := board.getCellIndex(r, c)
-			cell := Cell{Index: idx}
-			board.Cells[board.getCellIndex(r, c)] = cell
-		}
+		Cells: []Cell{},
 	}
 
 	return &board
