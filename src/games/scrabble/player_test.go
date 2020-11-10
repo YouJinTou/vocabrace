@@ -7,7 +7,7 @@ import (
 )
 
 func TestExchangeTilesReturnsErrorAboutCountsMismatch(t *testing.T) {
-	p := testGetPlayer()
+	p := testPlayer()
 	_, err := p.ExchangeTiles([]string{"A"}, []*Tile{&Tile{}, &Tile{}})
 
 	if err == nil || err.Error() != "exchange and receive tile counts should match" {
@@ -16,7 +16,7 @@ func TestExchangeTilesReturnsErrorAboutCountsMismatch(t *testing.T) {
 }
 
 func TestExchangeTilesReturnsErrorAboutMissingTiles(t *testing.T) {
-	p := testGetPlayer()
+	p := testPlayer()
 	_, err := p.ExchangeTiles([]string{"ZZ"}, []*Tile{&Tile{}})
 
 	if err == nil || err.Error() != "ZZ tile not found" {
@@ -25,7 +25,7 @@ func TestExchangeTilesReturnsErrorAboutMissingTiles(t *testing.T) {
 }
 
 func TestExchangeTilesExchangesTiles(t *testing.T) {
-	p := testGetPlayer()
+	p := testPlayer()
 	originalCount := len(p.Tiles)
 	toRemove := []string{p.Tiles[0].Letter, p.Tiles[1].Letter}
 	toReceive := []*Tile{&Tile{Letter: "Q"}, &Tile{Letter: "X"}}
@@ -46,7 +46,7 @@ func TestExchangeTilesExchangesTiles(t *testing.T) {
 	}
 }
 
-func testGetPlayer() *Player {
+func testPlayer() *Player {
 	b := NewBag(English)
 	p := Player{
 		ID:     uuid.New().String(),
