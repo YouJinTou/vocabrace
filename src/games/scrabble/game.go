@@ -45,3 +45,11 @@ func (g *Game) JSON() string {
 	b, _ := json.Marshal(g)
 	return string(b)
 }
+
+// Exchange exchanges a set of tiles for the player to move.
+func (g *Game) Exchange(exchangeTiles []string) (Game, error) {
+	toReceive := g.Bag.Draw(len(exchangeTiles))
+	toReturn, err := g.ToMove.ExchangeTiles(exchangeTiles, toReceive)
+	g.Bag.Put(toReturn)
+	return *g, err
+}

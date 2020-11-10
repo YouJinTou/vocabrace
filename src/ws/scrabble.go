@@ -45,7 +45,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 		IsExchange    bool
 		IsPass        bool
 		Word          string
-		ExchangeCount int
+		ExchangeTiles []string
 	}
 	current := turn{}
 	err := json.Unmarshal([]byte(data.Body), &current)
@@ -59,11 +59,23 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	loadState(data, game)
 
 	if current.IsExchange {
+		g, err := game.Exchange(current.ExchangeTiles)
+		if err != nil {
+			fmt.Println(fmt.Sprintf("Tile exchange. Data: %s Dump: %s", data, err.Error()))
+			return
+		}
+		game = &g
+	} else if current.IsPass {
+
+	} else if current.IsPlace {
+
+	} else {
+		fmt.Println(fmt.Sprintf("Invalid action. Data: %s Dump: %s", data, err.Error()))
 		return
 	}
 
-	if current.IsPass {
-		return
+	if sErr := saveState(data, game); sErr != nil {
+		panic(sErr.Error())
 	}
 
 	SendMany(data.otherConnections(), Message{

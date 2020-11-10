@@ -48,3 +48,10 @@ func (b *Bag) Draw(n int) []*Tile {
 
 	return tiles
 }
+
+// Put puts tiles back into the back. Occurs during an exchange.
+func (b *Bag) Put(tiles []*Tile) {
+	for _, t := range tiles {
+		b.Tiles = append(b.Tiles, t.Copy())
+	}
+}
