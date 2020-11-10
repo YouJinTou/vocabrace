@@ -61,13 +61,18 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	bErr := json.Unmarshal([]byte(data.Body), &turn)
 
 	if bErr != nil {
-		s.sendError(data, "Invalid payload.", bErr)
+		s.returnClientError(data, "Invalid payload.", bErr)
 		return
 	}
 
 	game := &scrabble.Game{}
 	var r *result
 	loadState(data, game)
+
+	if vErr := s.validateTurn(data, game); vErr != nil {
+		s.returnClientError(data, "Invalid turn.", vErr)
+		return
+	}
 
 	if turn.IsExchange {
 		r = s.exchange(&turn, game)
@@ -80,7 +85,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	}
 
 	if r.err != nil {
-		s.sendError(data, "Invalid action.", r.err)
+		s.returnClientError(data, "Bad request.", r.err)
 		return
 	}
 
@@ -115,7 +120,15 @@ func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
 	return players
 }
 
-func (s *scrabblews) sendError(data *ReceiverData, message string, err error) {
+func (s *scrabblews) validateTurn(data *ReceiverData, g *scrabble.Game) error {
+	if data.Initiator != g.ToMove.ID {
+		return errors.New("invalid player turn")
+	}
+
+	return nil
+}
+
+func (s *scrabblews) returnClientError(data *ReceiverData, message string, err error) {
 	fmt.Println(fmt.Sprintf("ERROR Data: %s Dump: %s", data, err.Error()))
 	msg := clientMessage{
 		Body: message,
@@ -123,8 +136,9 @@ func (s *scrabblews) sendError(data *ReceiverData, message string, err error) {
 	}
 	b, _ := json.Marshal(msg)
 	Send(&Message{
-		Domain:  data.Domain,
-		Stage:   data.Stage,
-		Message: string(b),
+		ConnectionID: data.Initiator,
+		Domain:       data.Domain,
+		Stage:        data.Stage,
+		Message:      string(b),
 	})
 }
