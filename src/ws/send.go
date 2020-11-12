@@ -83,7 +83,7 @@ func SendMany(connectionIDs []string, m *Message) {
 
 		m.ConnectionID = cid
 
-		go send(&wg, m)
+		go send(&wg, *m)
 	}
 
 	wg.Wait()
