@@ -18,7 +18,7 @@ type turn struct {
 }
 type result struct {
 	g   *scrabble.Game
-	m   string
+	d   scrabble.DeltaState
 	err error
 }
 type clientMessage struct {
@@ -81,7 +81,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	} else if turn.IsPlace {
 
 	} else {
-		r = &result{nil, "", errors.New("invalid action")}
+		r = &result{nil, scrabble.DeltaState{}, errors.New("invalid action")}
 	}
 
 	if r.err != nil {
@@ -93,19 +93,26 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 		panic(sErr.Error())
 	}
 
-	SendMany(data.otherConnections(), Message{
+	Send(&Message{
+		ConnectionID: data.Initiator,
+		Domain:       data.Domain,
+		Stage:        data.Stage,
+		Message:      r.d.JSONWithPersonal(),
+	})
+
+	SendMany(data.otherConnections(), &Message{
 		Domain:  data.Domain,
 		Stage:   data.Stage,
-		Message: r.m,
+		Message: r.d.JSONWithoutPersonal(),
 	})
 }
 
 func (s *scrabblews) exchange(turn *turn, g *scrabble.Game) *result {
 	game, err := g.Exchange(turn.ExchangeTiles)
 	if err != nil {
-		return &result{&game, "EXCHANGE FAILED", err}
+		return &result{&game, scrabble.DeltaState{}, err}
 	}
-	return &result{&game, game.GetDeltaJSON(), err}
+	return &result{&game, game.GetDelta(), err}
 }
 
 func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {

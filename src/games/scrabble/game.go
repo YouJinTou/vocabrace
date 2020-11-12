@@ -3,6 +3,7 @@ package scrabble
 import (
 	"encoding/json"
 	"math/rand"
+	"strconv"
 )
 
 // Game holds a full game's state.
@@ -13,12 +14,36 @@ type Game struct {
 	ToMoveID string    `json:"m"`
 	Language string    `json:"l"`
 	Order    []string  `json:"o"`
+	delta    DeltaState
 }
 
 // DeltaState shows the changes since the previous turn.
 type DeltaState struct {
-	ToMoveID   string
-	LastAction string
+	ToMoveID             string
+	LastAction           string
+	LastActionPlayerID   string
+	LastActionPlayerData string
+	OtherPlayersData     string
+}
+
+// JSONWithPersonal jsonifies a delta state with return data for the player.
+func (d *DeltaState) JSONWithPersonal() string {
+	b, _ := json.Marshal(d)
+	result := string(b)
+	return result
+}
+
+// JSONWithoutPersonal jsonifies a delta state without return data for the player.
+func (d *DeltaState) JSONWithoutPersonal() string {
+	p := DeltaState{
+		ToMoveID:           d.ToMoveID,
+		LastAction:         d.LastAction,
+		LastActionPlayerID: d.LastActionPlayerID,
+		OtherPlayersData:   d.OtherPlayersData,
+	}
+	b, _ := json.Marshal(p)
+	result := string(b)
+	return result
 }
 
 // NewGame creates a new game.
@@ -44,16 +69,7 @@ func NewGame(players []*Player) *Game {
 
 // GetDelta shows the changes since the last move.
 func (g *Game) GetDelta() DeltaState {
-	return DeltaState{
-		ToMoveID: g.ToMoveID,
-	}
-}
-
-// GetDeltaJSON shows the changes since the last move.
-func (g *Game) GetDeltaJSON() string {
-	b, _ := json.Marshal(g.GetDelta())
-	result := string(b)
-	return result
+	return g.delta
 }
 
 // JSON stringifies the game state to a JSON string.
@@ -65,8 +81,16 @@ func (g *Game) JSON() string {
 // Exchange exchanges a set of tiles for the player to move.
 func (g *Game) Exchange(exchangeTiles []string) (Game, error) {
 	toReceive := g.Bag.Draw(len(exchangeTiles))
+	toReceiveBytes, _ := json.Marshal(toReceive)
 	toReturn, err := g.ToMove().ExchangeTiles(exchangeTiles, toReceive)
 	g.Bag.Put(toReturn)
+
+	g.delta = DeltaState{
+		LastAction:           "EXCHANGE",
+		LastActionPlayerID:   g.ToMove().ID,
+		LastActionPlayerData: string(toReceiveBytes),
+		OtherPlayersData:     strconv.Itoa(len(toReceive)),
+	}
 
 	g.setNext()
 
@@ -81,6 +105,7 @@ func (g *Game) setNext() {
 			} else {
 				g.ToMoveID = g.Order[i+1]
 			}
+			g.delta.ToMoveID = g.ToMoveID
 			return
 		}
 	}

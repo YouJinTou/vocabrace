@@ -75,7 +75,7 @@ func SendManyUnique(messages []*Message) {
 }
 
 // SendMany sends a message to all peers.
-func SendMany(connectionIDs []string, m Message) {
+func SendMany(connectionIDs []string, m *Message) {
 	var wg sync.WaitGroup
 
 	for _, cid := range connectionIDs {
