@@ -28,7 +28,13 @@ type DeltaState struct {
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
 func (d *DeltaState) JSONWithPersonal() string {
-	b, _ := json.Marshal(d)
+	p := DeltaState{
+		ToMoveID:             d.ToMoveID,
+		LastAction:           d.LastAction,
+		LastActionPlayerID:   d.LastActionPlayerID,
+		LastActionPlayerData: d.LastActionPlayerData,
+	}
+	b, _ := json.Marshal(p)
 	result := string(b)
 	return result
 }
@@ -87,7 +93,6 @@ func (g *Game) Exchange(exchangeTiles []string) (Game, error) {
 
 	g.delta = DeltaState{
 		LastAction:           "Exchange",
-		LastActionPlayerID:   g.ToMove().ID,
 		LastActionPlayerData: string(toReceiveBytes),
 		OtherPlayersData:     strconv.Itoa(len(toReceive)),
 	}
@@ -107,9 +112,41 @@ func (g *Game) Pass() Game {
 	return *g
 }
 
+// Place places a word on the board.
+func (g *Game) Place(tiles []*Cell) (Game, error) {
+	if vErr := validatePlaceAction(g, tiles); vErr != nil {
+		return *g, vErr
+	}
+
+	g.Board.SetCells(tiles)
+
+	points := calculatePlacePoints(g, tiles)
+	g.ToMove().AwardPoints(points)
+
+	toReceive := g.Bag.Draw(len(tiles))
+	toReceiveBytes, _ := json.Marshal(toReceive)
+	toRemove := []string{}
+	for _, t := range tiles {
+		toRemove = append(toRemove, t.Tile.Letter)
+	}
+	_, err := g.ToMove().ExchangeTiles(toRemove, toReceive)
+
+	tilesBytes, _ := json.Marshal(tiles)
+	g.delta = DeltaState{
+		LastAction:           "Place",
+		LastActionPlayerData: string(toReceiveBytes),
+		OtherPlayersData:     string(tilesBytes),
+	}
+
+	g.setNext()
+
+	return *g, err
+}
+
 func (g *Game) setNext() {
 	for i, p := range g.Order {
 		if p == g.ToMoveID {
+			g.delta.LastActionPlayerID = g.ToMoveID
 			if i+1 == len(g.Order) {
 				g.ToMoveID = g.Order[0]
 			} else {

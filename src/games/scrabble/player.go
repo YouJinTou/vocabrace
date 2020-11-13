@@ -3,6 +3,7 @@ package scrabble
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Player encapsulates player data.
@@ -19,11 +20,14 @@ func (p *Player) ExchangeTiles(toRemove []string, toReceive []*Tile) ([]*Tile, e
 		return []*Tile{}, errors.New("exchange and receive tile counts should match")
 	}
 
+	returnTiles := []*Tile{}
 	for _, tr := range toRemove {
 		foundTile := false
-		for _, t := range p.Tiles {
-			if t.Letter == tr {
+		for i, t := range p.Tiles {
+			if strings.ToLower(t.Letter) == strings.ToLower(tr) {
 				foundTile = true
+				p.Tiles = append(p.Tiles[:i], p.Tiles[i+1:]...)
+				returnTiles = append(returnTiles, t.Copy())
 				break
 			}
 		}
@@ -32,20 +36,14 @@ func (p *Player) ExchangeTiles(toRemove []string, toReceive []*Tile) ([]*Tile, e
 		}
 	}
 
-	returnTiles := []*Tile{}
-	for i, tr := range toRemove {
-		for _, t := range p.Tiles {
-			if t.Letter == tr {
-				returnTiles = append(returnTiles, t.Copy())
-				p.Tiles = append(p.Tiles[:i], p.Tiles[i+1:]...)
-				break
-			}
-		}
-	}
-
 	for _, tr := range toReceive {
 		p.Tiles = append(p.Tiles, tr)
 	}
 
 	return returnTiles, nil
+}
+
+// AwardPoints awards points to the player.
+func (p *Player) AwardPoints(points int) {
+	p.Points += points
 }

@@ -1,5 +1,7 @@
 package scrabble
 
+import "sort"
+
 const _BoardWidth = 15
 const _BoardHeight = 15
 
@@ -23,14 +25,13 @@ func NewBoard() *Board {
 	return &board
 }
 
-// SetCell sets a tile at a particular cell.
-func (b *Board) SetCell(r, c int, t Tile) Board {
-	index := b.getCellIndex(r, c)
-	b.Cells[index].Tile = t
+// SetCells sets tiles on the board.
+func (b *Board) SetCells(cells []*Cell) Board {
+	for _, c := range cells {
+		b.Cells = append(b.Cells, *c)
+	}
+	sort.Slice(b.Cells, func(i, j int) bool {
+		return b.Cells[i].Index < b.Cells[j].Index
+	})
 	return *b
-}
-
-func (b *Board) getCellIndex(r, c int) int {
-	index := (r * _BoardHeight) + c
-	return index
 }

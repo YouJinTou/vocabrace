@@ -13,7 +13,7 @@ type turn struct {
 	IsPlace       bool
 	IsExchange    bool
 	IsPass        bool
-	Word          string
+	Word          []*scrabble.Cell
 	ExchangeTiles []string
 }
 type result struct {
@@ -79,7 +79,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	} else if turn.IsPass {
 		r = s.pass(game)
 	} else if turn.IsPlace {
-
+		r = s.place(&turn, game)
 	} else {
 		r = &result{nil, scrabble.DeltaState{}, errors.New("invalid action")}
 	}
@@ -118,6 +118,14 @@ func (s *scrabblews) exchange(turn *turn, g *scrabble.Game) *result {
 func (s *scrabblews) pass(g *scrabble.Game) *result {
 	game := g.Pass()
 	return &result{&game, game.GetDelta(), nil}
+}
+
+func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
+	game, err := g.Place(turn.Word)
+	if err != nil {
+		return &result{&game, scrabble.DeltaState{}, err}
+	}
+	return &result{&game, game.GetDelta(), err}
 }
 
 func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
