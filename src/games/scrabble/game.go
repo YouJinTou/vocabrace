@@ -97,6 +97,16 @@ func (g *Game) Exchange(exchangeTiles []string) (Game, error) {
 	return *g, err
 }
 
+// Pass passes a turn.
+func (g *Game) Pass() Game {
+	g.delta = DeltaState{
+		LastAction:         "PASS",
+		LastActionPlayerID: g.ToMove().ID,
+	}
+	g.setNext()
+	return *g
+}
+
 func (g *Game) setNext() {
 	for i, p := range g.Order {
 		if p == g.ToMoveID {

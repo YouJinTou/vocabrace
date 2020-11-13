@@ -77,7 +77,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	if turn.IsExchange {
 		r = s.exchange(&turn, game)
 	} else if turn.IsPass {
-
+		r = s.pass(game)
 	} else if turn.IsPlace {
 
 	} else {
@@ -113,6 +113,11 @@ func (s *scrabblews) exchange(turn *turn, g *scrabble.Game) *result {
 		return &result{&game, scrabble.DeltaState{}, err}
 	}
 	return &result{&game, game.GetDelta(), err}
+}
+
+func (s *scrabblews) pass(g *scrabble.Game) *result {
+	game := g.Pass()
+	return &result{&game, game.GetDelta(), nil}
 }
 
 func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
