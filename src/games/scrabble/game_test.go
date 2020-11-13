@@ -3,6 +3,8 @@ package scrabble
 import (
 	"strconv"
 	"testing"
+
+	"github.com/YouJinTou/vocabrace/tools"
 )
 
 func TestExchange(t *testing.T) {
@@ -13,6 +15,86 @@ func TestExchange(t *testing.T) {
 
 	if err != nil {
 		t.Errorf(err.Error())
+	}
+}
+
+func TestPlace(t *testing.T) {
+	g, _, tiles := setupPlace()
+	_, err := g.Place(tiles)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestPlaceBoardSet(t *testing.T) {
+	g, _, tiles := setupPlace()
+
+	g.Place(tiles)
+
+	if len(g.Board.Cells) != len(tiles) {
+		t.Errorf("Board not set.")
+	}
+}
+
+func TestPlacePointsAwarded(t *testing.T) {
+	g, _, tiles := setupPlace()
+
+	g.Place(tiles)
+
+	if g.Players[0].Points <= 0 {
+		t.Errorf("Points not awarded.")
+	}
+}
+
+func TestPlaceTilesRemovedFromBag(t *testing.T) {
+	g, _, tiles := setupPlace()
+	bagStartingCount := g.Bag.Count()
+
+	g.Place(tiles)
+
+	if g.Bag.Count() != bagStartingCount-len(tiles) {
+		t.Errorf("Bag untouched.")
+	}
+}
+
+func TestPlacePlayerReceivesTilesBack(t *testing.T) {
+	g, _, tiles := setupPlace()
+
+	g.Place(tiles)
+
+	usedIndices := []int{}
+	for _, bt := range g.Bag.GetLastDrawn() {
+		found := false
+		for i, pt := range g.Players[0].Tiles {
+			if bt.Letter == pt.Letter && !tools.ContainsInt(usedIndices, i) {
+				found = true
+				usedIndices = append(usedIndices, i)
+			}
+		}
+		if !found {
+			t.Errorf("Invalid tile assigned.")
+		}
+	}
+}
+
+func TestPlaceSetsDeltaState(t *testing.T) {
+	g, _, tiles := setupPlace()
+
+	g.Place(tiles)
+
+	if g.delta.LastAction != "Place" {
+		t.Errorf("Delta not set.")
+	}
+}
+
+func TestPlaceSetsNextPlayer(t *testing.T) {
+	g, _, tiles := setupPlace()
+
+	g.Place(tiles)
+
+	if g.ToMove().ID == g.Players[0].ID {
+		t.Errorf("Next player not set.")
 	}
 }
 
@@ -85,4 +167,20 @@ func getExpectedOrder(idx, total int) []string {
 		result = append(result, strconv.Itoa(i))
 	}
 	return result
+}
+
+func setupPlace() (Game, []*Player, []*Cell) {
+	players := []*Player{testPlayer(), testPlayer()}
+	g := NewGame(players)
+	tiles := []*Cell{
+		&Cell{
+			Tile:  *players[0].Tiles[0].Copy(),
+			Index: 0,
+		},
+		&Cell{
+			Tile:  *players[0].Tiles[1].Copy(),
+			Index: 1,
+		},
+	}
+	return *g, players, tiles
 }
