@@ -8,7 +8,8 @@ const _StartingTileCount = 100
 
 // Bag represents a bag.
 type Bag struct {
-	Tiles []*Tile `json:"t"`
+	Tiles     []*Tile `json:"t"`
+	lastDrawn []*Tile
 }
 
 // NewBag creates a new bag.
@@ -46,7 +47,15 @@ func (b *Bag) Draw(n int) []*Tile {
 		tiles = append(tiles, t)
 	}
 
+	b.lastDrawn = make([]*Tile, len(tiles))
+	copy(b.lastDrawn, tiles)
+
 	return tiles
+}
+
+// GetLastDrawn returns a copy of the tiles that were last drawn.
+func (b *Bag) GetLastDrawn() []*Tile {
+	return b.lastDrawn
 }
 
 // Put puts tiles back into the back. Occurs during an exchange.
