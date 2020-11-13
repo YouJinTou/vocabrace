@@ -86,7 +86,7 @@ func (g *Game) Exchange(exchangeTiles []string) (Game, error) {
 	g.Bag.Put(toReturn)
 
 	g.delta = DeltaState{
-		LastAction:           "EXCHANGE",
+		LastAction:           "Exchange",
 		LastActionPlayerID:   g.ToMove().ID,
 		LastActionPlayerData: string(toReceiveBytes),
 		OtherPlayersData:     strconv.Itoa(len(toReceive)),
@@ -100,7 +100,7 @@ func (g *Game) Exchange(exchangeTiles []string) (Game, error) {
 // Pass passes a turn.
 func (g *Game) Pass() Game {
 	g.delta = DeltaState{
-		LastAction:         "PASS",
+		LastAction:         "Pass",
 		LastActionPlayerID: g.ToMove().ID,
 	}
 	g.setNext()
