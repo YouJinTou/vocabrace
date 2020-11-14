@@ -24,9 +24,8 @@ func (p *Player) ExchangeTiles(ids []string, toReceive *Tiles) (*Tiles, error) {
 		match := p.Tiles.RemoveByID(tr)
 		if match == nil {
 			return NewTiles(), fmt.Errorf("%s tile not found", tr)
-		} else {
-			returnTiles.Append(match.Copy(true))
 		}
+		returnTiles.Append(match.Copy(true))
 	}
 
 	for _, tr := range toReceive.Value {
