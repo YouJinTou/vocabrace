@@ -2,6 +2,7 @@ package scrabble
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 )
@@ -15,6 +16,7 @@ type Game struct {
 	Language string    `json:"l"`
 	Order    []string  `json:"o"`
 	delta    DeltaState
+	v        *PlaceValidator
 }
 
 // DeltaState shows the changes since the previous turn.
@@ -70,6 +72,7 @@ func NewGame(players []*Player) *Game {
 		ToMoveID: toMove,
 		Language: "en",
 		Order:    orderedIDs,
+		v:        &PlaceValidator{},
 	}
 }
 
@@ -86,6 +89,10 @@ func (g *Game) JSON() string {
 
 // Exchange exchanges a set of tiles for the player to move.
 func (g *Game) Exchange(ids []string) (Game, error) {
+	if len(ids) == 0 {
+		return *g, errors.New("must exchange at least one tile")
+	}
+
 	toReceive := g.Bag.Draw(len(ids))
 	toReturn, err := g.ToMove().ExchangeTiles(ids, toReceive)
 	g.Bag.Put(toReturn)
