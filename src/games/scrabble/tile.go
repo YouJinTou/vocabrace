@@ -9,13 +9,13 @@ type Tile struct {
 	Index  string `json:"i"`
 }
 
-func tileIndex() string {
+func tileID() string {
 	return uuid.New().String()[0:5]
 }
 
 // NewTile creates a new tile.
 func NewTile(letter string, value int) *Tile {
-	return &Tile{letter, value, tileIndex()}
+	return &Tile{letter, value, tileID()}
 }
 
 // BlankTile creates a blank tile.
@@ -23,7 +23,7 @@ func BlankTile() *Tile {
 	return &Tile{
 		Letter: "",
 		Value:  0,
-		Index:  tileIndex(),
+		Index:  tileID(),
 	}
 }
 
@@ -33,7 +33,7 @@ func (t *Tile) Copy(preserveIndex bool) *Tile {
 	if preserveIndex {
 		idx = t.Index
 	} else {
-		idx = tileIndex()
+		idx = tileID()
 	}
 	return &Tile{
 		Letter: t.Letter,
