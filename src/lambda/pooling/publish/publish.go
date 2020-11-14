@@ -18,7 +18,7 @@ func main() {
 }
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	data := getData(req.Body)
+	data, game := getData(req.Body)
 	c := lambdapooling.GetConfig()
 	pool, err := pooling.GetPool(req.RequestContext.ConnectionID, c.Stage)
 
@@ -27,7 +27,7 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 	}
 
 	ws.OnAction(&ws.ReceiverData{
-		Game:          getGame(data),
+		Game:          game,
 		Domain:        req.RequestContext.DomainName,
 		Stage:         c.Stage,
 		PoolID:        pool.ID,
@@ -39,30 +39,26 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
 
-func getData(body string) string {
+func getData(body string) (string, string) {
 	type payload struct {
-		Data string
+		Data string `json:"d"`
 	}
 	p := payload{}
-	err := json.Unmarshal([]byte(body), &p)
+	pErr := json.Unmarshal([]byte(body), &p)
 
-	if err != nil {
-		panic(err.Error())
+	if pErr != nil {
+		panic(pErr.Error())
 	}
 
-	return p.Data
-}
-
-func getGame(body string) string {
 	type game struct {
-		Game string
+		Game string `json:"g"`
 	}
 	g := game{}
-	err := json.Unmarshal([]byte(body), &g)
+	gErr := json.Unmarshal([]byte(p.Data), &g)
 
-	if err != nil {
-		panic(err.Error())
+	if gErr != nil {
+		panic(gErr.Error())
 	}
 
-	return g.Game
+	return p.Data, g.Game
 }
