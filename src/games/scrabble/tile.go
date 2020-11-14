@@ -36,6 +36,11 @@ func BlankTile() *Tile {
 	}
 }
 
+// String returns a string representation of the tile.
+func (t *Tile) String() string {
+	return fmt.Sprintf("%s|%s|%d", t.ID, t.Letter, t.Value)
+}
+
 // Copy copies a tile.
 func (t *Tile) Copy(preserveIndex bool) *Tile {
 	var idx string
@@ -53,7 +58,7 @@ func (t *Tile) Copy(preserveIndex bool) *Tile {
 
 // MarshalDynamoDBAttributeValue marshals the tile to a DynamoDB string.
 func (t *Tile) MarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue) error {
-	av.S = aws.String(fmt.Sprintf("%s|%s|%d", t.ID, t.Letter, t.Value))
+	av.S = aws.String(t.String())
 	return nil
 }
 
