@@ -16,7 +16,7 @@ type Game struct {
 	Language string    `json:"l"`
 	Order    []string  `json:"o"`
 	delta    DeltaState
-	v        *PlaceValidator
+	v        *Validator
 }
 
 // DeltaState shows the changes since the previous turn.
@@ -72,7 +72,7 @@ func NewGame(players []*Player) *Game {
 		ToMoveID: toMove,
 		Language: "en",
 		Order:    orderedIDs,
-		v:        &PlaceValidator{},
+		v:        NewValidator(),
 	}
 }
 
@@ -123,7 +123,7 @@ func (g *Game) Place(tiles []*Cell) (Game, error) {
 		return *g, sErr
 	}
 
-	if vErr := g.v.ValidatePlaceAction(g, tiles); vErr != nil {
+	if vErr := g.v.ValidatePlace(g, tiles); vErr != nil {
 		return *g, vErr
 	}
 

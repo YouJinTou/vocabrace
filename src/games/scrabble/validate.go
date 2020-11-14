@@ -2,11 +2,16 @@ package scrabble
 
 import "errors"
 
-// PlaceValidator validates a word placement attempt.
-type PlaceValidator struct{}
+// Validator validates a word placement attempt.
+type Validator struct{}
 
-// ValidatePlaceAction validates a place action.
-func (v *PlaceValidator) ValidatePlaceAction(g *Game, tiles []*Cell) error {
+// NewValidator creates a new validator.
+func NewValidator() *Validator {
+	return Validator{}
+}
+
+// ValidatePlace validates a place action.
+func (v *Validator) ValidatePlace(g *Game, tiles []*Cell) error {
 	if len(tiles) == 0 {
 		return errors.New("at least one tile required to form a word")
 	}
