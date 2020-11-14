@@ -169,6 +169,17 @@ func (g *Game) ToMove() *Player {
 	panic("cannot find player")
 }
 
+// LastToMove gets the player who moved last.
+func (g *Game) LastToMove() *Player {
+	for _, p := range g.Players {
+		if p.ID == g.delta.LastActionPlayerID {
+			return p
+		}
+	}
+
+	panic("cannot find last player")
+}
+
 func orderPlayers(players []*Player) (string, []string) {
 	toMoveIdx := rand.Intn(len(players))
 	toMove := players[toMoveIdx]

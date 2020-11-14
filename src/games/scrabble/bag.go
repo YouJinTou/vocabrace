@@ -17,7 +17,7 @@ func NewBag(language language) *Bag {
 	alphabet := language()
 	tiles := []*Tile{BlankTile(), BlankTile()}
 	for t := 0; t < 98; t++ {
-		tiles = append(tiles, alphabet[rand.Intn(len(alphabet))].Copy())
+		tiles = append(tiles, alphabet[rand.Intn(len(alphabet))].Copy(false))
 	}
 	bag := Bag{
 		Tiles: tiles,
@@ -43,7 +43,6 @@ func (b *Bag) Draw(n int) []*Tile {
 		t := b.Tiles[idx]
 		b.Tiles[idx] = b.Tiles[b.Count()-1]
 		b.Tiles = b.Tiles[:b.Count()-1]
-
 		tiles = append(tiles, t)
 	}
 
@@ -58,9 +57,9 @@ func (b *Bag) GetLastDrawn() []*Tile {
 	return b.lastDrawn
 }
 
-// Put puts tiles back into the back. Occurs during an exchange.
+// Put puts tiles into the bag.
 func (b *Bag) Put(tiles []*Tile) {
 	for _, t := range tiles {
-		b.Tiles = append(b.Tiles, t.Copy())
+		b.Tiles = append(b.Tiles, t.Copy(true))
 	}
 }

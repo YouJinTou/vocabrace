@@ -3,8 +3,6 @@ package scrabble
 import (
 	"strconv"
 	"testing"
-
-	"github.com/YouJinTou/vocabrace/tools"
 )
 
 func TestExchange(t *testing.T) {
@@ -63,13 +61,11 @@ func TestPlacePlayerReceivesTilesBack(t *testing.T) {
 
 	g.Place(tiles)
 
-	usedIndices := []int{}
 	for _, bt := range g.Bag.GetLastDrawn() {
 		found := false
-		for i, pt := range g.Players[0].Tiles {
-			if bt.Letter == pt.Letter && !tools.ContainsInt(usedIndices, i) {
+		for _, pt := range g.LastToMove().Tiles {
+			if bt.index == pt.index {
 				found = true
-				usedIndices = append(usedIndices, i)
 			}
 		}
 		if !found {
@@ -90,10 +86,11 @@ func TestPlaceSetsDeltaState(t *testing.T) {
 
 func TestPlaceSetsNextPlayer(t *testing.T) {
 	g, _, tiles := setupPlace()
+	previousToMode := g.ToMoveID
 
 	g.Place(tiles)
 
-	if g.ToMove().ID == g.Players[0].ID {
+	if g.ToMove().ID == previousToMode {
 		t.Errorf("Next player not set.")
 	}
 }
@@ -174,11 +171,11 @@ func setupPlace() (Game, []*Player, []*Cell) {
 	g := NewGame(players)
 	tiles := []*Cell{
 		&Cell{
-			Tile:  *players[0].Tiles[0].Copy(),
+			Tile:  *g.ToMove().Tiles[2].Copy(true),
 			Index: 0,
 		},
 		&Cell{
-			Tile:  *players[0].Tiles[1].Copy(),
+			Tile:  *g.ToMove().Tiles[5].Copy(true),
 			Index: 1,
 		},
 	}

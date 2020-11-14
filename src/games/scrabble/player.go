@@ -27,7 +27,7 @@ func (p *Player) ExchangeTiles(toRemove []string, toReceive []*Tile) ([]*Tile, e
 			if strings.ToLower(t.Letter) == strings.ToLower(tr) {
 				foundTile = true
 				p.Tiles = append(p.Tiles[:i], p.Tiles[i+1:]...)
-				returnTiles = append(returnTiles, t.Copy())
+				returnTiles = append(returnTiles, t.Copy(true))
 				break
 			}
 		}

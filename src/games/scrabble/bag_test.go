@@ -1,29 +1,96 @@
 package scrabble
 
-import "testing"
+import (
+	"strconv"
+	"testing"
+)
 
-func TestPut(t *testing.T) {
+var counts = []int{0, 1, 2, 100, 1000}
+var puts = []*Tile{
+	&Tile{Letter: "ZZ", index: "abc"},
+	&Tile{Letter: "QQ", index: "qqf"},
+	&Tile{Letter: "FF", index: "ffx"},
+}
+
+func TestVerifyUniqueTiles(t *testing.T) {
+	b := NewBag(English)
+	m := map[string]int{}
+	for _, t := range b.Tiles {
+		if _, ok := m[t.index]; ok {
+			m[t.index]++
+		} else {
+			m[t.index] = 1
+		}
+	}
+
+	for k, v := range m {
+		if v > 1 {
+			t.Errorf("id %s should be there once, actually %d times", k, v)
+		}
+	}
+}
+
+func TestDrawRemovesTiles(t *testing.T) {
+	for _, c := range counts {
+		t.Run(strconv.Itoa(c), func(t *testing.T) {
+			b := NewBag(English)
+			drawn := b.Draw(c)
+			for j, bt := range b.Tiles {
+				for _, d := range drawn {
+					if bt.index == d.index {
+						t.Errorf("%s still there when count is %d (at %d)", bt.index, c, j)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestDrawPutCount(t *testing.T) {
 	b := NewBag(English)
 	originalCount := b.Count()
-	toPut := []*Tile{&Tile{Letter: "ZZ"}, &Tile{Letter: "QQ"}, &Tile{Letter: "FF"}}
 
-	b.Draw(len(toPut))
-	b.Put(toPut)
+	b.Draw(len(puts))
+	b.Put(puts)
 
 	if b.Count() != originalCount {
 		t.Errorf("Draw/Put count mismatch.")
 	}
+}
 
-	for tp := 0; tp < len(toPut); tp++ {
+func TestPutAddsTiles(t *testing.T) {
+	b := NewBag(English)
+	originalCount := b.Count()
+	expected := originalCount + len(puts)
+	b.Put(puts)
+
+	if expected != b.Count() {
+		t.Errorf("expected count %d, got %d", expected, b.Count())
+	}
+
+	for _, p := range puts {
 		found := false
-		for ti := 0; ti < b.Count(); ti++ {
-			if b.Tiles[ti].Letter == toPut[tp].Letter {
+		for _, bt := range b.Tiles {
+			if p.index == bt.index {
 				found = true
-				break
 			}
 		}
 		if !found {
-			t.Errorf("Tile not replaced.")
+			t.Errorf("tile not found")
 		}
+	}
+}
+
+func TestDrawCount(t *testing.T) {
+	for _, c := range counts {
+		t.Run(strconv.Itoa(c), func(t *testing.T) {
+			b := NewBag(English)
+			originalCount := b.Count()
+			drawn := b.Draw(c)
+			result := originalCount - len(drawn)
+			if result != b.Count() {
+				t.Errorf("got %q, want %q", result, len(drawn))
+			}
+		})
 	}
 }
