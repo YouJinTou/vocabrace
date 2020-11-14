@@ -102,7 +102,7 @@ func TestPlaceSetsNextPlayer(t *testing.T) {
 
 	g.Place(tiles)
 
-	if g.ToMove().ID == previousToMode {
+	if g.ToMoveID == previousToMode {
 		t.Errorf("Next player not set.")
 	}
 }
