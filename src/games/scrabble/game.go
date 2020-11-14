@@ -123,7 +123,7 @@ func (g *Game) Place(tiles []*Cell) (Game, error) {
 		return *g, sErr
 	}
 
-	if vErr := g.v.validatePlaceAction(g, tiles); vErr != nil {
+	if vErr := g.v.ValidatePlaceAction(g, tiles); vErr != nil {
 		return *g, vErr
 	}
 
