@@ -7,7 +7,7 @@ import (
 
 // Player encapsulates player data.
 type Player struct {
-	ID     string  `json:"id"`
+	ID     string  `json:"i"`
 	Name   string  `json:"n"`
 	Points int     `json:"p"`
 	Tiles  []*Tile `json:"t"`

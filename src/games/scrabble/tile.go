@@ -13,9 +13,9 @@ import (
 
 // Tile represents a tile.
 type Tile struct {
-	Letter string
-	Value  int
-	ID     string
+	Letter string `json:"l"`
+	Value  int    `json:"v"`
+	ID     string `json:"i"`
 }
 
 func tileID() string {

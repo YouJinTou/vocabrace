@@ -10,8 +10,8 @@ import (
 
 type scrabblews struct{}
 type cell struct {
-	CellIndex int    `json:"ci"`
-	TileID    string `json:"ti"`
+	CellIndex int    `json:"c"`
+	TileID    string `json:"t"`
 }
 type start struct {
 	Tiles  []*scrabble.Tile

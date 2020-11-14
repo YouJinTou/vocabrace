@@ -10,7 +10,7 @@ import (
 // Game holds a full game's state.
 type Game struct {
 	Board    *Board    `json:"b"`
-	Bag      *Bag      `json:"bg"`
+	Bag      *Bag      `json:"g"`
 	Players  []*Player `json:"p"`
 	ToMoveID string    `json:"m"`
 	Language string    `json:"l"`
@@ -20,11 +20,11 @@ type Game struct {
 
 // DeltaState shows the changes since the previous turn.
 type DeltaState struct {
-	ToMoveID             string
-	LastAction           string
-	LastActionPlayerID   string
-	LastActionPlayerData string
-	OtherPlayersData     string
+	ToMoveID             string `json:"m"`
+	LastAction           string `json:"l"`
+	LastActionPlayerID   string `json:"i"`
+	LastActionPlayerData string `json:"d"`
+	OtherPlayersData     string `json:"o"`
 }
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
