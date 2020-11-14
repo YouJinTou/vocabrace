@@ -1,6 +1,7 @@
 package scrabble
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 )
@@ -25,7 +26,18 @@ func TestPlace(t *testing.T) {
 	}
 }
 
-func TestPlaceBoardSet(t *testing.T) {
+func TestPlaceReturnsErrorOnInvalidTileIndices(t *testing.T) {
+	g, _, tiles := setupPlace()
+	idx := "qqqqqqq"
+	tiles[0].Tile.Index = idx
+	_, err := g.Place(tiles)
+
+	if err == nil || err.Error() != fmt.Sprintf("tile with ID %s not found", idx) {
+		t.Errorf("passed invalid tile index, expected error")
+	}
+}
+
+func TestPlaceSetsBoard(t *testing.T) {
 	g, _, tiles := setupPlace()
 
 	g.Place(tiles)
@@ -35,7 +47,7 @@ func TestPlaceBoardSet(t *testing.T) {
 	}
 }
 
-func TestPlacePointsAwarded(t *testing.T) {
+func TestPlaceAwardsPoints(t *testing.T) {
 	g, _, tiles := setupPlace()
 
 	g.Place(tiles)
@@ -45,7 +57,7 @@ func TestPlacePointsAwarded(t *testing.T) {
 	}
 }
 
-func TestPlaceTilesRemovedFromBag(t *testing.T) {
+func TestPlaceRemovesTilesFromBag(t *testing.T) {
 	g, _, tiles := setupPlace()
 	bagStartingCount := g.Bag.Count()
 
@@ -56,7 +68,7 @@ func TestPlaceTilesRemovedFromBag(t *testing.T) {
 	}
 }
 
-func TestPlacePlayerReceivesTilesBack(t *testing.T) {
+func TestPlaceGivesTilesBackToPlayer(t *testing.T) {
 	g, _, tiles := setupPlace()
 
 	g.Place(tiles)

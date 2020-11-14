@@ -2,6 +2,7 @@ package scrabble
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"strconv"
 )
@@ -114,6 +115,10 @@ func (g *Game) Pass() Game {
 
 // Place places a word on the board.
 func (g *Game) Place(tiles []*Cell) (Game, error) {
+	if sErr := g.setCellTiles(tiles); sErr != nil {
+		return *g, sErr
+	}
+
 	if vErr := validatePlaceAction(g, tiles); vErr != nil {
 		return *g, vErr
 	}
@@ -141,6 +146,17 @@ func (g *Game) Place(tiles []*Cell) (Game, error) {
 	g.setNext()
 
 	return *g, err
+}
+
+func (g *Game) setCellTiles(cells []*Cell) error {
+	for _, c := range cells {
+		tile := g.ToMove().LookupTile(c.Tile.Index)
+		if tile == nil {
+			return fmt.Errorf("tile with ID %s not found", c.Tile.Index)
+		}
+		c.Tile = *tile
+	}
+	return nil
 }
 
 func (g *Game) setNext() {

@@ -9,11 +9,15 @@ import (
 )
 
 type scrabblews struct{}
+type cell struct {
+	CellIndex int    `json:"ci"`
+	TileIndex string `json:"ti"`
+}
 type turn struct {
 	IsPlace       bool
 	IsExchange    bool
 	IsPass        bool
-	Word          []*scrabble.Cell
+	Word          []*cell
 	ExchangeTiles []string
 }
 type result struct {
@@ -121,7 +125,14 @@ func (s *scrabblews) pass(g *scrabble.Game) *result {
 }
 
 func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
-	game, err := g.Place(turn.Word)
+	cells := []*scrabble.Cell{}
+	for _, c := range turn.Word {
+		cells = append(cells, &scrabble.Cell{
+			Tile:  scrabble.Tile{Index: c.TileIndex},
+			Index: c.CellIndex,
+		})
+	}
+	game, err := g.Place(cells)
 	if err != nil {
 		return &result{&game, scrabble.DeltaState{}, err}
 	}

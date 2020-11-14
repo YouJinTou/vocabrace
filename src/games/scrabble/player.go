@@ -46,3 +46,14 @@ func (p *Player) ExchangeTiles(ids []string, toReceive []*Tile) ([]*Tile, error)
 func (p *Player) AwardPoints(points int) {
 	p.Points += points
 }
+
+// LookupTile finds a tile in the player's stack given an ID.
+func (p *Player) LookupTile(ID string) *Tile {
+	for _, t := range p.Tiles {
+		if t.Index == ID {
+			return t
+		}
+	}
+
+	return nil
+}
