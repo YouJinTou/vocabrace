@@ -185,7 +185,7 @@ func (t Tiles) MarshalJSON() ([]byte, error) {
 	return json.Marshal(tiles)
 }
 
-// UnmarshalJSON deserialized Tiles back into its shape.
+// UnmarshalJSON deserializes Tiles back into its shape.
 func (t *Tiles) UnmarshalJSON(b []byte) error {
 	tileStrings := []string{}
 	tiles := NewTiles()
