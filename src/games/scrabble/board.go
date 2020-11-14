@@ -5,13 +5,30 @@ import (
 	"sort"
 )
 
-const _BoardWidth = 15
-const _BoardHeight = 15
+// BoardWidth is the standard board width.
+const BoardWidth = 15
+
+// BoardHeight is the standard board height.
+const BoardHeight = 15
+
+// BoardMinIndex is the first cell index available.
+const BoardMinIndex = 0
+
+// BoardMaxIndex is the last cell index available.
+const BoardMaxIndex = 224
 
 // Cell composes a board.
 type Cell struct {
 	Tile  Tile `json:"t"`
 	Index int  `json:"i"`
+}
+
+// NewCell creates a new cell.
+func NewCell(t *Tile, index int) *Cell {
+	return &Cell{
+		Tile:  *t,
+		Index: index,
+	}
 }
 
 // Board is a 15x15 field of cells.
