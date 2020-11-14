@@ -1,3 +1,7 @@
+cd ../src
+go test ./...
+cd ../tf
+
 tf_root=$PWD
 lambda_root="$tf_root""/../src/lambda"
 
