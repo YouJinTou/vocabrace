@@ -8,16 +8,17 @@ const _StartingTileCount = 100
 
 // Bag represents a bag.
 type Bag struct {
-	Tiles     []*Tile `json:"t"`
-	lastDrawn []*Tile
+	Tiles     *Tiles `json:"t"`
+	lastDrawn *Tiles
 }
 
 // NewBag creates a new bag.
 func NewBag(language language) *Bag {
 	alphabet := language()
-	tiles := []*Tile{BlankTile(), BlankTile()}
+	tiles := NewTiles(BlankTile(), BlankTile())
 	for t := 0; t < 98; t++ {
-		tiles = append(tiles, alphabet[rand.Intn(len(alphabet))].Copy(false))
+		i := rand.Intn(alphabet.Count())
+		tiles.Append(alphabet.GetAt(i).Copy(false))
 	}
 	bag := Bag{
 		Tiles: tiles,
@@ -27,39 +28,36 @@ func NewBag(language language) *Bag {
 
 // Count returns the current number of tiles in the bag.
 func (b *Bag) Count() int {
-	return len(b.Tiles)
+	return b.Tiles.Count()
 }
 
 // Draw selects a number of random tiles from the bag.
-func (b *Bag) Draw(n int) []*Tile {
+func (b *Bag) Draw(n int) *Tiles {
 	if n > b.Count() {
 		n = b.Count()
 	}
 
-	tiles := []*Tile{}
+	tiles := NewTiles()
 
 	for i := 0; i < n; i++ {
 		idx := rand.Intn(b.Count())
-		t := b.Tiles[idx]
-		b.Tiles[idx] = b.Tiles[b.Count()-1]
-		b.Tiles = b.Tiles[:b.Count()-1]
-		tiles = append(tiles, t)
+		t := b.Tiles.RemoveAt(idx)
+		tiles.Append(t)
 	}
 
-	b.lastDrawn = make([]*Tile, len(tiles))
-	copy(b.lastDrawn, tiles)
+	b.lastDrawn = NewTiles(tiles.Value...)
 
 	return tiles
 }
 
 // GetLastDrawn returns a copy of the tiles that were last drawn.
-func (b *Bag) GetLastDrawn() []*Tile {
+func (b *Bag) GetLastDrawn() *Tiles {
 	return b.lastDrawn
 }
 
 // Put puts tiles into the bag.
-func (b *Bag) Put(tiles []*Tile) {
-	for _, t := range tiles {
-		b.Tiles = append(b.Tiles, t.Copy(true))
+func (b *Bag) Put(tiles *Tiles) {
+	for _, t := range tiles.Value {
+		b.Tiles.Append(t.Copy(true))
 	}
 }

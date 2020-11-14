@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"strconv"
 )
 
 // Game holds a full game's state.
@@ -20,11 +19,11 @@ type Game struct {
 
 // DeltaState shows the changes since the previous turn.
 type DeltaState struct {
-	ToMoveID             string `json:"m"`
-	LastAction           string `json:"l"`
-	LastActionPlayerID   string `json:"i"`
-	LastActionPlayerData string `json:"d"`
-	OtherPlayersData     string `json:"o"`
+	ToMoveID             string      `json:"m"`
+	LastAction           string      `json:"l"`
+	LastActionPlayerID   string      `json:"i"`
+	LastActionPlayerData interface{} `json:"d"`
+	OtherPlayersData     interface{} `json:"o"`
 }
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
@@ -88,14 +87,13 @@ func (g *Game) JSON() string {
 // Exchange exchanges a set of tiles for the player to move.
 func (g *Game) Exchange(ids []string) (Game, error) {
 	toReceive := g.Bag.Draw(len(ids))
-	toReceiveBytes, _ := json.Marshal(toReceive)
 	toReturn, err := g.ToMove().ExchangeTiles(ids, toReceive)
 	g.Bag.Put(toReturn)
 
 	g.delta = DeltaState{
 		LastAction:           "Exchange",
-		LastActionPlayerData: string(toReceiveBytes),
-		OtherPlayersData:     strconv.Itoa(len(toReceive)),
+		LastActionPlayerData: toReceive,
+		OtherPlayersData:     toReceive.Count(),
 	}
 
 	g.setNext()
@@ -129,18 +127,16 @@ func (g *Game) Place(tiles []*Cell) (Game, error) {
 	g.ToMove().AwardPoints(points)
 
 	toReceive := g.Bag.Draw(len(tiles))
-	toReceiveBytes, _ := json.Marshal(toReceive)
 	toRemove := []string{}
 	for _, t := range tiles {
 		toRemove = append(toRemove, t.Tile.ID)
 	}
 	_, err := g.ToMove().ExchangeTiles(toRemove, toReceive)
 
-	tilesBytes, _ := json.Marshal(tiles)
 	g.delta = DeltaState{
 		LastAction:           "Place",
-		LastActionPlayerData: string(toReceiveBytes),
-		OtherPlayersData:     string(tilesBytes),
+		LastActionPlayerData: toReceive,
+		OtherPlayersData:     tiles,
 	}
 
 	g.setNext()

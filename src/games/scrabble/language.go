@@ -1,36 +1,34 @@
 package scrabble
 
-import "github.com/google/uuid"
-
-type language func() []Tile
+type language func() Tiles
 
 // English produces a full set of tiles for the Latin alphabet.
-func English() []Tile {
-	return []Tile{
-		Tile{"A", 1, uuid.New().String()},
-		Tile{"B", 3, uuid.New().String()},
-		Tile{"C", 3, uuid.New().String()},
-		Tile{"D", 2, uuid.New().String()},
-		Tile{"E", 1, uuid.New().String()},
-		Tile{"F", 4, uuid.New().String()},
-		Tile{"G", 2, uuid.New().String()},
-		Tile{"H", 4, uuid.New().String()},
-		Tile{"I", 1, uuid.New().String()},
-		Tile{"J", 8, uuid.New().String()},
-		Tile{"K", 5, uuid.New().String()},
-		Tile{"L", 1, uuid.New().String()},
-		Tile{"M", 3, uuid.New().String()},
-		Tile{"N", 1, uuid.New().String()},
-		Tile{"O", 1, uuid.New().String()},
-		Tile{"P", 3, uuid.New().String()},
-		Tile{"R", 1, uuid.New().String()},
-		Tile{"S", 1, uuid.New().String()},
-		Tile{"T", 1, uuid.New().String()},
-		Tile{"U", 1, uuid.New().String()},
-		Tile{"V", 4, uuid.New().String()},
-		Tile{"W", 4, uuid.New().String()},
-		Tile{"X", 1, uuid.New().String()},
-		Tile{"Y", 8, uuid.New().String()},
-		Tile{"Z", 10, uuid.New().String()},
-	}
+func English() Tiles {
+	return *NewTiles(
+		&Tile{"A", 1, tileID()},
+		&Tile{"B", 3, tileID()},
+		&Tile{"C", 3, tileID()},
+		&Tile{"D", 2, tileID()},
+		&Tile{"E", 1, tileID()},
+		&Tile{"F", 4, tileID()},
+		&Tile{"G", 2, tileID()},
+		&Tile{"H", 4, tileID()},
+		&Tile{"I", 1, tileID()},
+		&Tile{"J", 8, tileID()},
+		&Tile{"K", 5, tileID()},
+		&Tile{"L", 1, tileID()},
+		&Tile{"M", 3, tileID()},
+		&Tile{"N", 1, tileID()},
+		&Tile{"O", 1, tileID()},
+		&Tile{"P", 3, tileID()},
+		&Tile{"R", 1, tileID()},
+		&Tile{"S", 1, tileID()},
+		&Tile{"T", 1, tileID()},
+		&Tile{"U", 1, tileID()},
+		&Tile{"V", 4, tileID()},
+		&Tile{"W", 4, tileID()},
+		&Tile{"X", 1, tileID()},
+		&Tile{"Y", 8, tileID()},
+		&Tile{"Z", 10, tileID()},
+	)
 }

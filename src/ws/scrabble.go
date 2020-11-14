@@ -14,8 +14,8 @@ type cell struct {
 	TileID    string `json:"t"`
 }
 type start struct {
-	Tiles  []*scrabble.Tile
-	ToMove string
+	Tiles  *scrabble.Tiles `json:"t"`
+	ToMove string          `json:"m"`
 }
 type turn struct {
 	IsPlace       bool     `json:"p"`
@@ -171,20 +171,5 @@ func (s *scrabblews) returnClientError(data *ReceiverData, message string, err e
 		Domain:       data.Domain,
 		Stage:        data.Stage,
 		Message:      string(b),
-	})
-}
-
-// MarshalJSON serializes the start state's tiles as a list of strings.
-func (s start) MarshalJSON() ([]byte, error) {
-	tiles := []string{}
-	for _, t := range s.Tiles {
-		tiles = append(tiles, t.String())
-	}
-	return json.Marshal(&struct {
-		ToMove string   `json:"m"`
-		Tiles  []string `json:"t"`
-	}{
-		ToMove: s.ToMove,
-		Tiles:  tiles,
 	})
 }

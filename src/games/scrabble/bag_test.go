@@ -6,16 +6,16 @@ import (
 )
 
 var counts = []int{0, 1, 2, 100, 1000}
-var puts = []*Tile{
+var puts = NewTiles(
 	&Tile{Letter: "ZZ", ID: "abc"},
 	&Tile{Letter: "QQ", ID: "qqf"},
 	&Tile{Letter: "FF", ID: "ffx"},
-}
+)
 
 func TestVerifyUniqueTiles(t *testing.T) {
 	b := NewBag(English)
 	m := map[string]int{}
-	for _, t := range b.Tiles {
+	for _, t := range b.Tiles.Value {
 		if _, ok := m[t.ID]; ok {
 			m[t.ID]++
 		} else {
@@ -35,8 +35,8 @@ func TestDrawRemovesTiles(t *testing.T) {
 		t.Run(strconv.Itoa(c), func(t *testing.T) {
 			b := NewBag(English)
 			drawn := b.Draw(c)
-			for j, bt := range b.Tiles {
-				for _, d := range drawn {
+			for j, bt := range b.Tiles.Value {
+				for _, d := range drawn.Value {
 					if bt.ID == d.ID {
 						t.Errorf("%s still there when count is %d (at %d)", bt.ID, c, j)
 					}
@@ -50,7 +50,7 @@ func TestDrawPutCount(t *testing.T) {
 	b := NewBag(English)
 	originalCount := b.Count()
 
-	b.Draw(len(puts))
+	b.Draw(puts.Count())
 	b.Put(puts)
 
 	if b.Count() != originalCount {
@@ -61,16 +61,16 @@ func TestDrawPutCount(t *testing.T) {
 func TestPutAddsTiles(t *testing.T) {
 	b := NewBag(English)
 	originalCount := b.Count()
-	expected := originalCount + len(puts)
+	expected := originalCount + puts.Count()
 	b.Put(puts)
 
 	if expected != b.Count() {
 		t.Errorf("expected count %d, got %d", expected, b.Count())
 	}
 
-	for _, p := range puts {
+	for _, p := range puts.Value {
 		found := false
-		for _, bt := range b.Tiles {
+		for _, bt := range b.Tiles.Value {
 			if p.ID == bt.ID {
 				found = true
 			}
@@ -87,9 +87,9 @@ func TestDrawCount(t *testing.T) {
 			b := NewBag(English)
 			originalCount := b.Count()
 			drawn := b.Draw(c)
-			result := originalCount - len(drawn)
+			result := originalCount - drawn.Count()
 			if result != b.Count() {
-				t.Errorf("got %q, want %q", result, len(drawn))
+				t.Errorf("got %q, want %q", result, drawn.Count())
 			}
 		})
 	}

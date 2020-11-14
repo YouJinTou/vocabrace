@@ -9,7 +9,7 @@ import (
 func TestExchange(t *testing.T) {
 	players := []*Player{testPlayer(), testPlayer()}
 	g := NewGame(players)
-	toExchange := []string{g.ToMove().Tiles[0].ID, g.ToMove().Tiles[1].ID}
+	toExchange := []string{g.ToMove().Tiles.GetAt(0).ID, g.ToMove().Tiles.GetAt(1).ID}
 	_, err := g.Exchange(toExchange)
 
 	if err != nil {
@@ -73,9 +73,9 @@ func TestPlaceGivesTilesBackToPlayer(t *testing.T) {
 
 	g.Place(tiles)
 
-	for _, bt := range g.Bag.GetLastDrawn() {
+	for _, bt := range g.Bag.GetLastDrawn().Value {
 		found := false
-		for _, pt := range g.LastToMove().Tiles {
+		for _, pt := range g.LastToMove().Tiles.Value {
 			if bt.ID == pt.ID {
 				found = true
 			}
@@ -183,11 +183,11 @@ func setupPlace() (Game, []*Player, []*Cell) {
 	g := NewGame(players)
 	tiles := []*Cell{
 		&Cell{
-			Tile:  *g.ToMove().Tiles[2].Copy(true),
+			Tile:  *g.ToMove().Tiles.GetAt(2).Copy(true),
 			Index: 0,
 		},
 		&Cell{
-			Tile:  *g.ToMove().Tiles[5].Copy(true),
+			Tile:  *g.ToMove().Tiles.GetAt(3).Copy(true),
 			Index: 1,
 		},
 	}

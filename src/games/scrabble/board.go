@@ -1,6 +1,9 @@
 package scrabble
 
-import "sort"
+import (
+	"encoding/json"
+	"sort"
+)
 
 const _BoardWidth = 15
 const _BoardHeight = 15
@@ -34,4 +37,15 @@ func (b *Board) SetCells(cells []*Cell) Board {
 		return b.Cells[i].Index < b.Cells[j].Index
 	})
 	return *b
+}
+
+// MarshalJSON serializes Tiles as a list of strings.
+func (c Cell) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Tile  string `json:"t"`
+		Index int    `json:"i"`
+	}{
+		Tile:  c.Tile.String(),
+		Index: c.Index,
+	})
 }

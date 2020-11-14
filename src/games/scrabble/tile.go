@@ -1,6 +1,7 @@
 package scrabble
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -18,6 +19,11 @@ type Tile struct {
 	ID     string `json:"i"`
 }
 
+// Tiles is a set of tiles.
+type Tiles struct {
+	Value []*Tile `json:"t"`
+}
+
 func tileID() string {
 	return uuid.New().String()[0:5]
 }
@@ -27,6 +33,19 @@ func NewTile(letter string, value int) *Tile {
 	return &Tile{letter, value, tileID()}
 }
 
+// NewTiles creates new tiles.
+func NewTiles(tiles ...*Tile) *Tiles {
+	value := []*Tile{}
+	for _, t := range tiles {
+		value = append(value, &Tile{
+			Letter: t.Letter,
+			Value:  t.Value,
+			ID:     t.ID,
+		})
+	}
+	return &Tiles{Value: value}
+}
+
 // BlankTile creates a blank tile.
 func BlankTile() *Tile {
 	return &Tile{
@@ -34,6 +53,80 @@ func BlankTile() *Tile {
 		Value:  0,
 		ID:     tileID(),
 	}
+}
+
+// FromString creates a tile from a string.
+func FromString(s string) *Tile {
+	tokens := strings.Split(s, "|")
+
+	if len(tokens) != 3 {
+		return nil
+	}
+
+	value, err := strconv.Atoi(tokens[2])
+
+	if err != nil {
+		return nil
+	}
+
+	return &Tile{
+		ID:     tokens[0],
+		Letter: tokens[1],
+		Value:  value,
+	}
+}
+
+// Append appends a tile to the current tiles.
+func (t *Tiles) Append(tiles ...*Tile) *Tiles {
+	for _, it := range tiles {
+		t.Value = append(t.Value, it)
+	}
+	return t
+}
+
+// RemoveAt removes a tile at a given index.
+func (t *Tiles) RemoveAt(i int) *Tile {
+	curr := t.Value[i]
+	t.Value[i] = t.Value[len(t.Value)-1]
+	t.Value = t.Value[:len(t.Value)-1]
+	return curr
+}
+
+// GetAt gets a tile by index.
+func (t *Tiles) GetAt(i int) *Tile {
+	return t.Value[i]
+}
+
+// Count returns a count of all the tiles in the set.
+func (t *Tiles) Count() int {
+	return len(t.Value)
+}
+
+// RemoveByID removes a tile by an ID.
+func (t *Tiles) RemoveByID(ID string) *Tile {
+	newTiles := NewTiles()
+	var toReturn *Tile
+	for _, i := range t.Value {
+		if i.ID == ID {
+			toReturn = i
+		} else {
+			newTiles.Append(i)
+		}
+	}
+
+	t.Value = newTiles.Value
+
+	return toReturn
+}
+
+// FindByID finds a tile by an ID.
+func (t *Tiles) FindByID(ID string) *Tile {
+	for _, i := range t.Value {
+		if i.ID == ID {
+			return i
+		}
+	}
+	return nil
 }
 
 // String returns a string representation of the tile.
@@ -79,6 +172,30 @@ func (t *Tile) UnmarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue) erro
 	t.ID = tokens[0]
 	t.Letter = tokens[1]
 	t.Value = value
+
+	return nil
+}
+
+// MarshalJSON serializes Tiles as a list of strings.
+func (t Tiles) MarshalJSON() ([]byte, error) {
+	tiles := []string{}
+	for _, i := range t.Value {
+		tiles = append(tiles, i.String())
+	}
+	return json.Marshal(tiles)
+}
+
+// UnmarshalJSON deserialized Tiles back into its shape.
+func (t *Tiles) UnmarshalJSON(b []byte) error {
+	tileStrings := []string{}
+	tiles := NewTiles()
+	json.Unmarshal(b, &tileStrings)
+
+	for _, s := range tileStrings {
+		tiles.Append(FromString(s))
+	}
+
+	t.Value = tiles.Value
 
 	return nil
 }

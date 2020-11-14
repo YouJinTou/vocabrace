@@ -13,7 +13,8 @@ func main() {
 	bag := scrabble.NewBag(scrabble.English)
 	bt, _ := json.Marshal(&bag)
 	nt := &scrabble.Bag{}
-	json.Unmarshal(bt, nt)
+	err := json.Unmarshal(bt, nt)
+	fmt.Println(err.Error())
 	p := []*scrabble.Player{
 		&scrabble.Player{
 			ID:     "1",
