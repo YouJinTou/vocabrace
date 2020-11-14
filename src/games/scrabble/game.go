@@ -132,7 +132,7 @@ func (g *Game) Place(tiles []*Cell) (Game, error) {
 	toReceiveBytes, _ := json.Marshal(toReceive)
 	toRemove := []string{}
 	for _, t := range tiles {
-		toRemove = append(toRemove, t.Tile.Index)
+		toRemove = append(toRemove, t.Tile.ID)
 	}
 	_, err := g.ToMove().ExchangeTiles(toRemove, toReceive)
 
@@ -150,9 +150,9 @@ func (g *Game) Place(tiles []*Cell) (Game, error) {
 
 func (g *Game) setCellTiles(cells []*Cell) error {
 	for _, c := range cells {
-		tile := g.ToMove().LookupTile(c.Tile.Index)
+		tile := g.ToMove().LookupTile(c.Tile.ID)
 		if tile == nil {
-			return fmt.Errorf("tile with ID %s not found", c.Tile.Index)
+			return fmt.Errorf("tile with ID %s not found", c.Tile.ID)
 		}
 		c.Tile = *tile
 	}

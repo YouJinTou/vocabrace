@@ -7,19 +7,19 @@ import (
 
 var counts = []int{0, 1, 2, 100, 1000}
 var puts = []*Tile{
-	&Tile{Letter: "ZZ", Index: "abc"},
-	&Tile{Letter: "QQ", Index: "qqf"},
-	&Tile{Letter: "FF", Index: "ffx"},
+	&Tile{Letter: "ZZ", ID: "abc"},
+	&Tile{Letter: "QQ", ID: "qqf"},
+	&Tile{Letter: "FF", ID: "ffx"},
 }
 
 func TestVerifyUniqueTiles(t *testing.T) {
 	b := NewBag(English)
 	m := map[string]int{}
 	for _, t := range b.Tiles {
-		if _, ok := m[t.Index]; ok {
-			m[t.Index]++
+		if _, ok := m[t.ID]; ok {
+			m[t.ID]++
 		} else {
-			m[t.Index] = 1
+			m[t.ID] = 1
 		}
 	}
 
@@ -37,8 +37,8 @@ func TestDrawRemovesTiles(t *testing.T) {
 			drawn := b.Draw(c)
 			for j, bt := range b.Tiles {
 				for _, d := range drawn {
-					if bt.Index == d.Index {
-						t.Errorf("%s still there when count is %d (at %d)", bt.Index, c, j)
+					if bt.ID == d.ID {
+						t.Errorf("%s still there when count is %d (at %d)", bt.ID, c, j)
 					}
 				}
 			}
@@ -71,7 +71,7 @@ func TestPutAddsTiles(t *testing.T) {
 	for _, p := range puts {
 		found := false
 		for _, bt := range b.Tiles {
-			if p.Index == bt.Index {
+			if p.ID == bt.ID {
 				found = true
 			}
 		}

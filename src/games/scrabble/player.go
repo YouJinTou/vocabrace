@@ -23,7 +23,7 @@ func (p *Player) ExchangeTiles(ids []string, toReceive []*Tile) ([]*Tile, error)
 	for _, tr := range ids {
 		foundTile := false
 		for i, t := range p.Tiles {
-			if t.Index == tr {
+			if t.ID == tr {
 				foundTile = true
 				p.Tiles = append(p.Tiles[:i], p.Tiles[i+1:]...)
 				returnTiles = append(returnTiles, t.Copy(true))
@@ -50,7 +50,7 @@ func (p *Player) AwardPoints(points int) {
 // LookupTile finds a tile in the player's stack given an ID.
 func (p *Player) LookupTile(ID string) *Tile {
 	for _, t := range p.Tiles {
-		if t.Index == ID {
+		if t.ID == ID {
 			return t
 		}
 	}

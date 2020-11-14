@@ -128,7 +128,7 @@ func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
 	cells := []*scrabble.Cell{}
 	for _, c := range turn.Word {
 		cells = append(cells, &scrabble.Cell{
-			Tile:  scrabble.Tile{Index: c.TileID},
+			Tile:  scrabble.Tile{ID: c.TileID},
 			Index: c.CellIndex,
 		})
 	}

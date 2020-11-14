@@ -30,7 +30,7 @@ func TestExchangeTilesReturnsErrorAboutMissingTiles(t *testing.T) {
 
 func TestExchangeTilesCountsMatch(t *testing.T) {
 	p := testPlayer()
-	toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
+	toRemove := []string{p.Tiles[1].ID, p.Tiles[5].ID}
 	tiles, _ := p.ExchangeTiles(toRemove, toReceive)
 
 	if len(tiles) != len(toReceive) {
@@ -40,12 +40,12 @@ func TestExchangeTilesCountsMatch(t *testing.T) {
 
 func TestExchangeTilesReturnTilesMatch(t *testing.T) {
 	p := testPlayer()
-	toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
+	toRemove := []string{p.Tiles[1].ID, p.Tiles[5].ID}
 	tiles, _ := p.ExchangeTiles(toRemove, toReceive)
 
 	for i := 0; i < len(tiles); i++ {
-		if toRemove[i] != tiles[i].Index {
-			t.Errorf("Invalid return tile. Expected %s, got %s.", toRemove[i], tiles[i].Index)
+		if toRemove[i] != tiles[i].ID {
+			t.Errorf("Invalid return tile. Expected %s, got %s.", toRemove[i], tiles[i].ID)
 		}
 	}
 }
@@ -54,7 +54,7 @@ func TestExchangeTilesBeforeAfterCountsMatch(t *testing.T) {
 	p := testPlayer()
 	originalTiles := make([]*Tile, len(p.Tiles))
 	copy(originalTiles, p.Tiles)
-	toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
+	toRemove := []string{p.Tiles[1].ID, p.Tiles[5].ID}
 
 	p.ExchangeTiles(toRemove, toReceive)
 
@@ -68,13 +68,13 @@ func TestExchangeTilesPlayerReceivesTiles(t *testing.T) {
 		p := testPlayer()
 		originalTiles := make([]*Tile, len(p.Tiles))
 		copy(originalTiles, p.Tiles)
-		toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
+		toRemove := []string{p.Tiles[1].ID, p.Tiles[5].ID}
 
 		p.ExchangeTiles(toRemove, toReceive)
 
 		remainingAfterRemoval := []*Tile{}
 		for _, t := range originalTiles {
-			if !tools.ContainsString(toRemove, t.Index) {
+			if !tools.ContainsString(toRemove, t.ID) {
 				remainingAfterRemoval = append(remainingAfterRemoval, t)
 			}
 		}
@@ -83,7 +83,7 @@ func TestExchangeTilesPlayerReceivesTiles(t *testing.T) {
 		for _, nt := range newTiles {
 			found := false
 			for _, pt := range p.Tiles {
-				if nt.Index == pt.Index {
+				if nt.ID == pt.ID {
 					found = true
 				}
 			}

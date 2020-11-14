@@ -9,7 +9,7 @@ import (
 func TestExchange(t *testing.T) {
 	players := []*Player{testPlayer(), testPlayer()}
 	g := NewGame(players)
-	toExchange := []string{g.ToMove().Tiles[0].Index, g.ToMove().Tiles[1].Index}
+	toExchange := []string{g.ToMove().Tiles[0].ID, g.ToMove().Tiles[1].ID}
 	_, err := g.Exchange(toExchange)
 
 	if err != nil {
@@ -29,11 +29,11 @@ func TestPlace(t *testing.T) {
 func TestPlaceReturnsErrorOnInvalidTileIndices(t *testing.T) {
 	g, _, tiles := setupPlace()
 	idx := "qqqqqqq"
-	tiles[0].Tile.Index = idx
+	tiles[0].Tile.ID = idx
 	_, err := g.Place(tiles)
 
 	if err == nil || err.Error() != fmt.Sprintf("tile with ID %s not found", idx) {
-		t.Errorf("passed invalid tile index, expected error")
+		t.Errorf("passed invalid tile ID, expected error")
 	}
 }
 
@@ -76,7 +76,7 @@ func TestPlaceGivesTilesBackToPlayer(t *testing.T) {
 	for _, bt := range g.Bag.GetLastDrawn() {
 		found := false
 		for _, pt := range g.LastToMove().Tiles {
-			if bt.Index == pt.Index {
+			if bt.ID == pt.ID {
 				found = true
 			}
 		}
