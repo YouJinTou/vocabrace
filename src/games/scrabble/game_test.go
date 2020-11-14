@@ -8,7 +8,7 @@ import (
 func TestExchange(t *testing.T) {
 	players := []*Player{testPlayer(), testPlayer()}
 	g := NewGame(players)
-	toExchange := []string{g.ToMove().Tiles[0].Letter, g.ToMove().Tiles[1].Letter}
+	toExchange := []string{g.ToMove().Tiles[0].Index, g.ToMove().Tiles[1].Index}
 	_, err := g.Exchange(toExchange)
 
 	if err != nil {
@@ -64,7 +64,7 @@ func TestPlacePlayerReceivesTilesBack(t *testing.T) {
 	for _, bt := range g.Bag.GetLastDrawn() {
 		found := false
 		for _, pt := range g.LastToMove().Tiles {
-			if bt.index == pt.index {
+			if bt.Index == pt.Index {
 				found = true
 			}
 		}

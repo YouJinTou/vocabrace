@@ -6,12 +6,16 @@ import "github.com/google/uuid"
 type Tile struct {
 	Letter string `json:"l"`
 	Value  int    `json:"v"`
-	index  string
+	Index  string `json:"i"`
+}
+
+func tileIndex() string {
+	return uuid.New().String()[0:5]
 }
 
 // NewTile creates a new tile.
 func NewTile(letter string, value int) *Tile {
-	return &Tile{letter, value, uuid.New().String()}
+	return &Tile{letter, value, tileIndex()}
 }
 
 // BlankTile creates a blank tile.
@@ -19,7 +23,7 @@ func BlankTile() *Tile {
 	return &Tile{
 		Letter: "",
 		Value:  0,
-		index:  uuid.New().String(),
+		Index:  tileIndex(),
 	}
 }
 
@@ -27,13 +31,13 @@ func BlankTile() *Tile {
 func (t *Tile) Copy(preserveIndex bool) *Tile {
 	var idx string
 	if preserveIndex {
-		idx = t.index
+		idx = t.Index
 	} else {
-		idx = uuid.New().String()
+		idx = tileIndex()
 	}
 	return &Tile{
 		Letter: t.Letter,
 		Value:  t.Value,
-		index:  idx,
+		Index:  idx,
 	}
 }

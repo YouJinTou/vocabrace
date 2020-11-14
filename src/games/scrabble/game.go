@@ -85,10 +85,10 @@ func (g *Game) JSON() string {
 }
 
 // Exchange exchanges a set of tiles for the player to move.
-func (g *Game) Exchange(exchangeTiles []string) (Game, error) {
-	toReceive := g.Bag.Draw(len(exchangeTiles))
+func (g *Game) Exchange(ids []string) (Game, error) {
+	toReceive := g.Bag.Draw(len(ids))
 	toReceiveBytes, _ := json.Marshal(toReceive)
-	toReturn, err := g.ToMove().ExchangeTiles(exchangeTiles, toReceive)
+	toReturn, err := g.ToMove().ExchangeTiles(ids, toReceive)
 	g.Bag.Put(toReturn)
 
 	g.delta = DeltaState{
@@ -127,7 +127,7 @@ func (g *Game) Place(tiles []*Cell) (Game, error) {
 	toReceiveBytes, _ := json.Marshal(toReceive)
 	toRemove := []string{}
 	for _, t := range tiles {
-		toRemove = append(toRemove, t.Tile.Letter)
+		toRemove = append(toRemove, t.Tile.Index)
 	}
 	_, err := g.ToMove().ExchangeTiles(toRemove, toReceive)
 

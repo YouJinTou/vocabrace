@@ -30,7 +30,7 @@ func TestExchangeTilesReturnsErrorAboutMissingTiles(t *testing.T) {
 
 func TestExchangeTilesCountsMatch(t *testing.T) {
 	p := testPlayer()
-	toRemove := []string{p.Tiles[1].Letter, p.Tiles[5].Letter}
+	toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
 	tiles, _ := p.ExchangeTiles(toRemove, toReceive)
 
 	if len(tiles) != len(toReceive) {
@@ -40,12 +40,12 @@ func TestExchangeTilesCountsMatch(t *testing.T) {
 
 func TestExchangeTilesReturnTilesMatch(t *testing.T) {
 	p := testPlayer()
-	toRemove := []string{p.Tiles[1].Letter, p.Tiles[5].Letter}
+	toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
 	tiles, _ := p.ExchangeTiles(toRemove, toReceive)
 
 	for i := 0; i < len(tiles); i++ {
-		if toRemove[i] != tiles[i].Letter {
-			t.Errorf("Invalid return tile. Expected %s, got %s.", toRemove[i], tiles[i].Letter)
+		if toRemove[i] != tiles[i].Index {
+			t.Errorf("Invalid return tile. Expected %s, got %s.", toRemove[i], tiles[i].Index)
 		}
 	}
 }
@@ -54,7 +54,7 @@ func TestExchangeTilesBeforeAfterCountsMatch(t *testing.T) {
 	p := testPlayer()
 	originalTiles := make([]*Tile, len(p.Tiles))
 	copy(originalTiles, p.Tiles)
-	toRemove := []string{p.Tiles[1].Letter, p.Tiles[5].Letter}
+	toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
 
 	p.ExchangeTiles(toRemove, toReceive)
 
@@ -68,13 +68,13 @@ func TestExchangeTilesPlayerReceivesTiles(t *testing.T) {
 		p := testPlayer()
 		originalTiles := make([]*Tile, len(p.Tiles))
 		copy(originalTiles, p.Tiles)
-		toRemove := []string{p.Tiles[1].Letter, p.Tiles[5].Letter}
+		toRemove := []string{p.Tiles[1].Index, p.Tiles[5].Index}
 
 		p.ExchangeTiles(toRemove, toReceive)
 
 		remainingAfterRemoval := []*Tile{}
 		for _, t := range originalTiles {
-			if !tools.ContainsString(toRemove, t.Letter) {
+			if !tools.ContainsString(toRemove, t.Index) {
 				remainingAfterRemoval = append(remainingAfterRemoval, t)
 			}
 		}
@@ -83,7 +83,7 @@ func TestExchangeTilesPlayerReceivesTiles(t *testing.T) {
 		for _, nt := range newTiles {
 			found := false
 			for _, pt := range p.Tiles {
-				if nt.index == pt.index {
+				if nt.Index == pt.Index {
 					found = true
 				}
 			}
