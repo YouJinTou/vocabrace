@@ -48,15 +48,6 @@ func (w *Word) ExistsIn(words []*Word) bool {
 	return false
 }
 
-// // OverlapsWith checks if a word uses another word's cell.
-// func (w *Word) OverlapsWith(o *Word) bool {
-// 	for _, cw := range w.Cells {
-// 		for _, co := range o.Cells {
-// 			if cw.Index == co.
-// 		}
-// 	}
-// }
-
 // Extract returns the current word plus any adjacently formed words.
 func Extract(b *Board, w *Word) []*Word {
 	words := []*Word{}
