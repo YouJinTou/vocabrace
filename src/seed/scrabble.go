@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -12,29 +13,43 @@ import (
 )
 
 func main() {
-	scrabble("bulgarian")
+	scrabble("bulgarian", aws.String("благоевградчаните"))
 }
 
-func scrabble(language string) {
+func scrabble(language string, startAt *string) {
 	f, err := os.Open(fmt.Sprintf("%s.txt", language))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
-	s := bufio.NewScanner(f)
 	count := 0
 	totalCount := 0
+	var start = false
 	batch := []string{}
+	s := bufio.NewScanner(f)
+
 	for s.Scan() {
-		if count < 100 {
-			batch = append(batch, s.Text())
+		word := s.Text()
+
+		if !start && startAt != nil && word != *startAt {
+			totalCount++
+			continue
+		}
+
+		start = true
+
+		if count < 25 {
+			batch = append(batch, word)
 			count++
 			totalCount++
 		} else {
+			startTime := time.Now()
 			scrabbleToDynamo(batch, totalCount, language)
 			count = 0
 			batch = []string{}
+
+			scrabbleSleep(startTime)
 		}
 	}
 
@@ -57,15 +72,35 @@ func scrabbleToDynamo(batch []string, totalCount int, language string) {
 			},
 		})
 	}
-	_, err := dynamo.BatchWriteItem(&dynamodb.BatchWriteItemInput{
-		RequestItems: map[string][]*dynamodb.WriteRequest{
-			fmt.Sprintf("scrabble_%s", language): requests,
-		},
-	})
 
-	if err == nil {
-		log.Printf("Count: %d. Last word written: %s", totalCount, batch[len(batch)-1])
-	} else {
-		log.Printf("Failed to process batch. Reason: %s", err.Error())
+	var unprocessed map[string][]*dynamodb.WriteRequest = map[string][]*dynamodb.WriteRequest{
+		fmt.Sprintf("scrabble_%s", language): requests,
+	}
+	for i := 0; i < 10; i++ {
+		o, err := dynamo.BatchWriteItem(&dynamodb.BatchWriteItemInput{
+			RequestItems: unprocessed,
+		})
+
+		if len(o.UnprocessedItems) > 0 {
+			unprocessed = o.UnprocessedItems
+			continue
+		}
+
+		if err == nil {
+			log.Printf("Count: %d. Last word written: %s", totalCount, batch[len(batch)-1])
+			break
+		} else {
+			fmt.Printf("Capacity exceeded. Sleeping and retrying %d.", i)
+			time.Sleep(time.Second * 20)
+		}
+	}
+}
+
+func scrabbleSleep(startTime time.Time) {
+	endTime := time.Now()
+	elapsed := endTime.Sub(startTime)
+
+	if elapsed.Milliseconds() >= (time.Millisecond * 1000).Milliseconds() {
+		time.Sleep(time.Second * 3)
 	}
 }
