@@ -21,14 +21,15 @@ func English() Tiles {
 		&Tile{"N", 1, tileID()},
 		&Tile{"O", 1, tileID()},
 		&Tile{"P", 3, tileID()},
+		&Tile{"Q", 10, tileID()},
 		&Tile{"R", 1, tileID()},
 		&Tile{"S", 1, tileID()},
 		&Tile{"T", 1, tileID()},
 		&Tile{"U", 1, tileID()},
 		&Tile{"V", 4, tileID()},
 		&Tile{"W", 4, tileID()},
-		&Tile{"X", 1, tileID()},
-		&Tile{"Y", 8, tileID()},
+		&Tile{"X", 8, tileID()},
+		&Tile{"Y", 4, tileID()},
 		&Tile{"Z", 10, tileID()},
 	)
 }
