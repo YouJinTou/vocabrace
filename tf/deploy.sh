@@ -29,8 +29,10 @@ build-lambda-zip -output publish.zip publish ../config.$1.json
 rm publish
 mv publish.zip $tf_root/payloads
 
-cd $tf_root/$1
+cd $tf_root/shared
+terraform apply -auto-approve
 
+cd $tf_root/$1
 terraform apply -auto-approve
 
 cd $tf_root
