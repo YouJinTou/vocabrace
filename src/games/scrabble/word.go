@@ -3,6 +3,7 @@ package scrabble
 // Word encapsulates a valid arrangement of tiles.
 type Word struct {
 	Cells []*Cell
+	m     *multiplier
 }
 
 // NewWord creates a new word.
@@ -46,6 +47,15 @@ func (w *Word) ExistsIn(words []*Word) bool {
 		}
 	}
 	return false
+}
+
+// Value returns the sum of its tiles.
+func (w *Word) Value() int {
+	sum := 0
+	for _, c := range w.Cells {
+		sum += c.Tile.Value
+	}
+	return sum
 }
 
 // Extract returns the current word plus any adjacently formed words.
