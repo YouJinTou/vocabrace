@@ -1,4 +1,4 @@
-package scrabble_test
+package scrabble
 
 import "testing"
 
