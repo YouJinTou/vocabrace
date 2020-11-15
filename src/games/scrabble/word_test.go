@@ -18,7 +18,7 @@ func TestExtractOneLoneWord(t *testing.T) {
 	words := Extract(b, w)
 
 	if len(words) != len(expected) {
-		t.Errorf("expected one word")
+		t.Errorf("expected %d words", len(expected))
 		return
 	}
 
@@ -43,7 +43,7 @@ func TestExtractOneCrossWord(t *testing.T) {
 	words := Extract(b, w2)
 
 	if len(words) != len(expected) {
-		t.Errorf("expected one word")
+		t.Errorf("expected %d words", len(expected))
 		return
 	}
 
@@ -71,7 +71,7 @@ func TestExtractTwoWordsInverseT(t *testing.T) {
 	words := Extract(b, w3)
 
 	if len(words) != len(expected) {
-		t.Errorf("expected two words")
+		t.Errorf("expected %d words", len(expected))
 		return
 	}
 
@@ -101,7 +101,36 @@ func TestExtractThreeWordsSandwich(t *testing.T) {
 	words := Extract(b, w4)
 
 	if len(words) != len(expected) {
-		t.Errorf("expected three words")
+		t.Errorf("expected %d words", len(expected))
+		return
+	}
+
+	validateExpected(words, expected, t)
+}
+
+// _ _ _ _ _ _
+// _ _ _ f _ _
+// _ _ _ a _ _
+// _ h o r n _
+// _ _ k m o b
+// _ p a s t e
+func TestExtractFourWordsSandwich(t *testing.T) {
+	b := NewBoard()
+
+	w1 := word("horn", 46, true, []int{})
+	b.SetCells(w1.Cells)
+	w2 := word("farm", 18, false, []int{48})
+	b.SetCells(w2.Cells)
+	w3 := word("paste", 76, true, []int{})
+	b.SetCells(w3.Cells)
+	expected := []string{"kmob", "oka", "not", "be"}
+	w4 := word(expected[0], 62, true, []int{63})
+	b.SetCells(w4.Cells)
+
+	words := Extract(b, w4)
+
+	if len(words) != len(expected) {
+		t.Errorf("expected %d words", len(expected))
 		return
 	}
 
