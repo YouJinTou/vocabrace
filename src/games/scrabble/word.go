@@ -118,7 +118,7 @@ func traverseHorizontally(b *Board, c *Cell) *Word {
 func removeUnnecessary(initial *Word, words []*Word) []*Word {
 	result := []*Word{}
 	for _, w := range words {
-		isSingleLetter := w.Length() == 1 && initial.Length() != 1
+		isSingleLetter := w.Length() == 1
 
 		if !isSingleLetter && !w.ExistsIn(result) {
 			result = append(result, w)
