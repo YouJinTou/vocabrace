@@ -12,17 +12,17 @@ import (
 // _ _ _ _ _ _
 func TestExtractOneLoneWord(t *testing.T) {
 	b := NewBoard()
-	ws := "horn"
-	w := word(ws, 46, true, []int{})
+	expected := []string{"horn"}
+	w := word(expected[0], 46, true, []int{})
 	b.SetCells(w.Cells)
 	words := Extract(b, w)
 
-	if len(words) != 1 {
+	if len(words) != len(expected) {
 		t.Errorf("expected one word")
 		return
 	}
 
-	validateExpected(words, []string{"horn"}, t)
+	validateExpected(words, expected, t)
 }
 
 // _ _ _ _ _ _
@@ -36,18 +36,18 @@ func TestExtractOneCrossWord(t *testing.T) {
 	w1 := word("horn", 46, true, []int{})
 	b.SetCells(w1.Cells)
 
-	new := "farm"
-	w2 := word(new, 18, false, []int{48})
+	expected := []string{"farm"}
+	w2 := word(expected[0], 18, false, []int{48})
 	b.SetCells(w2.Cells)
 
 	words := Extract(b, w2)
 
-	if len(words) != 1 {
+	if len(words) != len(expected) {
 		t.Errorf("expected one word")
 		return
 	}
 
-	validateExpected(words, []string{"farm"}, t)
+	validateExpected(words, expected, t)
 }
 
 // _ _ _ _ _ _
@@ -64,18 +64,18 @@ func TestExtractTwoWordsInverseT(t *testing.T) {
 	w2 := word("farm", 18, false, []int{48})
 	b.SetCells(w2.Cells)
 
-	new := "paste"
-	w3 := word(new, 76, true, []int{})
+	expected := []string{"paste", "farms"}
+	w3 := word(expected[0], 76, true, []int{})
 	b.SetCells(w3.Cells)
 
 	words := Extract(b, w3)
 
-	if len(words) != 2 {
+	if len(words) != len(expected) {
 		t.Errorf("expected two words")
 		return
 	}
 
-	validateExpected(words, []string{"paste", "farms"}, t)
+	validateExpected(words, expected, t)
 }
 
 // _ _ _ _ _ _
@@ -94,18 +94,18 @@ func TestExtractThreeWordsSandwich(t *testing.T) {
 	w3 := word("paste", 76, true, []int{})
 	b.SetCells(w3.Cells)
 
-	new := "mob"
-	w4 := word(new, 63, true, []int{63})
+	expected := []string{"mob", "not", "be"}
+	w4 := word(expected[0], 63, true, []int{63})
 	b.SetCells(w4.Cells)
 
 	words := Extract(b, w4)
 
-	if len(words) != 3 {
+	if len(words) != len(expected) {
 		t.Errorf("expected three words")
 		return
 	}
 
-	validateExpected(words, []string{"mob", "not", "be"}, t)
+	validateExpected(words, expected, t)
 }
 
 func word(word string, startIndex int, isAcross bool, skipAt []int) *Word {
