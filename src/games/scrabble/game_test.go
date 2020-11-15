@@ -27,10 +27,10 @@ func TestPlace(t *testing.T) {
 }
 
 func TestPlaceReturnsErrorOnInvalidTileIndices(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, w := setupPlace()
 	idx := "qqqqqqq"
-	tiles[0].Tile.ID = idx
-	_, err := g.Place(tiles)
+	w.Cells[0].Tile.ID = idx
+	_, err := g.Place(w)
 
 	if err == nil || err.Error() != fmt.Sprintf("tile with ID %s not found", idx) {
 		t.Errorf("passed invalid tile ID, expected error")
@@ -38,11 +38,11 @@ func TestPlaceReturnsErrorOnInvalidTileIndices(t *testing.T) {
 }
 
 func TestPlaceSetsBoard(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, w := setupPlace()
 
-	g.Place(tiles)
+	g.Place(w)
 
-	if len(g.Board.Cells) != len(tiles) {
+	if len(g.Board.Cells) != w.Length() {
 		t.Errorf("Board not set.")
 	}
 }
@@ -58,12 +58,12 @@ func TestPlaceAwardsPoints(t *testing.T) {
 }
 
 func TestPlaceRemovesTilesFromBag(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, w := setupPlace()
 	bagStartingCount := g.Bag.Count()
 
-	g.Place(tiles)
+	g.Place(w)
 
-	if g.Bag.Count() != bagStartingCount-len(tiles) {
+	if g.Bag.Count() != bagStartingCount-w.Length() {
 		t.Errorf("Bag untouched.")
 	}
 }
@@ -178,10 +178,10 @@ func getExpectedOrder(idx, total int) []string {
 	return result
 }
 
-func setupPlace() (Game, []*Player, []*Cell) {
+func setupPlace() (Game, []*Player, *Word) {
 	players := []*Player{testPlayer(), testPlayer()}
 	g := NewGame(players)
-	tiles := []*Cell{
+	cells := []*Cell{
 		&Cell{
 			Tile:  *g.ToMove().Tiles.GetAt(2).Copy(true),
 			Index: 0,
@@ -191,5 +191,5 @@ func setupPlace() (Game, []*Player, []*Cell) {
 			Index: 1,
 		},
 	}
-	return *g, players, tiles
+	return *g, players, NewWord(cells)
 }

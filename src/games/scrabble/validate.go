@@ -14,16 +14,16 @@ func NewValidator() *Validator {
 }
 
 // ValidatePlace validates a place action.
-func (v *Validator) ValidatePlace(g *Game, tiles []*Cell) error {
-	if len(tiles) == 0 {
+func (v *Validator) ValidatePlace(g *Game, w *Word) error {
+	if w.Length() == 0 {
 		return errors.New("at least one tile required to form a word")
 	}
 
-	if err := v.indicesWithinBounds(tiles); err != nil {
+	if err := v.indicesWithinBounds(w.Cells); err != nil {
 		return err
 	}
 
-	if err := v.indicesOverlap(g, tiles); err != nil {
+	if err := v.indicesOverlap(g, w.Cells); err != nil {
 		return err
 	}
 

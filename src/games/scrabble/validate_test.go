@@ -2,12 +2,11 @@ package scrabble
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 )
 
 func TestValidatePlace_NoTiles_ReturnsError(t *testing.T) {
-	err := v().ValidatePlace(testValidatorGame(), []*Cell{})
+	err := v().ValidatePlace(testValidatorGame(), &Word{})
 	if err == nil || err.Error() != "at least one tile required to form a word" {
 		t.Errorf("expected an error")
 	}
@@ -17,8 +16,8 @@ func TestValidatePlace_IndicesOutsideBounds_ReturnsError(t *testing.T) {
 	invalidIndices := []int{-1000, -1, 225, 1000}
 	vs := fmt.Sprintf("valid indices between %d and %d", BoardMinIndex, BoardMaxIndex)
 	for _, i := range invalidIndices {
-		cells := []*Cell{NewCell(BlankTile(), i)}
-		err := v().ValidatePlace(testValidatorGame(), cells)
+		w := NewWord([]*Cell{NewCell(BlankTile(), i)})
+		err := v().ValidatePlace(testValidatorGame(), w)
 		if err == nil || err.Error() != vs {
 			t.Errorf("expected an error")
 		}
@@ -75,10 +74,10 @@ func testOverlap(
 	isAcrossStart, isAcrossNew, assertError bool) func(*testing.T) {
 	return func(t *testing.T) {
 		g := testValidatorGame()
-		occupied := word(existing, existingStart, isAcrossStart)
-		g.Board.SetCells(occupied)
+		occupied := word(existing, existingStart, isAcrossStart, []int{})
+		g.Board.SetCells(occupied.Cells)
 
-		toPlace := word(new, newStart, isAcrossNew)
+		toPlace := word(new, newStart, isAcrossNew, []int{})
 		err := v().ValidatePlace(g, toPlace)
 
 		if assertError {
@@ -100,22 +99,4 @@ func v() *Validator {
 func testValidatorGame() *Game {
 	players := []*Player{testPlayer(), testPlayer()}
 	return NewGame(players)
-}
-
-func word(word string, startIndex int, isAcross bool) []*Cell {
-	tokens := strings.Split(word, "")
-	cells := []*Cell{}
-	idx := startIndex
-	for _, t := range tokens {
-		cells = append(cells, NewCell(NewTile(t, 1), idx))
-		if isAcross {
-			idx++
-		} else {
-			idx += BoardHeight
-		}
-		if idx > BoardMaxIndex || idx < BoardMinIndex {
-			panic("invalid testing index")
-		}
-	}
-	return cells
 }

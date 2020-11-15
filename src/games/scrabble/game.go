@@ -118,31 +118,31 @@ func (g *Game) Pass() Game {
 }
 
 // Place places a word on the board.
-func (g *Game) Place(tiles []*Cell) (Game, error) {
-	if sErr := g.setCellTiles(tiles); sErr != nil {
+func (g *Game) Place(w *Word) (Game, error) {
+	if sErr := g.setCellTiles(w.Cells); sErr != nil {
 		return *g, sErr
 	}
 
-	if vErr := g.v.ValidatePlace(g, tiles); vErr != nil {
+	if vErr := g.v.ValidatePlace(g, w); vErr != nil {
 		return *g, vErr
 	}
 
-	g.Board.SetCells(tiles)
+	g.Board.SetCells(w.Cells)
 
-	points := calculatePlacePoints(g, tiles)
+	points := calculatePlacePoints(g, w)
 	g.ToMove().AwardPoints(points)
 
-	toReceive := g.Bag.Draw(len(tiles))
+	toReceive := g.Bag.Draw(w.Length())
 	toRemove := []string{}
-	for _, t := range tiles {
-		toRemove = append(toRemove, t.Tile.ID)
+	for _, c := range w.Cells {
+		toRemove = append(toRemove, c.Tile.ID)
 	}
 	_, err := g.ToMove().ExchangeTiles(toRemove, toReceive)
 
 	g.delta = DeltaState{
 		LastAction:           "Place",
 		LastActionPlayerData: toReceive,
-		OtherPlayersData:     tiles,
+		OtherPlayersData:     w,
 	}
 
 	g.setNext()
