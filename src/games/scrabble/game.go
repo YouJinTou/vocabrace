@@ -129,7 +129,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 
 	g.Board.SetCells(w.Cells)
 
-	points := calculatePoints(g, w)
+	points := CalculatePoints(g, w)
 	g.ToMove().AwardPoints(points)
 
 	toReceive := g.Bag.Draw(w.Length())

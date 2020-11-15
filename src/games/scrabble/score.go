@@ -1,5 +1,5 @@
 package scrabble
 
-func calculatePoints(g *Game, w *Word) int {
+func CalculatePoints(g *Game, w *Word) int {
 	return 1
 }
