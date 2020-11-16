@@ -18,6 +18,9 @@ const BoardMinIndex = 0
 // BoardMaxIndex is the last cell index available.
 const BoardMaxIndex = 224
 
+// BoardOrigin is the index of the center of the board.
+const BoardOrigin = BoardMaxIndex / 2
+
 // Board is a 15x15 field of cells.
 type Board struct {
 	Cells []Cell `json:"c"`
