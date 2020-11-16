@@ -3,7 +3,6 @@ package scrabble
 // Word encapsulates a valid arrangement of tiles.
 type Word struct {
 	Cells []*Cell
-	m     *multiplier
 }
 
 // NewWord creates a new word.
@@ -11,6 +10,7 @@ func NewWord(cells []*Cell) *Word {
 	return &Word{Cells: cells}
 }
 
+// String returns the string representation of a word.
 func (w *Word) String() string {
 	var s string
 	for _, c := range w.Cells {
@@ -53,7 +53,10 @@ func (w *Word) ExistsIn(words []*Word) bool {
 func (w *Word) Value() int {
 	sum := 0
 	for _, c := range w.Cells {
-		sum += c.Tile.Value
+		sum += c.Value()
+	}
+	for _, c := range w.Cells {
+		sum *= c.WordMultiplier()
 	}
 	return sum
 }
