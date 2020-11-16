@@ -132,7 +132,7 @@ func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
 			Index: c.CellIndex,
 		})
 	}
-	game, err := g.Place(cells)
+	game, err := g.Place(scrabble.NewWord(cells))
 	if err != nil {
 		return &result{&game, scrabble.DeltaState{}, err}
 	}
