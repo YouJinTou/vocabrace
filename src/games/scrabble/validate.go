@@ -27,7 +27,7 @@ func (v *Validator) ValidatePlace(g Game, w *Word) error {
 		return err
 	}
 
-	if err := g.setCellTiles(w.Cells); err != nil {
+	if err := v.checkPlayerTiles(&g, w.Cells); err != nil {
 		return err
 	}
 
@@ -49,6 +49,16 @@ func (v *Validator) indicesOverlap(g *Game, cells []*Cell) error {
 			if c.Index == bc.Index {
 				return errors.New("index overlap")
 			}
+		}
+	}
+	return nil
+}
+
+func (v *Validator) checkPlayerTiles(g *Game, cells []*Cell) error {
+	for _, c := range cells {
+		tile := g.ToMove().LookupTile(c.Tile.ID)
+		if tile == nil {
+			return fmt.Errorf("tile with ID %s not found", c.Tile.ID)
 		}
 	}
 	return nil

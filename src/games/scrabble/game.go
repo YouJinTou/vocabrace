@@ -3,7 +3,6 @@ package scrabble
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 )
 
@@ -123,6 +122,8 @@ func (g *Game) Place(w *Word) (Game, error) {
 		return *g, vErr
 	}
 
+	g.setCellTiles(w.Cells)
+
 	g.Board.SetCells(w.Cells)
 
 	words := Extract(g.Board, w)
@@ -150,9 +151,6 @@ func (g *Game) Place(w *Word) (Game, error) {
 func (g *Game) setCellTiles(cells []*Cell) error {
 	for _, c := range cells {
 		tile := g.ToMove().LookupTile(c.Tile.ID)
-		if tile == nil {
-			return fmt.Errorf("tile with ID %s not found", c.Tile.ID)
-		}
 		c.Tile = *tile
 	}
 	return nil

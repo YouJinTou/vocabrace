@@ -68,6 +68,30 @@ func TestValidatePlace_TilesDoNotExistOnInidces_DoesNotReturnError(t *testing.T)
 	t.Run("old down, new down 4", testOverlap("test", "true", 52, 51, false, false, false))
 }
 
+func TestValidatePlace_PassesWhenPlayerHasCorrectTiles(t *testing.T) {
+	g := testValidatorGame()
+	cells := []*Cell{}
+	for _, t := range g.ToMove().Tiles.Value {
+		cells = append(cells, NewCell(t, 0))
+	}
+	w := NewWord(cells)
+	err := v().ValidatePlace(g, w)
+	if err != nil {
+		t.Errorf("did not expect error")
+	}
+}
+
+func TestValidatePlace_FailsWhenPlayerHasIncorrectTiles(t *testing.T) {
+	g := testValidatorGame()
+	blank := BlankTile()
+	cells := []*Cell{NewCell(blank, 0)}
+	w := NewWord(cells)
+	err := v().ValidatePlace(g, w)
+	if err == nil || err.Error() != fmt.Sprintf("tile with ID %s not found", blank.ID) {
+		t.Errorf("expected error")
+	}
+}
+
 func testOverlap(
 	existing, new string,
 	existingStart, newStart int,
