@@ -4,30 +4,38 @@ import "github.com/YouJinTou/vocabrace/tools"
 
 // Cell composes a board.
 type Cell struct {
-	Tile  Tile `json:"t"`
-	Index int  `json:"i"`
+	Tile             Tile `json:"t"`
+	Index            int  `json:"i"`
+	enableMultiplier bool
 }
 
 // NewCell creates a new cell.
 func NewCell(t *Tile, index int) *Cell {
 	return &Cell{
-		Tile:  *t,
-		Index: index,
+		Tile:             *t,
+		Index:            index,
+		enableMultiplier: true,
 	}
 }
 
 // Value calculates the cell's value given its tile value and any letter multipliers.
 func (c *Cell) Value() int {
+	if !c.enableMultiplier {
+		return c.Tile.Value
+	}
 	return c.Tile.Value * multiplier(c.Index)
 }
 
 // WordMultiplier returns the word multiplier of the cell.
 func (c *Cell) WordMultiplier() int {
-	doubleWordIndices := []int{16, 32, 48, 64, BoardOrigin, 160, 176, 192, 208}
+	if !c.enableMultiplier {
+		return 1
+	}
+	doubleWordIndices := []int{16, 32, 48, 64, BoardOrigin, 160, 176, 192, 208, 28, 42, 56, 60, 154, 168, 182, 196}
 	if tools.ContainsInt(doubleWordIndices, c.Index) {
 		return 2
 	}
-	tripleWordIndices := []int{0, 7, 14, 105, 119, 210, 224}
+	tripleWordIndices := []int{0, 7, 14, 105, 119, 210, 217, 224}
 	if tools.ContainsInt(tripleWordIndices, c.Index) {
 		return 3
 	}
