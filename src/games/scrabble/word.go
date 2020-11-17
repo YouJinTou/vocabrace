@@ -77,6 +77,15 @@ func Extract(b *Board, w *Word) []*Word {
 	return result
 }
 
+// Indices returns a list of a word's cell indices.
+func (w *Word) Indices() []int {
+	result := []int{}
+	for _, c := range w.Cells {
+		result = append(result, c.Index)
+	}
+	return result
+}
+
 func traverseVertically(b *Board, c *Cell) *Word {
 	cells := []*Cell{}
 	for i := c.Index - BoardHeight; i >= BoardMinIndex; i -= BoardHeight {
