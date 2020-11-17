@@ -119,11 +119,7 @@ func (g *Game) Pass() Game {
 
 // Place places a word on the board.
 func (g *Game) Place(w *Word) (Game, error) {
-	if sErr := g.setCellTiles(w.Cells); sErr != nil {
-		return *g, sErr
-	}
-
-	if vErr := g.v.ValidatePlace(g, w); vErr != nil {
+	if vErr := g.v.ValidatePlace(*g, w); vErr != nil {
 		return *g, vErr
 	}
 

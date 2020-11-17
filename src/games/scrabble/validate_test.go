@@ -96,7 +96,7 @@ func v() *Validator {
 	return NewValidator()
 }
 
-func testValidatorGame() *Game {
+func testValidatorGame() Game {
 	players := []*Player{testPlayer(), testPlayer()}
-	return NewGame(players)
+	return *NewGame(players)
 }
