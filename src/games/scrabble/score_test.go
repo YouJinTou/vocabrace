@@ -80,7 +80,6 @@ func TestCalculatePointsCreateThreeNewWordsWithPremiumWord(t *testing.T) {
 
 	w5 := word("bit", 154, true, []int{}, []int{3, 1, 1}, []int{})
 	g.Board.SetCells(w5.Cells)
-	g.Board.Print()
 	words := Extract(g.Board, w5)
 	scoreRunnable(g, w5, words, 16, t)
 }
