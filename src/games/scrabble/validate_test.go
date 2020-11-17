@@ -74,10 +74,10 @@ func testOverlap(
 	isAcrossStart, isAcrossNew, assertError bool) func(*testing.T) {
 	return func(t *testing.T) {
 		g := testValidatorGame()
-		occupied := word(existing, existingStart, isAcrossStart, []int{})
+		occupied := word(existing, existingStart, isAcrossStart, []int{}, []int{}, []int{})
 		g.Board.SetCells(occupied.Cells)
 
-		toPlace := word(new, newStart, isAcrossNew, []int{})
+		toPlace := word(new, newStart, isAcrossNew, []int{}, []int{}, []int{})
 		err := v().ValidatePlace(g, toPlace)
 
 		if assertError {

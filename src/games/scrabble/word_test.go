@@ -14,7 +14,7 @@ func TestExtractOneLoneWord(t *testing.T) {
 	b := NewBoard()
 
 	expected := []string{"horn"}
-	w := word(expected[0], 46, true, []int{})
+	w := word(expected[0], 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 
 	words := Extract(b, w)
@@ -28,11 +28,11 @@ func TestExtractOneLoneWord(t *testing.T) {
 func TestExtractOneExtendingAcross(t *testing.T) {
 	b := NewBoard()
 
-	w := word("horn", 46, true, []int{})
+	w := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 
 	expected := []string{"horns"}
-	w2 := word(expected[0], 46, true, []int{46, 47, 48, 49})
+	w2 := word(expected[0], 46, true, []int{0, 1, 2, 3}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
 	words := Extract(b, w2)
@@ -48,11 +48,11 @@ func TestExtractOneExtendingAcross(t *testing.T) {
 func TestExtractOneCrossWord(t *testing.T) {
 	b := NewBoard()
 
-	w1 := word("horn", 46, true, []int{})
+	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
 
 	expected := []string{"farm"}
-	w2 := word(expected[0], 18, false, []int{48})
+	w2 := word(expected[0], 18, false, []int{2}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
 	words := Extract(b, w2)
@@ -69,13 +69,13 @@ func TestExtractOneCrossWord(t *testing.T) {
 func TestExtractTwoWordsInverseT(t *testing.T) {
 	b := NewBoard()
 
-	w1 := word("horn", 46, true, []int{})
+	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
-	w2 := word("farm", 18, false, []int{48})
+	w2 := word("farm", 18, false, []int{2}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
 	expected := []string{"paste", "farms"}
-	w3 := word(expected[0], 76, true, []int{})
+	w3 := word(expected[0], 76, true, []int{}, []int{}, []int{})
 	b.SetCells(w3.Cells)
 
 	words := Extract(b, w3)
@@ -92,15 +92,15 @@ func TestExtractTwoWordsInverseT(t *testing.T) {
 func TestExtractThreeWordsSandwich(t *testing.T) {
 	b := NewBoard()
 
-	w1 := word("horn", 46, true, []int{})
+	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
-	w2 := word("farm", 18, false, []int{48})
+	w2 := word("farm", 18, false, []int{2}, []int{}, []int{})
 	b.SetCells(w2.Cells)
-	w3 := word("paste", 76, true, []int{})
+	w3 := word("paste", 76, true, []int{}, []int{}, []int{})
 	b.SetCells(w3.Cells)
 
 	expected := []string{"mob", "not", "be"}
-	w4 := word(expected[0], 63, true, []int{63})
+	w4 := word(expected[0], 63, true, []int{0}, []int{}, []int{})
 	b.SetCells(w4.Cells)
 
 	words := Extract(b, w4)
@@ -118,17 +118,17 @@ func TestExtractThreeWordsSandwich(t *testing.T) {
 func TestExtractThreeWordsSandwich2(t *testing.T) {
 	b := NewBoard()
 
-	w1 := word("horn", 46, true, []int{})
+	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
-	w2 := word("farm", 18, false, []int{48})
+	w2 := word("farm", 18, false, []int{2}, []int{}, []int{})
 	b.SetCells(w2.Cells)
-	w3 := word("paste", 76, true, []int{})
+	w3 := word("paste", 76, true, []int{}, []int{}, []int{})
 	b.SetCells(w3.Cells)
-	w4 := word("mob", 63, true, []int{63})
+	w4 := word("mob", 63, true, []int{0}, []int{}, []int{})
 	b.SetCells(w4.Cells)
 
 	expected := []string{"bit", "pi", "at"}
-	w5 := word(expected[0], 90, true, []int{})
+	w5 := word(expected[0], 90, true, []int{}, []int{}, []int{})
 	b.SetCells(w5.Cells)
 
 	words := Extract(b, w5)
@@ -145,15 +145,15 @@ func TestExtractThreeWordsSandwich2(t *testing.T) {
 func TestExtractFourWordsSandwich(t *testing.T) {
 	b := NewBoard()
 
-	w1 := word("horn", 46, true, []int{})
+	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
-	w2 := word("farm", 18, false, []int{48})
+	w2 := word("farm", 18, false, []int{2}, []int{}, []int{})
 	b.SetCells(w2.Cells)
-	w3 := word("paste", 76, true, []int{})
+	w3 := word("paste", 76, true, []int{}, []int{}, []int{})
 	b.SetCells(w3.Cells)
 
 	expected := []string{"kmob", "oka", "not", "be"}
-	w4 := word(expected[0], 62, true, []int{63})
+	w4 := word(expected[0], 62, true, []int{1}, []int{}, []int{})
 	b.SetCells(w4.Cells)
 
 	words := Extract(b, w4)
@@ -170,7 +170,7 @@ func TestExtractOneLoneWordDown(t *testing.T) {
 	b := NewBoard()
 
 	expected := []string{"test"}
-	w := word(expected[0], 16, false, []int{})
+	w := word(expected[0], 16, false, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 	words := Extract(b, w)
 
@@ -185,11 +185,11 @@ func TestExtractOneLoneWordDown(t *testing.T) {
 func TestExtractOneCrosswordAcross(t *testing.T) {
 	b := NewBoard()
 
-	w := word("test", 16, false, []int{})
+	w := word("test", 16, false, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 
 	expected := []string{"easy"}
-	w2 := word(expected[0], 31, true, []int{31})
+	w2 := word(expected[0], 31, true, []int{0}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
 	words := Extract(b, w2)
@@ -206,11 +206,11 @@ func TestExtractOneCrosswordAcross(t *testing.T) {
 func TestExtractOneExtendingDown(t *testing.T) {
 	b := NewBoard()
 
-	w := word("test", 16, false, []int{})
+	w := word("test", 16, false, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 
 	expected := []string{"tests"}
-	w2 := word(expected[0], 16, false, []int{16, 31, 46, 61})
+	w2 := word(expected[0], 16, false, []int{0, 1, 2, 3}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
 	words := Extract(b, w2)
@@ -225,11 +225,11 @@ func TestExtractOneExtendingDown(t *testing.T) {
 func TestExtractTwoWordsInverseTDown(t *testing.T) {
 	b := NewBoard()
 
-	w := word("as", 16, true, []int{})
+	w := word("as", 16, true, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 
 	expected := []string{"ogle", "gas"}
-	w2 := word(expected[0], 0, false, []int{})
+	w2 := word(expected[0], 0, false, []int{}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
 	words := Extract(b, w2)
@@ -243,11 +243,11 @@ func TestExtractTwoWordsInverseTDown(t *testing.T) {
 func TestExtractSandwichAcross(t *testing.T) {
 	b := NewBoard()
 
-	w := word("passage", 15, true, []int{})
+	w := word("passage", 15, true, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 
 	expected := []string{"toot", "at", "so", "so", "at"}
-	w2 := word(expected[0], 31, true, []int{})
+	w2 := word(expected[0], 31, true, []int{}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
 	words := Extract(b, w2)
@@ -264,23 +264,23 @@ func TestExtractSandwichAcross(t *testing.T) {
 func TestExtractMassiveSandwichDown(t *testing.T) {
 	b := NewBoard()
 
-	w := word("doodle", 1, false, []int{})
+	w := word("doodle", 1, false, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
 
-	w2 := word("so", 30, true, []int{31})
+	w2 := word("so", 30, true, []int{1}, []int{}, []int{})
 	b.SetCells(w2.Cells)
 
-	w3 := word("be", 75, true, []int{76})
+	w3 := word("be", 75, true, []int{1}, []int{}, []int{})
 	b.SetCells(w3.Cells)
 
-	w4 := word("met", 48, false, []int{})
+	w4 := word("met", 48, false, []int{}, []int{}, []int{})
 	b.SetCells(w4.Cells)
 
-	w5 := word("na", 3, false, []int{})
+	w5 := word("na", 3, false, []int{}, []int{}, []int{})
 	b.SetCells(w5.Cells)
 
 	expected := []string{"oldies", "sod", "dim", "lee", "best", "don", "ola"}
-	w6 := word(expected[0], 2, false, []int{})
+	w6 := word(expected[0], 2, false, []int{}, []int{}, []int{})
 	b.SetCells(w6.Cells)
 
 	words := Extract(b, w6)
@@ -288,17 +288,30 @@ func TestExtractMassiveSandwichDown(t *testing.T) {
 	validateExpected(words, expected, b, t)
 }
 
-func word(word string, startIndex int, isAcross bool, skipAt []int) *Word {
+func word(word string, startIndex int, isAcross bool, skipAt, values, blankTiles []int) *Word {
 	tokens := strings.Split(word, "")
 	cells := []*Cell{}
 	idx := startIndex
-	for _, t := range tokens {
-		if tools.ContainsInt(skipAt, idx) {
+	for i, t := range tokens {
+		if tools.ContainsInt(skipAt, i) {
 			idx = incrementWordIndex(idx, isAcross)
 			continue
 		}
 
-		cells = append(cells, NewCell(NewTile(t, 1), idx))
+		var tile *Tile
+		if tools.ContainsInt(blankTiles, i) {
+			tile = BlankTile()
+		} else {
+			var val int
+			if len(values) > i {
+				val = values[i]
+			} else {
+				val = 1
+			}
+			tile = NewTile(t, val)
+		}
+
+		cells = append(cells, NewCell(tile, idx))
 		idx = incrementWordIndex(idx, isAcross)
 		if idx > BoardMaxIndex || idx < BoardMinIndex {
 			panic("invalid testing index")
