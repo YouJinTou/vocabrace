@@ -23,6 +23,45 @@ func NewBag(language string) *Bag {
 	}
 }
 
+// NewBulgarianBag creates a new English bag.
+func NewBulgarianBag() *Bag {
+	tiles := NewTiles(BlankTile(), BlankTile())
+	tiles.Append(CreateMany("А", 1, 9).Value...)
+	tiles.Append(CreateMany("Б", 2, 3).Value...)
+	tiles.Append(CreateMany("В", 2, 4).Value...)
+	tiles.Append(CreateMany("Г", 3, 3).Value...)
+	tiles.Append(CreateMany("Д", 2, 4).Value...)
+	tiles.Append(CreateMany("Е", 1, 8).Value...)
+	tiles.Append(CreateMany("Ж", 4, 2).Value...)
+	tiles.Append(CreateMany("З", 4, 2).Value...)
+	tiles.Append(CreateMany("И", 1, 8).Value...)
+	tiles.Append(CreateMany("Й", 5, 1).Value...)
+	tiles.Append(CreateMany("К", 2, 3).Value...)
+	tiles.Append(CreateMany("Л", 2, 3).Value...)
+	tiles.Append(CreateMany("М", 2, 4).Value...)
+	tiles.Append(CreateMany("Н", 1, 4).Value...)
+	tiles.Append(CreateMany("О", 1, 9).Value...)
+	tiles.Append(CreateMany("П", 1, 4).Value...)
+	tiles.Append(CreateMany("Р", 1, 4).Value...)
+	tiles.Append(CreateMany("С", 1, 4).Value...)
+	tiles.Append(CreateMany("Т", 1, 5).Value...)
+	tiles.Append(CreateMany("У", 5, 3).Value...)
+	tiles.Append(CreateMany("Ф", 10, 1).Value...)
+	tiles.Append(CreateMany("Х", 5, 1).Value...)
+	tiles.Append(CreateMany("Ц", 8, 1).Value...)
+	tiles.Append(CreateMany("Ч", 5, 2).Value...)
+	tiles.Append(CreateMany("Ш", 8, 1).Value...)
+	tiles.Append(CreateMany("Щ", 10, 1).Value...)
+	tiles.Append(CreateMany("Ъ", 3, 2).Value...)
+	tiles.Append(CreateMany("Ы", 10, 1).Value...)
+	tiles.Append(CreateMany("Ю", 8, 1).Value...)
+	tiles.Append(CreateMany("Я", 5, 2).Value...)
+	bag := Bag{
+		Tiles: tiles,
+	}
+	return &bag
+}
+
 // NewEnglishBag creates a new English bag.
 func NewEnglishBag() *Bag {
 	tiles := NewTiles(BlankTile(), BlankTile())

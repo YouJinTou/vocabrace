@@ -95,15 +95,95 @@ func TestDrawCount(t *testing.T) {
 	}
 }
 
-func TestEnglishBagHasCorrectCount(t *testing.T) {
+func TestBulgarianBagHasCorrectDistribution(t *testing.T) {
+	b := NewBulgarianBag()
+	tests := []*dTile{
+		{"", 2, 0},
+		{"А", 9, 1},
+		{"О", 9, 1},
+		{"Е", 8, 1},
+		{"И", 8, 1},
+		{"Т", 5, 1},
+		{"Н", 4, 1},
+		{"П", 4, 1},
+		{"Р", 4, 1},
+		{"С", 4, 1},
+		{"В", 4, 2},
+		{"Д", 4, 2},
+		{"М", 4, 2},
+		{"Б", 3, 2},
+		{"К", 3, 2},
+		{"Л", 3, 2},
+		{"Г", 3, 3},
+		{"Ъ", 2, 3},
+		{"Ж", 2, 4},
+		{"З", 2, 4},
+		{"У", 3, 5},
+		{"Ч", 2, 5},
+		{"Я", 2, 5},
+		{"Й", 1, 5},
+		{"Х", 1, 5},
+		{"Ц", 1, 8},
+		{"Ш", 1, 8},
+		{"Ю", 1, 8},
+		{"Ф", 1, 10},
+		{"Щ", 1, 10},
+		{"Ы", 1, 10},
+	}
+	bagTestDistribution(tests, b, t)
+}
+
+func TestBagsHaveCorrectCount(t *testing.T) {
+	bagTestCount(102, NewBulgarianBag(), t)
+	bagTestCount(100, NewEnglishBag(), t)
+}
+
+func TestBagsTilesHaveUniqueIDs(t *testing.T) {
+	bagTestUniqueIDs(NewBulgarianBag(), t)
+	bagTestUniqueIDs(NewEnglishBag(), t)
+}
+
+func TestEnglishBagHasCorrectDistribution(t *testing.T) {
 	b := NewEnglishBag()
-	if b.Count() != 100 {
-		t.Errorf("expected 100, got %d", b.Count())
+	tests := []*dTile{
+		&dTile{"", 2, 0},
+		&dTile{"A", 9, 1},
+		&dTile{"B", 2, 3},
+		&dTile{"C", 2, 3},
+		&dTile{"D", 4, 2},
+		&dTile{"E", 12, 1},
+		&dTile{"F", 2, 4},
+		&dTile{"G", 3, 2},
+		&dTile{"H", 2, 4},
+		&dTile{"I", 9, 1},
+		&dTile{"J", 1, 8},
+		&dTile{"K", 1, 5},
+		&dTile{"L", 4, 1},
+		&dTile{"M", 2, 3},
+		&dTile{"N", 6, 1},
+		&dTile{"O", 8, 1},
+		&dTile{"P", 2, 3},
+		&dTile{"Q", 1, 10},
+		&dTile{"R", 6, 1},
+		&dTile{"S", 4, 1},
+		&dTile{"T", 6, 1},
+		&dTile{"U", 4, 1},
+		&dTile{"V", 2, 4},
+		&dTile{"W", 2, 4},
+		&dTile{"X", 1, 8},
+		&dTile{"Y", 2, 4},
+		&dTile{"Z", 1, 10},
+	}
+	bagTestDistribution(tests, b, t)
+}
+
+func bagTestCount(expected int, b *Bag, t *testing.T) {
+	if b.Count() != expected {
+		t.Errorf("expected %d, got %d", expected, b.Count())
 	}
 }
 
-func TestEnglishBagTilesHaveUniqueIDs(t *testing.T) {
-	b := NewEnglishBag()
+func bagTestUniqueIDs(b *Bag, t *testing.T) {
 	m := map[string]int{}
 	for _, tile := range b.Tiles.Value {
 		if _, ok := m[tile.ID]; ok {
@@ -112,46 +192,15 @@ func TestEnglishBagTilesHaveUniqueIDs(t *testing.T) {
 			m[tile.ID] = 1
 		}
 	}
-	if b.Count() != 100 {
-		t.Errorf("expected 100, got %d", b.Count())
-	}
 }
 
-func TestEnglishBagHasCorrectDistribution(t *testing.T) {
-	b := NewEnglishBag()
-	tests := []struct {
-		letter string
-		count  int
-		value  int
-	}{
-		{"", 2, 0},
-		{"A", 9, 1},
-		{"B", 2, 3},
-		{"C", 2, 3},
-		{"D", 4, 2},
-		{"E", 12, 1},
-		{"F", 2, 4},
-		{"G", 3, 2},
-		{"H", 2, 4},
-		{"I", 9, 1},
-		{"J", 1, 8},
-		{"K", 1, 5},
-		{"L", 4, 1},
-		{"M", 2, 3},
-		{"N", 6, 1},
-		{"O", 8, 1},
-		{"P", 2, 3},
-		{"Q", 1, 10},
-		{"R", 6, 1},
-		{"S", 4, 1},
-		{"T", 6, 1},
-		{"U", 4, 1},
-		{"V", 2, 4},
-		{"W", 2, 4},
-		{"X", 1, 8},
-		{"Y", 2, 4},
-		{"Z", 1, 10},
-	}
+type dTile struct {
+	Letter string
+	Count  int
+	Value  int
+}
+
+func bagTestDistribution(tests []*dTile, b *Bag, t *testing.T) {
 	m := map[string][]*Tile{}
 	for _, tile := range b.Tiles.Value {
 		if _, ok := m[tile.Letter]; ok {
@@ -161,15 +210,15 @@ func TestEnglishBagHasCorrectDistribution(t *testing.T) {
 		}
 	}
 	for _, tt := range tests {
-		t.Run(tt.letter, func(t *testing.T) {
-			if _, ok := m[tt.letter]; !ok {
-				t.Errorf("letter not found %s", tt.letter)
+		t.Run(tt.Letter, func(t *testing.T) {
+			if _, ok := m[tt.Letter]; !ok {
+				t.Errorf("letter not found %s", tt.Letter)
 			}
-			if len(m[tt.letter]) != tt.count {
-				t.Errorf("letter %s count got %d, expected %d", tt.letter, len(m[tt.letter]), tt.count)
+			if len(m[tt.Letter]) != tt.Count {
+				t.Errorf("letter %s count got %d, expected %d", tt.Letter, len(m[tt.Letter]), tt.Count)
 			}
-			if m[tt.letter][0].Value != tt.value {
-				t.Errorf("letter %s value got %d, expected %d", tt.letter, m[tt.letter][0].Value, tt.value)
+			if m[tt.Letter][0].Value != tt.Value {
+				t.Errorf("letter %s value got %d, expected %d", tt.Letter, m[tt.Letter][0].Value, tt.Value)
 			}
 		})
 	}
