@@ -12,6 +12,7 @@ type scrabblews struct{}
 type cell struct {
 	CellIndex int    `json:"c"`
 	TileID    string `json:"t"`
+	Blank     string `json:"b"`
 }
 type start struct {
 	Tiles  *scrabble.Tiles `json:"t"`
@@ -128,7 +129,7 @@ func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
 	cells := []*scrabble.Cell{}
 	for _, c := range turn.Word {
 		cells = append(cells, &scrabble.Cell{
-			Tile:  scrabble.Tile{ID: c.TileID},
+			Tile:  scrabble.Tile{ID: c.TileID, Letter: c.Blank},
 			Index: c.CellIndex,
 		})
 	}

@@ -35,6 +35,10 @@ func (v *Validator) ValidatePlace(g Game, w *Word) error {
 		return err
 	}
 
+	if err := v.tileLettersOfLength1(w.Cells); err != nil {
+		return err
+	}
+
 	if err := v.indicesOverlap(&g, w.Cells); err != nil {
 		return err
 	}
@@ -54,6 +58,15 @@ func (v *Validator) indicesWithinBounds(cells []*Cell) error {
 	for _, c := range cells {
 		if c.Index < BoardMinIndex || c.Index >= BoardMaxIndex {
 			return fmt.Errorf("valid indices between %d and %d", BoardMinIndex, BoardMaxIndex)
+		}
+	}
+	return nil
+}
+
+func (v *Validator) tileLettersOfLength1(cells []*Cell) error {
+	for _, c := range cells {
+		if len(c.Tile.Letter) != 1 {
+			return fmt.Errorf("tile letter must be of length 1")
 		}
 	}
 	return nil

@@ -138,6 +138,11 @@ func (t *Tiles) FindByID(ID string) *Tile {
 	return nil
 }
 
+// IsBlank returns whether a tile is blank by default.
+func (t *Tile) IsBlank() bool {
+	return t.Value == 0
+}
+
 // String returns a string representation of the tile.
 func (t *Tile) String() string {
 	return fmt.Sprintf("%s|%s|%d", t.ID, t.Letter, t.Value)

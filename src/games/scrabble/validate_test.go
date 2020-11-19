@@ -35,6 +35,14 @@ func TestValidatePlace_IndicesOutsideBounds_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestValidatePlace_InvalidWordTilesLength_ReturnsError(t *testing.T) {
+	word := NewWord([]*Cell{NewCell(NewTile("test", 1), 0)})
+	err := v().ValidatePlace(testValidatorGame(), word)
+	if err == nil || err.Error() != "tile letter must be of length 1" {
+		t.Errorf("expected an error")
+	}
+}
+
 func TestValidatePlace_TilesExistOnIndices_ReturnsError(t *testing.T) {
 	t.Run("old across, new across 1", testOverlap("test", "at", 16, 15, true, true, true))
 	t.Run("old across, new across 2", testOverlap("test", "true", 16, 17, true, true, true))
@@ -94,11 +102,11 @@ func TestValidatePlace_PassesWhenPlayerHasCorrectTiles(t *testing.T) {
 
 func TestValidatePlace_FailsWhenPlayerHasIncorrectTiles(t *testing.T) {
 	g := testValidatorGame()
-	blank := BlankTile()
-	cells := []*Cell{NewCell(blank, 0)}
+	tile := NewTile("f", 1)
+	cells := []*Cell{NewCell(tile, 0)}
 	w := NewWord(cells)
 	err := v().ValidatePlace(g, w)
-	if err == nil || err.Error() != fmt.Sprintf("tile with ID %s not found", blank.ID) {
+	if err == nil || err.Error() != fmt.Sprintf("tile with ID %s not found", tile.ID) {
 		t.Errorf("expected error")
 	}
 }

@@ -151,7 +151,11 @@ func (g *Game) Place(w *Word) (Game, error) {
 func (g *Game) setCellTiles(cells []*Cell) {
 	for _, c := range cells {
 		tile := g.ToMove().LookupTile(c.Tile.ID)
+		blank := c.Tile.Letter
 		c.Tile = *tile
+		if tile.IsBlank() {
+			c.Tile.Letter = blank
+		}
 	}
 }
 

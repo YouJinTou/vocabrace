@@ -28,6 +28,18 @@ func TestPlace(t *testing.T) {
 	}
 }
 
+func TestPlaceAssignsCorrectValueToBlanks(t *testing.T) {
+	g, _, w := setupPlace()
+	w.Cells[0].Tile.Value = 0
+	w.Cells[0].Tile.Letter = "a"
+	g.ToMove().Tiles.GetAt(2).Value = 0
+	g.Place(w)
+
+	if g.Board.Cells[w.Cells[0].Index].Tile.Letter != w.Cells[0].Tile.Letter {
+		t.Errorf("expected blank to have been replaced")
+	}
+}
+
 func TestPlaceReturnsErrorOnInvalidTileIndices(t *testing.T) {
 	g, _, w := setupPlace()
 	idx := "qqqqqqq"
