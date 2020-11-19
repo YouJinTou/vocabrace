@@ -148,12 +148,11 @@ func (g *Game) Place(w *Word) (Game, error) {
 	return *g, err
 }
 
-func (g *Game) setCellTiles(cells []*Cell) error {
+func (g *Game) setCellTiles(cells []*Cell) {
 	for _, c := range cells {
 		tile := g.ToMove().LookupTile(c.Tile.ID)
 		c.Tile = *tile
 	}
-	return nil
 }
 
 func (g *Game) setNext() {
