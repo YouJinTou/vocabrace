@@ -8,7 +8,7 @@ import (
 
 func TestExchange(t *testing.T) {
 	players := []*Player{testPlayer(), testPlayer()}
-	g := NewGame(players)
+	g := NewGame(players, v())
 	toExchange := []string{g.ToMove().Tiles.GetAt(0).ID, g.ToMove().Tiles.GetAt(1).ID}
 	_, err := g.Exchange(toExchange)
 
@@ -115,7 +115,7 @@ func TestOrderPlayers(t *testing.T) {
 		}
 
 		for x := 0; x < 50; x++ {
-			g := NewGame(players)
+			g := NewGame(players, v())
 			io, _ := strconv.Atoi(g.Order[0])
 			expected := getExpectedOrder(io, total)
 
@@ -139,7 +139,7 @@ func TestSetNext(t *testing.T) {
 	players := []*Player{p1, p2, p3}
 
 	for j := 0; j < 10; j++ {
-		g := NewGame(players)
+		g := NewGame(players, v())
 
 		for i := 0; i < 50; i++ {
 			toMoveID := g.ToMoveID
@@ -180,7 +180,7 @@ func getExpectedOrder(idx, total int) []string {
 
 func setupPlace() (Game, []*Player, *Word) {
 	players := []*Player{testPlayer(), testPlayer()}
-	g := NewGame(players)
+	g := NewGame(players, v())
 	cells := []*Cell{
 		&Cell{
 			Tile:  *g.ToMove().Tiles.GetAt(2).Copy(true),

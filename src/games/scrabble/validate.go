@@ -5,12 +5,24 @@ import (
 	"fmt"
 )
 
+// CanValidate is the validator interface.
+type CanValidate interface {
+	ValidatePlace(g Game, w *Word) error
+}
+
 // Validator validates a word placement attempt.
-type Validator struct{}
+type Validator struct {
+	wc WordChecker
+}
 
 // NewValidator creates a new validator.
-func NewValidator() *Validator {
-	return &Validator{}
+func NewValidator(wc WordChecker) CanValidate {
+	return &Validator{wc: wc}
+}
+
+// NewDynamoValidator creates a new Dynamo-powered validator.
+func NewDynamoValidator() CanValidate {
+	return NewValidator(NewDynamoChecker())
 }
 
 // ValidatePlace validates a place action.
@@ -29,6 +41,10 @@ func (v *Validator) ValidatePlace(g Game, w *Word) error {
 
 	if err := v.checkPlayerTiles(&g, w.Cells); err != nil {
 		return err
+	}
+
+	if !v.wc.IsValidWord(g.Language, w.String()) {
+		return fmt.Errorf("invalid word %s", w.String())
 	}
 
 	return nil

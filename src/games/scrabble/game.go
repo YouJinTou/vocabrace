@@ -15,7 +15,7 @@ type Game struct {
 	Language string    `json:"l"`
 	Order    []string  `json:"o"`
 	delta    DeltaState
-	v        *Validator
+	v        CanValidate
 }
 
 // DeltaState shows the changes since the previous turn.
@@ -54,7 +54,7 @@ func (d *DeltaState) JSONWithoutPersonal() string {
 }
 
 // NewGame creates a new game.
-func NewGame(players []*Player) *Game {
+func NewGame(players []*Player, validator CanValidate) *Game {
 	if len(players) < 1 {
 		panic("at least one player required")
 	}
@@ -71,7 +71,7 @@ func NewGame(players []*Player) *Game {
 		ToMoveID: toMove,
 		Language: "en",
 		Order:    orderedIDs,
-		v:        NewValidator(),
+		v:        validator,
 	}
 }
 

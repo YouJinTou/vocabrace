@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+type wordCheckerMock struct{}
+
+var isValidWordMock func(a, b string) bool
+
+func (w wordCheckerMock) IsValidWord(language, word string) bool {
+	if isValidWordMock == nil {
+		return true
+	}
+	return isValidWordMock(language, word)
+}
+
 func TestValidatePlace_NoTiles_ReturnsError(t *testing.T) {
 	err := v().ValidatePlace(testValidatorGame(), &Word{})
 	if err == nil || err.Error() != "at least one tile required to form a word" {
@@ -92,6 +103,34 @@ func TestValidatePlace_FailsWhenPlayerHasIncorrectTiles(t *testing.T) {
 	}
 }
 
+func TestValidatePlace_FailsWhenWordNotValid(t *testing.T) {
+	g := testValidatorGame()
+	cells := []*Cell{}
+	for _, t := range g.ToMove().Tiles.Value {
+		cells = append(cells, NewCell(t, 0))
+	}
+	w := NewWord(cells)
+	isValidWordMock = func(a, b string) bool { return false }
+	err := v().ValidatePlace(g, w)
+	if err == nil || err.Error() != fmt.Sprintf("invalid word %s", w.String()) {
+		t.Errorf("expected error")
+	}
+}
+
+func TestValidatePlace_PassesWhenWordValid(t *testing.T) {
+	g := testValidatorGame()
+	cells := []*Cell{}
+	for _, t := range g.ToMove().Tiles.Value {
+		cells = append(cells, NewCell(t, 0))
+	}
+	w := NewWord(cells)
+	isValidWordMock = func(a, b string) bool { return true }
+	err := v().ValidatePlace(g, w)
+	if err != nil {
+		t.Errorf("did not expect error")
+	}
+}
+
 func testOverlap(
 	existing, new string,
 	existingStart, newStart int,
@@ -116,11 +155,11 @@ func testOverlap(
 	}
 }
 
-func v() *Validator {
-	return NewValidator()
+func v() CanValidate {
+	return NewValidator(wordCheckerMock{})
 }
 
 func testValidatorGame() Game {
 	players := []*Player{testPlayer(), testPlayer()}
-	return *NewGame(players)
+	return *NewGame(players, v())
 }

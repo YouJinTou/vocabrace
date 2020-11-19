@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	dc := scrabble.DynamoChecker{}
+	dc.IsValidWord("bulgarian", "полски")
 	bag := scrabble.NewBag(scrabble.English)
 	bt, _ := json.Marshal(&bag)
 	nt := &scrabble.Bag{}
@@ -38,7 +40,7 @@ func main() {
 		ConnectionIDs: []string{"a", "b"},
 		Body:          "{\"Game\":\"scrabble\",\"IsPlace\":true,\"Word\":[{\"i\":1,\"t\":{\"l\":\"r\",\"v\":2}},{\"i\":2,\"t\":{\"l\":\"e\",\"v\":1}}]}",
 	})
-	x := scrabble.NewGame(p)
+	x := scrabble.NewGame(p, scrabble.NewDynamoValidator())
 	z := x.JSON()
 	fmt.Println(z)
 }
