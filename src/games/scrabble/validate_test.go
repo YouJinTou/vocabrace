@@ -161,5 +161,5 @@ func v() CanValidate {
 
 func testValidatorGame() Game {
 	players := []*Player{testPlayer(), testPlayer()}
-	return *NewGame(players, v())
+	return *NewGame(English, players, v())
 }

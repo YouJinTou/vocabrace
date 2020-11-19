@@ -94,3 +94,83 @@ func TestDrawCount(t *testing.T) {
 		})
 	}
 }
+
+func TestEnglishBagHasCorrectCount(t *testing.T) {
+	b := NewEnglishBag()
+	if b.Count() != 100 {
+		t.Errorf("expected 100, got %d", b.Count())
+	}
+}
+
+func TestEnglishBagTilesHaveUniqueIDs(t *testing.T) {
+	b := NewEnglishBag()
+	m := map[string]int{}
+	for _, tile := range b.Tiles.Value {
+		if _, ok := m[tile.ID]; ok {
+			t.Errorf("tile ID repeats")
+		} else {
+			m[tile.ID] = 1
+		}
+	}
+	if b.Count() != 100 {
+		t.Errorf("expected 100, got %d", b.Count())
+	}
+}
+
+func TestEnglishBagHasCorrectDistribution(t *testing.T) {
+	b := NewEnglishBag()
+	tests := []struct {
+		letter string
+		count  int
+		value  int
+	}{
+		{"", 2, 0},
+		{"A", 9, 1},
+		{"B", 2, 3},
+		{"C", 2, 3},
+		{"D", 4, 2},
+		{"E", 12, 1},
+		{"F", 2, 4},
+		{"G", 3, 2},
+		{"H", 2, 4},
+		{"I", 9, 1},
+		{"J", 1, 8},
+		{"K", 1, 5},
+		{"L", 4, 1},
+		{"M", 2, 3},
+		{"N", 6, 1},
+		{"O", 8, 1},
+		{"P", 2, 3},
+		{"Q", 1, 10},
+		{"R", 6, 1},
+		{"S", 4, 1},
+		{"T", 6, 1},
+		{"U", 4, 1},
+		{"V", 2, 4},
+		{"W", 2, 4},
+		{"X", 1, 8},
+		{"Y", 2, 4},
+		{"Z", 1, 10},
+	}
+	m := map[string][]*Tile{}
+	for _, tile := range b.Tiles.Value {
+		if _, ok := m[tile.Letter]; ok {
+			m[tile.Letter] = append(m[tile.Letter], tile)
+		} else {
+			m[tile.Letter] = []*Tile{tile}
+		}
+	}
+	for _, tt := range tests {
+		t.Run(tt.letter, func(t *testing.T) {
+			if _, ok := m[tt.letter]; !ok {
+				t.Errorf("letter not found %s", tt.letter)
+			}
+			if len(m[tt.letter]) != tt.count {
+				t.Errorf("letter %s count got %d, expected %d", tt.letter, len(m[tt.letter]), tt.count)
+			}
+			if m[tt.letter][0].Value != tt.value {
+				t.Errorf("letter %s value got %d, expected %d", tt.letter, m[tt.letter][0].Value, tt.value)
+			}
+		})
+	}
+}

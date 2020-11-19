@@ -36,7 +36,7 @@ type clientMessage struct {
 
 func (s scrabblews) OnStart(data *ReceiverData) {
 	players := s.loadPlayers(data.ConnectionIDs)
-	game := scrabble.NewGame(players, scrabble.NewDynamoValidator())
+	game := scrabble.NewGame("english", players, scrabble.NewDynamoValidator())
 	messages := []*Message{}
 
 	for _, p := range game.Players {

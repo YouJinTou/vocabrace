@@ -85,7 +85,7 @@ func TestCalculatePointsCreateThreeNewWordsWithPremiumWord(t *testing.T) {
 }
 
 func testScoreGame() *Game {
-	return NewGame([]*Player{testPlayer(), testPlayer()}, v())
+	return NewGame(English, []*Player{testPlayer(), testPlayer()}, v())
 }
 
 func scoreRunnable(g *Game, w *Word, words []*Word, expected int, t *testing.T) {

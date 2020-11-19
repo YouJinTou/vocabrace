@@ -55,6 +55,15 @@ func BlankTile() *Tile {
 	}
 }
 
+// CreateMany creates many tiles of the same type.
+func CreateMany(letter string, value, count int) Tiles {
+	result := Tiles{}
+	for i := 0; i < count; i++ {
+		result.Append(NewTile(letter, value))
+	}
+	return result
+}
+
 // FromString creates a tile from a string.
 func FromString(s string) *Tile {
 	tokens := strings.Split(s, "|")

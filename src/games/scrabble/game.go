@@ -54,12 +54,12 @@ func (d *DeltaState) JSONWithoutPersonal() string {
 }
 
 // NewGame creates a new game.
-func NewGame(players []*Player, validator CanValidate) *Game {
+func NewGame(language string, players []*Player, validator CanValidate) *Game {
 	if len(players) < 1 {
 		panic("at least one player required")
 	}
 
-	bag := NewBag(English)
+	bag := NewBag(language)
 	for _, p := range players {
 		p.Tiles = bag.Draw(7)
 	}
