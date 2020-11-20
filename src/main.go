@@ -11,7 +11,7 @@ import (
 
 func main() {
 	dc := scrabble.DynamoChecker{}
-	dc.ValidateWords("bulgarian", []string{"полски"})
+	dc.ValidateWords("bulgarian", []string{"полски", "таралежка", "пинокио", "глупак"})
 	bag := scrabble.NewBag("english")
 	bt, _ := json.Marshal(&bag)
 	nt := &scrabble.Bag{}

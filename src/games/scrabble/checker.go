@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/YouJinTou/vocabrace/tools"
 )
 
 // WordChecker performs validation checks on words.
 type WordChecker interface {
-	ValidateWords(language string, words []string) error
+	ValidateWords(language string, words []string) ([]string, error)
 }
 
 // DynamoChecker implements WordChecker.
@@ -23,24 +21,24 @@ func NewDynamoChecker() WordChecker {
 }
 
 // ValidateWords checks if the given words are valid for the target language.
-func (dc DynamoChecker) ValidateWords(language string, words []string) error {
-	sess := session.Must(session.NewSession())
-	dynamo := dynamodb.New(sess)
-	kaa := &dynamodb.KeysAndAttributes{}
-	keys := []map[string]*dynamodb.AttributeValue{}
-
+func (dc DynamoChecker) ValidateWords(language string, words []string) ([]string, error) {
+	o, err := tools.BatchGetItem(
+		fmt.Sprintf("scrabble_%s", strings.ToLower(language)), "Word", words)
+	notFound := []string{}
 	for _, w := range words {
-		keys = append(keys, map[string]*dynamodb.AttributeValue{
-			"Word": {S: aws.String(strings.ToLower(w))}})
+		found := false
+		for _, tables := range o.Responses {
+			for _, kv := range tables {
+				if w == *kv["Word"].S {
+					found = true
+					break
+				}
+			}
+		}
+		if !found {
+			notFound = append(notFound, w)
+		}
 	}
 
-	kaa.SetKeys(keys)
-
-	_, err := dynamo.BatchGetItem(&dynamodb.BatchGetItemInput{
-		RequestItems: map[string]*dynamodb.KeysAndAttributes{
-			fmt.Sprintf("scrabble_%s", strings.ToLower(language)): kaa,
-		},
-	})
-
-	return err
+	return notFound, err
 }

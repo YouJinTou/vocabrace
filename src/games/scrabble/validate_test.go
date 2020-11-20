@@ -8,11 +8,11 @@ import (
 
 type wordCheckerMock struct{}
 
-var validateWordsMock func(a string, b []string) error
+var validateWordsMock func(a string, b []string) ([]string, error)
 
-func (w wordCheckerMock) ValidateWords(language string, words []string) error {
+func (w wordCheckerMock) ValidateWords(language string, words []string) ([]string, error) {
 	if validateWordsMock == nil {
-		return nil
+		return []string{}, nil
 	}
 	return validateWordsMock(language, words)
 }
@@ -119,9 +119,11 @@ func TestValidatePlace_FailsWhenWordsNotValid(t *testing.T) {
 		cells = append(cells, NewCell(t, 0))
 	}
 	w := NewWord(cells)
-	validateWordsMock = func(a string, b []string) error { return errors.New("invalid words") }
+	validateWordsMock = func(a string, b []string) ([]string, error) {
+		return []string{"test"}, errors.New("invalid words")
+	}
 	err := v().ValidatePlace(g, w)
-	if err == nil || err.Error() != "invalid words" {
+	if err == nil || err.Error() != "invalid words: [\"test\"]; err: invalid words" {
 		t.Errorf("expected error")
 	}
 }
@@ -133,7 +135,7 @@ func TestValidatePlace_PassesWhenWordsValid(t *testing.T) {
 		cells = append(cells, NewCell(t, 0))
 	}
 	w := NewWord(cells)
-	validateWordsMock = func(a string, b []string) error { return nil }
+	validateWordsMock = func(a string, b []string) ([]string, error) { return []string{}, nil }
 	err := v().ValidatePlace(g, w)
 	if err != nil {
 		t.Errorf("did not expect error")
