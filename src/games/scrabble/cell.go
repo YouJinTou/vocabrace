@@ -31,7 +31,7 @@ func (c *Cell) WordMultiplier() int {
 	if !c.enableMultiplier {
 		return 1
 	}
-	doubleWordIndices := []int{16, 32, 48, 64, BoardOrigin, 160, 176, 192, 208, 28, 42, 56, 60, 154, 168, 182, 196}
+	doubleWordIndices := []int{16, 32, 48, 64, BoardOrigin, 160, 176, 192, 208, 28, 42, 56, 70, 154, 168, 182, 196}
 	if tools.ContainsInt(doubleWordIndices, c.Index) {
 		return 2
 	}
