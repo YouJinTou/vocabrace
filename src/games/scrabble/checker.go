@@ -11,7 +11,7 @@ import (
 
 // WordChecker performs validation checks on words.
 type WordChecker interface {
-	IsValidWord(language, w string) bool
+	ValidateWords(language string, words []string) error
 }
 
 // DynamoChecker implements WordChecker.
@@ -22,20 +22,25 @@ func NewDynamoChecker() WordChecker {
 	return DynamoChecker{}
 }
 
-// IsValidWord checks if a given word is valid for the target language.
-func (dc DynamoChecker) IsValidWord(language, w string) bool {
-	if len(w) == 0 {
-		return false
-	}
-
+// ValidateWords checks if the given words are valid for the target language.
+func (dc DynamoChecker) ValidateWords(language string, words []string) error {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
-	_, err := dynamo.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(fmt.Sprintf("scrabble_%s", strings.ToLower(language))),
-		Key: map[string]*dynamodb.AttributeValue{
-			"Word": {S: aws.String(strings.ToLower(w))},
+	kaa := &dynamodb.KeysAndAttributes{}
+	keys := []map[string]*dynamodb.AttributeValue{}
+
+	for _, w := range words {
+		keys = append(keys, map[string]*dynamodb.AttributeValue{
+			"Word": {S: aws.String(strings.ToLower(w))}})
+	}
+
+	kaa.SetKeys(keys)
+
+	_, err := dynamo.BatchGetItem(&dynamodb.BatchGetItemInput{
+		RequestItems: map[string]*dynamodb.KeysAndAttributes{
+			fmt.Sprintf("scrabble_%s", strings.ToLower(language)): kaa,
 		},
 	})
 
-	return err == nil
+	return err
 }

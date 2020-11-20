@@ -47,8 +47,9 @@ func (v *Validator) ValidatePlace(g Game, w *Word) error {
 		return err
 	}
 
-	if !v.wc.IsValidWord(g.Language, w.String()) {
-		return fmt.Errorf("invalid word %s", w.String())
+	words := Extract(g.Board, w)
+	if err := v.wc.ValidateWords(g.Language, ToStrings(words)); err != nil {
+		return fmt.Errorf("invalid words")
 	}
 
 	return nil

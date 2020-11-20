@@ -10,6 +10,15 @@ func NewWord(cells []*Cell) *Word {
 	return &Word{Cells: cells}
 }
 
+// ToStrings converts words to their string representations.
+func ToStrings(words []*Word) []string {
+	result := []string{}
+	for _, w := range words {
+		result = append(result, w.String())
+	}
+	return result
+}
+
 // String returns the string representation of a word.
 func (w *Word) String() string {
 	var s string

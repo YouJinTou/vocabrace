@@ -1,19 +1,20 @@
 package scrabble
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 )
 
 type wordCheckerMock struct{}
 
-var isValidWordMock func(a, b string) bool
+var validateWordsMock func(a string, b []string) error
 
-func (w wordCheckerMock) IsValidWord(language, word string) bool {
-	if isValidWordMock == nil {
-		return true
+func (w wordCheckerMock) ValidateWords(language string, words []string) error {
+	if validateWordsMock == nil {
+		return nil
 	}
-	return isValidWordMock(language, word)
+	return validateWordsMock(language, words)
 }
 
 func TestValidatePlace_NoTiles_ReturnsError(t *testing.T) {
@@ -111,28 +112,28 @@ func TestValidatePlace_FailsWhenPlayerHasIncorrectTiles(t *testing.T) {
 	}
 }
 
-func TestValidatePlace_FailsWhenWordNotValid(t *testing.T) {
+func TestValidatePlace_FailsWhenWordsNotValid(t *testing.T) {
 	g := testValidatorGame()
 	cells := []*Cell{}
 	for _, t := range g.ToMove().Tiles.Value {
 		cells = append(cells, NewCell(t, 0))
 	}
 	w := NewWord(cells)
-	isValidWordMock = func(a, b string) bool { return false }
+	validateWordsMock = func(a string, b []string) error { return errors.New("invalid words") }
 	err := v().ValidatePlace(g, w)
-	if err == nil || err.Error() != fmt.Sprintf("invalid word %s", w.String()) {
+	if err == nil || err.Error() != "invalid words" {
 		t.Errorf("expected error")
 	}
 }
 
-func TestValidatePlace_PassesWhenWordValid(t *testing.T) {
+func TestValidatePlace_PassesWhenWordsValid(t *testing.T) {
 	g := testValidatorGame()
 	cells := []*Cell{}
 	for _, t := range g.ToMove().Tiles.Value {
 		cells = append(cells, NewCell(t, 0))
 	}
 	w := NewWord(cells)
-	isValidWordMock = func(a, b string) bool { return true }
+	validateWordsMock = func(a string, b []string) error { return nil }
 	err := v().ValidatePlace(g, w)
 	if err != nil {
 		t.Errorf("did not expect error")

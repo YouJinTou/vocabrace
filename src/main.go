@@ -11,7 +11,7 @@ import (
 
 func main() {
 	dc := scrabble.DynamoChecker{}
-	dc.IsValidWord("bulgarian", "полски")
+	dc.ValidateWords("bulgarian", []string{"полски"})
 	bag := scrabble.NewBag("english")
 	bt, _ := json.Marshal(&bag)
 	nt := &scrabble.Bag{}
@@ -34,7 +34,6 @@ func main() {
 	ws.OnAction(&ws.ReceiverData{
 		Game:          "scrabble",
 		Initiator:     "V9MXTex9FiACFew=",
-		Language:      "english",
 		Stage:         "dev",
 		Domain:        "asd",
 		PoolID:        "ac0c528e-0569-4140-a015-3a76c663bb8a",
