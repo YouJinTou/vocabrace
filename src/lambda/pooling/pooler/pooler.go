@@ -174,20 +174,7 @@ func setPool(p *pool, c *lambdapooling.Config) {
 }
 
 func flagDisconnections(p *pool, c *lambdapooling.Config) {
-	kaa := &dynamodb.KeysAndAttributes{}
-	cids := []map[string]*dynamodb.AttributeValue{}
-
-	for _, cid := range p.ConnectionIDs() {
-		cids = append(cids, map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(cid)}})
-	}
-
-	kaa.SetKeys(cids)
-
-	o, err := dynamo().BatchGetItem(&dynamodb.BatchGetItemInput{
-		RequestItems: map[string]*dynamodb.KeysAndAttributes{
-			fmt.Sprintf("%s_disconnections", c.Stage): kaa,
-		},
-	})
+	o, err := tools.BatchGetItem(fmt.Sprintf("%s_disconnections", c.Stage), "ID", p.ConnectionIDs())
 
 	if err != nil {
 		fmt.Println(err.Error())
