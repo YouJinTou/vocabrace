@@ -12,6 +12,14 @@ func TestCalculatePointsSumsTileValues(t *testing.T) {
 	scoreRunnable(g, w, words, 10, t)
 }
 
+func TestCalculatePointsAwards50PointsIfAll7TilesUsed(t *testing.T) {
+	g := testScoreGame()
+	w := word("testing", 65, true, []int{}, []int{1, 1, 1, 1, 1, 1, 1}, []int{})
+	g.Board.SetCells(w.Cells)
+	words := Extract(g.Board, w)
+	scoreRunnable(g, w, words, (7*2)+50, t)
+}
+
 func TestCalculatePointsCountsBlanksAsZeros(t *testing.T) {
 	g := testScoreGame()
 	w := word("test", 65, true, []int{}, []int{1, 2, 3, 4}, []int{0})

@@ -97,7 +97,7 @@ func TestValidatePlace_PassesWhenPlayerHasCorrectTiles(t *testing.T) {
 	w := NewWord(cells)
 	err := v().ValidatePlace(g, w)
 	if err != nil {
-		t.Errorf("did not expect error")
+		t.Errorf(err.Error())
 	}
 }
 
