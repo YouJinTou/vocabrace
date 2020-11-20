@@ -25,7 +25,7 @@ type Tiles struct {
 }
 
 func tileID() string {
-	return uuid.New().String()[0:5]
+	return uuid.New().String()[0:6]
 }
 
 // NewTile creates a new tile.
