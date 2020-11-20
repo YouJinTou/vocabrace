@@ -66,7 +66,7 @@ func (v *Validator) indicesWithinBounds(cells []*Cell) error {
 
 func (v *Validator) tileLettersOfLength1(cells []*Cell) error {
 	for _, c := range cells {
-		if len(c.Tile.Letter) != 1 {
+		if !c.Tile.IsBlank() && len(c.Tile.Letter) != 1 {
 			return fmt.Errorf("tile letter must be of length 1")
 		}
 	}
