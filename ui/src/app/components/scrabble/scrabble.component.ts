@@ -21,6 +21,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
   private selected: Tile;
   private placedTiles: Cell[] = [];
+  private toExchangeIds: string[] = [];
   private originalTiles: Tile[] = [];
   tiles: Tile[] = [];
   cells: Cell[] = [];
@@ -43,10 +44,12 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   onPlayerTileClicked(t: Tile) {
     let shouldDeselect = t == this.selected;
     if (shouldDeselect) {
+      this.toExchangeIds = this.toExchangeIds.filter(t => t != this.selected.id);
       this.selected = null;
       return;
     }
-    this.selected = t;
+      this.toExchangeIds.push(t.id);
+      this.selected = t;
   }
 
   onCellTileClicked(c: Cell) {
@@ -60,6 +63,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     this.tiles = this.tiles.filter(t => t.id != this.selected.id);
     this.placedTiles.push(c.copy());
     this.selected = null;
+    this.toExchangeIds = [];
   }
 
   onPlaceClicked() {
@@ -77,13 +81,14 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
     this.wsService.send(payload);
     this.placedTiles = [];
+    this.toExchangeIds = [];
   }
 
   onExchangeClicked() {
     let payload = {
       g: GAME,
       e: true,
-      t: [] //TODO
+      t: this.toExchangeIds
     };
     this.wsService.send(payload);
   }
@@ -108,6 +113,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
 
     this.loadCells();
     this.renderPlayerTiles(m);
+    this.handleExchange(m);
   }
 
   private isError(m: any): boolean {
@@ -133,14 +139,22 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   private renderPlayerTiles(data: any) {
-    if ('t' in data) {
-      this.tiles = [];
+    if (!('t' in data)) {
+      return
+    }
+
+    this.tiles = [];
       for (var t of data['t']) {
         let tokens = t.split('|');
         let tile = new Tile(tokens[0], tokens[1], tokens[2]);
         this.tiles.push(tile);
         this.originalTiles.push(tile);
       }
+  }
+
+  private handleExchange(data: any) {
+    if (!('l' in data)) {
+      return;
     }
   }
 }
