@@ -1,0 +1,22 @@
+<div class="wrapper">
+    <div class="board">
+        <div class="cell {{c.cssClass}}" (click)="onCellTileClicked(c)" *ngFor="let c of cells">
+            <div>{{c?.tile?.letter}}</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="tiles">
+            <div class="player-tile tile" (click)="onPlayerTileClicked(t)" *ngFor="let t of tiles">
+                {{t.letter}} {{t.value}}
+            </div>
+        </div>
+
+        <div class="actions">
+            <div (click)="onPlaceClicked()">Сложи</div>
+            <div (click)="onExchangeClicked()">Размени</div>
+            <div (click)="onPassClicked()">Пропусни</div>
+            <div (click)="onCancelClicked()">Отмяна</div>
+        </div>
+    </div>
+</div>

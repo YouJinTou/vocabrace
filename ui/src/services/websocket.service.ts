@@ -9,10 +9,11 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 export class WebsocketService implements OnDestroy {
   private connection$: WebSocketSubject<any>;
 
-  connect(url: string): Observable<any> {
-    return of(url).pipe(_ => {
+  connect(url: string, game: string): Observable<any> {
+    let result = `${url}?game=${game}`
+    return of(result).pipe(_ => {
       if (!this.connection$) {
-        this.connection$ = webSocket(url);
+        this.connection$ = webSocket(result);
       }
       return this.connection$;
     },
@@ -22,7 +23,11 @@ export class WebsocketService implements OnDestroy {
 
   send(data: any) {
     if (this.connection$) {
-      this.connection$.next(data);
+      let payload = {
+        action: 'publish',
+        d: JSON.stringify(data)
+      }
+      this.connection$.next(payload);
     } else {
       console.error('Did not send data. Open a connection first.');
     }

@@ -1,0 +1,54 @@
+.wrapper {
+    margin-top: 25px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    gap: 1px;
+}
+
+.cell {
+    height: 30px;
+}
+
+.double-letter {
+    background-color: lightskyblue;
+}
+
+.triple-letter {
+    background-color: mediumblue;
+}
+
+.double-word {
+    background-color: lightpink;
+}
+
+.triple-word {
+    background-color: red;
+}
+
+.controls {
+    margin-top: 10px;
+}
+
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-column-gap: 2px;
+}
+
+.tile {
+    background-color: rgba(255, 247, 129, 0.993);
+}
+
+.player-tile {
+    height: 30px;
+    width: 30px;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
