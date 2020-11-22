@@ -29,6 +29,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   constructor(private wsService: WebsocketService) { }
 
   ngOnInit(): void {
+    this.loadCells();
     this.wsService.connect(environment.wsEndpoint, GAME).pipe(
       takeUntil(this.destroyed$)
     ).subscribe({
@@ -108,7 +109,6 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loadCells();
     this.renderPlayers(m);
     this.renderPlayerTiles(m);
     this.handleExchange(m);
