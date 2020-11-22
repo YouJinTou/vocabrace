@@ -3,6 +3,7 @@ package scrabble
 import (
 	"errors"
 	"fmt"
+	"unicode/utf8"
 )
 
 // CanValidate is the validator interface.
@@ -66,7 +67,7 @@ func (v *Validator) indicesWithinBounds(cells []*Cell) error {
 
 func (v *Validator) tileLettersOfLength1(cells []*Cell) error {
 	for _, c := range cells {
-		if !c.Tile.IsBlank() && len(c.Tile.Letter) != 1 {
+		if !c.Tile.IsBlank() && utf8.RuneCountInString(c.Tile.Letter) != 1 {
 			return fmt.Errorf("tile letter must be of length 1")
 		}
 	}
