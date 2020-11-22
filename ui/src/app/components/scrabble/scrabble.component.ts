@@ -67,7 +67,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
       payload.w.push({
         c: c.id,
         t: c.tile.id,
-        b: c.tile.letter,
+        b: c.tile.isBlank() ? c.tile.letter : null,
       })
     }
     this.wsService.send(payload);
@@ -114,6 +114,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     this.renderPlayers();
     this.renderPlayerTiles();
     this.handleExchange();
+    this.handlePlace();
   }
 
   private loadCells() {
@@ -162,6 +163,10 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     this.tiles.push(...this.payload.exchangeTiles);
   }
 
+  private handlePlace() {
+
+  }
+
   private selected(): Tile[] {
     let selectedTiles = this.tiles.filter(t => t.selected);
     return selectedTiles.length == 0 ? null : selectedTiles;
@@ -185,7 +190,6 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     c.tile = this.current().copy()
     this.tiles = this.tiles.filter(t => t.id != this.current().id);
     this.placedTiles.push(c.copy());
-    this.current().selected = false;
   }
 
   private removeCellTile(c: Cell): boolean {
