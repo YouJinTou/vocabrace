@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"unicode/utf8"
+
+	"github.com/YouJinTou/vocabrace/tools"
 )
 
 // CanValidate is the validator interface.
@@ -48,8 +50,13 @@ func (v *Validator) ValidatePlace(g Game, w *Word) error {
 		return err
 	}
 
+	g.SetCellTiles(w.Cells)
+
+	g.Board.SetCells(w.Cells)
+
 	words := Extract(g.Board, w)
-	if notFound, err := v.wc.ValidateWords(g.Language, ToStrings(words)); len(notFound) > 0 || err != nil {
+	keys := tools.ToLowerStrings(ToStrings(words))
+	if notFound, err := v.wc.ValidateWords(g.Language, keys); len(notFound) > 0 || err != nil {
 		return fmt.Errorf("invalid words: %q; err: %s", notFound, err)
 	}
 

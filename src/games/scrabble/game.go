@@ -127,11 +127,11 @@ func (g *Game) Pass() Game {
 
 // Place places a word on the board.
 func (g *Game) Place(w *Word) (Game, error) {
-	g.setCellTiles(w.Cells)
-
 	if vErr := g.v.ValidatePlace(*g, w); vErr != nil {
 		return *g, vErr
 	}
+
+	g.SetCellTiles(w.Cells)
 
 	g.Board.SetCells(w.Cells)
 
@@ -157,7 +157,8 @@ func (g *Game) Place(w *Word) (Game, error) {
 	return *g, err
 }
 
-func (g *Game) setCellTiles(cells []*Cell) error {
+// SetCellTiles sets the incoming cells' tiles by looking them up by ID.
+func (g *Game) SetCellTiles(cells []*Cell) error {
 	for _, c := range cells {
 		tile := g.ToMove().LookupTile(c.Tile.ID)
 

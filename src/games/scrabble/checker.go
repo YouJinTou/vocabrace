@@ -2,6 +2,7 @@ package scrabble
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/YouJinTou/vocabrace/tools"
@@ -22,6 +23,7 @@ func NewDynamoChecker() WordChecker {
 
 // ValidateWords checks if the given words are valid for the target language.
 func (dc DynamoChecker) ValidateWords(language string, words []string) ([]string, error) {
+	log.Print(words)
 	o, err := tools.BatchGetItem(
 		fmt.Sprintf("scrabble_%s", strings.ToLower(language)), "Word", words)
 	notFound := []string{}
