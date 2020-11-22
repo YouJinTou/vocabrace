@@ -3,6 +3,7 @@ package scrabble
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/rand"
 )
 
@@ -78,6 +79,11 @@ func NewGame(language string, players []*Player, validator CanValidate) *Game {
 	}
 }
 
+// SetValidator sets the validator.
+func (g *Game) SetValidator(v CanValidate) {
+	g.v = v
+}
+
 // GetDelta shows the changes since the last move.
 func (g *Game) GetDelta() DeltaState {
 	return g.delta
@@ -121,11 +127,11 @@ func (g *Game) Pass() Game {
 
 // Place places a word on the board.
 func (g *Game) Place(w *Word) (Game, error) {
+	g.setCellTiles(w.Cells)
+
 	if vErr := g.v.ValidatePlace(*g, w); vErr != nil {
 		return *g, vErr
 	}
-
-	g.setCellTiles(w.Cells)
 
 	g.Board.SetCells(w.Cells)
 
@@ -151,15 +157,21 @@ func (g *Game) Place(w *Word) (Game, error) {
 	return *g, err
 }
 
-func (g *Game) setCellTiles(cells []*Cell) {
+func (g *Game) setCellTiles(cells []*Cell) error {
 	for _, c := range cells {
 		tile := g.ToMove().LookupTile(c.Tile.ID)
+
+		if tile == nil {
+			return fmt.Errorf("tile with ID %s not found", c.Tile.ID)
+		}
+
 		blank := c.Tile.Letter
 		c.Tile = *tile
 		if tile.IsBlank() {
 			c.Tile.Letter = blank
 		}
 	}
+	return nil
 }
 
 func (g *Game) setNext() {

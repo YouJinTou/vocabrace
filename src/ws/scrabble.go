@@ -84,6 +84,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	game := &scrabble.Game{}
 	var r *result
 	loadState(data, game)
+	game.SetValidator(scrabble.NewDynamoValidator())
 
 	if vErr := s.validateTurn(data, game); vErr != nil {
 		s.returnClientError(data, "Invalid turn.", vErr)
