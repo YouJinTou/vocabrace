@@ -4,6 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { WebsocketService } from 'src/services/websocket.service';
 import { Cell } from './cell';
+import { Player } from './player';
 import { Tile } from './tile';
 
 const GAME = 'scrabble';
@@ -23,6 +24,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private placedTiles: Cell[] = [];
   private toExchangeIds: string[] = [];
   private originalTiles: Tile[] = [];
+  players: Player[] = [];
   tiles: Tile[] = [];
   cells: Cell[] = [];
 
@@ -112,6 +114,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
 
     this.loadCells();
+    this.renderPlayers(m);
     this.renderPlayerTiles(m);
     this.handleExchange(m);
   }
@@ -135,6 +138,17 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
         this.cells.push(cell);
         i++;
       }
+    }
+  }
+
+  private renderPlayers(data: any) {
+    if (!('p' in data)) {
+      return;
+    }
+
+    this.players = [];
+    for (var p of data['p']) {
+      this.players.push(new Player(p['n'], p['p'], p['y']));
     }
   }
 

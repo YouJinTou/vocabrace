@@ -1,4 +1,10 @@
 <div class="wrapper">
+    <div class="players">
+        <div class="player" *ngFor="let p of players">
+            {{p.name}}
+        </div>
+    </div>
+
     <div class="board">
         <div class="cell {{c.cssClass}}" (click)="onCellTileClicked(c)" *ngFor="let c of cells">
             <div>{{c?.tile?.letter}}</div>
