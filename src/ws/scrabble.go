@@ -21,9 +21,10 @@ type player struct {
 	Tiles  int    `json:"t"`
 }
 type start struct {
-	Tiles   *scrabble.Tiles `json:"t"`
-	ToMove  string          `json:"m"`
-	Players []*player       `json:"p"`
+	Tiles    *scrabble.Tiles `json:"t"`
+	ToMove   string          `json:"m"`
+	Players  []*player       `json:"p"`
+	YourMove bool            `json:"y"`
 }
 type turn struct {
 	IsPlace       bool     `json:"p"`
@@ -50,9 +51,10 @@ func (s scrabblews) OnStart(data *ReceiverData) {
 
 	for _, p := range game.Players {
 		startState := start{
-			Tiles:   p.Tiles,
-			ToMove:  game.ToMove().Name,
-			Players: projected,
+			Tiles:    p.Tiles,
+			ToMove:   game.ToMove().Name,
+			Players:  projected,
+			YourMove: game.ToMoveID == p.ID,
 		}
 		b, _ := json.Marshal(startState)
 		messages = append(messages, &Message{
@@ -114,11 +116,17 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 		Message:      r.d.JSONWithPersonal(),
 	})
 
-	SendMany(data.otherConnections(), &Message{
-		Domain:  data.Domain,
-		Stage:   data.Stage,
-		Message: r.d.JSONWithoutPersonal(),
-	})
+	messages := []*Message{}
+	for _, cid := range data.otherConnections() {
+		r.d.YourMove = game.ToMoveID == cid
+		messages = append(messages, &Message{
+			ConnectionID: cid,
+			Domain:       data.Domain,
+			Stage:        data.Stage,
+			Message:      r.d.JSONWithoutPersonal(),
+		})
+	}
+	SendManyUnique(messages)
 }
 
 func (s *scrabblews) exchange(turn *turn, g *scrabble.Game) *result {

@@ -25,6 +25,7 @@ type DeltaState struct {
 	LastActionPlayerID   string      `json:"i"`
 	LastActionPlayerData interface{} `json:"d"`
 	OtherPlayersData     interface{} `json:"o"`
+	YourMove             bool        `json:"y"`
 }
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
