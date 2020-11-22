@@ -44,8 +44,8 @@ type clientMessage struct {
 
 func (s scrabblews) OnStart(data *ReceiverData) {
 	players := s.loadPlayers(data.ConnectionIDs)
-	projected := s.projectPlayers(players)
 	game := scrabble.NewGame("bulgarian", players, scrabble.NewDynamoValidator())
+	projected := s.projectPlayers(game.Players)
 	messages := []*Message{}
 
 	for _, p := range game.Players {
