@@ -2,6 +2,11 @@
     margin-top: 25px;
 }
 
+.players {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
 .board {
     display: grid;
     grid-template-columns: repeat(15, 1fr);
@@ -11,6 +16,7 @@
 
 .cell {
     height: 30px;
+    position: relative;
 }
 
 .double-letter {
@@ -41,6 +47,21 @@
 
 .tile {
     background-color: rgba(255, 247, 129, 0.993);
+    position: relative;
+}
+
+.tile-letter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.tile-value {
+    position: absolute;
+    font-size: x-small;
+    top: 1%;
+    left: 1%;
 }
 
 .player-tile {
