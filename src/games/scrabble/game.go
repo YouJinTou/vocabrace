@@ -9,8 +9,8 @@ import (
 
 // Game holds a full game's state.
 type Game struct {
-	Board    *Board    `json:"b"`
-	Bag      *Bag      `json:"g"`
+	Board    Board     `json:"b"`
+	Bag      Bag       `json:"g"`
 	Players  []*Player `json:"p"`
 	ToMoveID string    `json:"m"`
 	Language string    `json:"l"`
@@ -69,8 +69,8 @@ func NewGame(language string, players []*Player, validator CanValidate) *Game {
 	}
 	toMove, orderedIDs := orderPlayers(players)
 	return &Game{
-		Board:    NewBoard(),
-		Bag:      bag,
+		Board:    *NewBoard(),
+		Bag:      *bag,
 		Players:  players,
 		ToMoveID: toMove,
 		Language: language,
@@ -135,7 +135,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 
 	g.Board.SetCells(w.Cells)
 
-	words := Extract(g.Board, w)
+	words := Extract(&g.Board, w)
 	points := CalculatePoints(g, w, words)
 	g.ToMove().AwardPoints(points)
 
