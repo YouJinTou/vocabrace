@@ -14,7 +14,8 @@
 
     <div class="controls">
         <div class="tiles">
-            <div class="player-tile tile" (click)="onPlayerTileClicked(t)" *ngFor="let t of tiles">
+            <div class="player-tile tile {{t.selected ? 'tile-selected' : ''}}" (click)="onPlayerTileClicked(t)"
+                *ngFor="let t of tiles">
                 <div class="tile-letter">{{t.letter}}</div>
                 <div class="tile-value">{{t.value}}</div>
             </div>

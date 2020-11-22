@@ -20,9 +20,7 @@ const TRIPLE_WORD_INDICES = [0, 7, 14, 105, 119, 210, 217, 224];
 })
 export class ScrabbleComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
-  private selected: Tile;
   private placedTiles: Cell[] = [];
-  private toExchangeIds: string[] = [];
   private originalTiles: Tile[] = [];
   players: Player[] = [];
   tiles: Tile[] = [];
@@ -44,28 +42,16 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onPlayerTileClicked(t: Tile) {
-    let shouldDeselect = t == this.selected;
-    if (shouldDeselect) {
-      this.toExchangeIds = this.toExchangeIds.filter(t => t != this.selected.id);
-      this.selected = null;
-      return;
-    }
-      this.toExchangeIds.push(t.id);
-      this.selected = t;
+    t.selected = !t.selected;
   }
 
   onCellTileClicked(c: Cell) {
-    if (this.selected == null) {
+    if (this.removeCellTile(c)) {
       return;
     }
-    if (c.tile != null) {
-      return;
+    if (c.isEmpty() && this.singleTileSelected()) {
+      this.setCellTile(c);
     }
-    c.tile = this.selected.copy()
-    this.tiles = this.tiles.filter(t => t.id != this.selected.id);
-    this.placedTiles.push(c.copy());
-    this.selected = null;
-    this.toExchangeIds = [];
   }
 
   onPlaceClicked() {
@@ -83,14 +69,16 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
     this.wsService.send(payload);
     this.placedTiles = [];
-    this.toExchangeIds = [];
   }
 
   onExchangeClicked() {
+    if (!this.selected()) {
+      return;
+    }
     let payload = {
       g: GAME,
       e: true,
-      t: this.toExchangeIds
+      t: this.selected().map(t => t.id)
     };
     this.wsService.send(payload);
   }
@@ -104,7 +92,14 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onCancelClicked() {
-    this.tiles = this.originalTiles;
+    this.tiles = this.originalTiles.map(ot => { ot.selected = false; return ot; });
+    for (var pc of this.placedTiles)
+      for (var c of this.cells) {
+        if (pc.id == c.id) {
+          c.tile = null;
+        }
+      }
+    this.placedTiles = [];
   }
 
   private pipeline(m: any) {
@@ -158,17 +153,53 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
 
     this.tiles = [];
-      for (var t of data['t']) {
-        let tokens = t.split('|');
-        let tile = new Tile(tokens[0], tokens[1], tokens[2]);
-        this.tiles.push(tile);
-        this.originalTiles.push(tile);
-      }
+    for (var t of data['t']) {
+      let tokens = t.split('|');
+      let tile = new Tile(tokens[0], tokens[1], tokens[2]);
+      this.tiles.push(tile);
+      this.originalTiles.push(tile.copy());
+    }
   }
 
   private handleExchange(data: any) {
     if (!('l' in data)) {
       return;
     }
+  }
+
+  private selected(): Tile[] {
+    let selectedTiles = this.tiles.filter(t => t.selected);
+    return selectedTiles;
+  }
+
+  private current(): Tile {
+    if (this.selected().length == 1) {
+      return this.selected()[0];
+    }
+    return null;
+  }
+
+  private singleTileSelected(): boolean {
+    return this.current() != null;
+  }
+
+  private setCellTile(c: Cell) {
+    c.tile = this.current().copy()
+    this.tiles = this.tiles.filter(t => t.id != this.current().id);
+    this.placedTiles.push(c.copy());
+  }
+
+  private removeCellTile(c: Cell): boolean {
+    let shouldReturnTile = this.placedTiles.filter(pc => pc.id == c.id).length > 0;
+    let tilesSelected = this.selected().length > 0;
+
+    if (shouldReturnTile && !tilesSelected) {
+      this.placedTiles = this.placedTiles.filter(t => t.id != c.id);
+      this.tiles.push(c.tile.copy());
+      c.tile = null;
+      return true;
+    }
+
+    return false;
   }
 }

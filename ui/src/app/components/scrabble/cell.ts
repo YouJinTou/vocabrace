@@ -11,6 +11,10 @@ export class Cell {
       this.cssClass = cssClass;
     }
   
+    isEmpty(): boolean {
+      return this.tile == null;
+    }
+
     copy(): Cell {
       return new Cell(this.id, this.tile, this.cssClass);
     }

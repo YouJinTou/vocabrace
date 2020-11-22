@@ -64,6 +64,10 @@
     left: 1%;
 }
 
+.tile-selected {
+    border: 1px solid black;
+}
+
 .player-tile {
     height: 30px;
     width: 30px;
