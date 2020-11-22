@@ -169,10 +169,13 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
 
   private selected(): Tile[] {
     let selectedTiles = this.tiles.filter(t => t.selected);
-    return selectedTiles;
+    return selectedTiles.length == 0 ? null : selectedTiles;
   }
 
   private current(): Tile {
+    if (!this.selected()) {
+      return null;
+    }
     if (this.selected().length == 1) {
       return this.selected()[0];
     }
@@ -191,9 +194,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
 
   private removeCellTile(c: Cell): boolean {
     let shouldReturnTile = this.placedTiles.filter(pc => pc.id == c.id).length > 0;
-    let tilesSelected = this.selected().length > 0;
 
-    if (shouldReturnTile && !tilesSelected) {
+    if (shouldReturnTile && !this.selected()) {
       this.placedTiles = this.placedTiles.filter(t => t.id != c.id);
       this.tiles.push(c.tile.copy());
       c.tile = null;
