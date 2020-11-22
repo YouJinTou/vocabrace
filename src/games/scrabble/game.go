@@ -35,6 +35,7 @@ func (d *DeltaState) JSONWithPersonal() string {
 		LastAction:           d.LastAction,
 		LastActionPlayerID:   d.LastActionPlayerID,
 		LastActionPlayerData: d.LastActionPlayerData,
+		YourMove:             d.YourMove,
 	}
 	b, _ := json.Marshal(p)
 	result := string(b)
@@ -48,6 +49,7 @@ func (d *DeltaState) JSONWithoutPersonal() string {
 		LastAction:         d.LastAction,
 		LastActionPlayerID: d.LastActionPlayerID,
 		OtherPlayersData:   d.OtherPlayersData,
+		YourMove:           d.YourMove,
 	}
 	b, _ := json.Marshal(p)
 	result := string(b)
