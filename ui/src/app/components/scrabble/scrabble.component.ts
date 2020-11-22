@@ -4,6 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { WebsocketService } from 'src/services/websocket.service';
 import { Cell } from './cell';
+import { Payload } from './payload';
 import { Player } from './player';
 import { Tile } from './tile';
 
@@ -22,6 +23,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];
+  private payload: Payload;
   players: Player[] = [];
   tiles: Tile[] = [];
   cells: Cell[] = [];
@@ -104,18 +106,14 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   private pipeline(m: any) {
-    console.log(m);
-    if (this.isError(m)) {
+    this.payload = new Payload(m);
+    if (this.payload.isError) {
       return;
     }
 
-    this.renderPlayers(m);
-    this.renderPlayerTiles(m);
-    this.handleExchange(m);
-  }
-
-  private isError(m: any): boolean {
-    return 'message' in m && m['message'].indexOf('Internal server error') > -1;
+    this.renderPlayers();
+    this.renderPlayerTiles();
+    this.handleExchange();
   }
 
   private loadCells() {
@@ -136,35 +134,32 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
   }
 
-  private renderPlayers(data: any) {
-    if (!('p' in data)) {
+  private renderPlayers() {
+    if (!this.payload.players) {
       return;
     }
 
-    this.players = [];
-    for (var p of data['p']) {
-      this.players.push(new Player(p['n'], p['p'], p['y']));
-    }
+    this.players = this.payload.players;
   }
 
-  private renderPlayerTiles(data: any) {
-    if (!('t' in data)) {
+  private renderPlayerTiles() {
+    if (!this.payload.tiles) {
       return
     }
 
     this.tiles = [];
-    for (var t of data['t']) {
-      let tokens = t.split('|');
-      let tile = new Tile(tokens[0], tokens[1], tokens[2]);
-      this.tiles.push(tile);
-      this.originalTiles.push(tile.copy());
+    for (var t of this.payload.tiles) {
+      this.tiles.push(t);
+      this.originalTiles.push(t.copy());
     }
   }
 
-  private handleExchange(data: any) {
-    if (!('l' in data)) {
+  private handleExchange() {
+    if (!(this.payload.wasExchange && this.payload.exchangeTiles)) {
       return;
     }
+    this.tiles = this.tiles.filter(t => !t.selected);
+    this.tiles.push(...this.payload.exchangeTiles);
   }
 
   private selected(): Tile[] {
@@ -190,6 +185,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     c.tile = this.current().copy()
     this.tiles = this.tiles.filter(t => t.id != this.current().id);
     this.placedTiles.push(c.copy());
+    this.current().selected = false;
   }
 
   private removeCellTile(c: Cell): boolean {
