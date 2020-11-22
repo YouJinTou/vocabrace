@@ -45,6 +45,16 @@ func (b *Board) GetAt(i int) *Cell {
 	return nil
 }
 
+// SetAt sets the cell at a given index.
+func (b *Board) SetAt(i int, v Cell) {
+	for _, c := range b.Cells {
+		if c.Index == i {
+			c = v
+			return
+		}
+	}
+}
+
 // GetRowMinCol returns the index of the first column of a row given a cell index.
 func (b *Board) GetRowMinCol(i int) int {
 	row := i / BoardHeight
@@ -63,7 +73,7 @@ func (b *Board) GetRowMaxCol(i int) int {
 func (b *Board) SetCells(cells []*Cell) Board {
 	for _, c := range cells {
 		if cell := b.GetAt(c.Index); cell != nil {
-			b.Cells[c.Index] = *NewCell(&c.Tile, c.Index)
+			b.SetAt(c.Index, *NewCell(&c.Tile, c.Index))
 		} else {
 			b.Cells = append(b.Cells, *c)
 		}

@@ -28,12 +28,12 @@ func main() {
 	// })
 	ws.OnAction(&ws.ReceiverData{
 		Game:          "scrabble",
-		Initiator:     "WbTRaeF1liAAbIA=",
+		Initiator:     "WbW2EdWqliACGZQ=",
 		Stage:         "dev",
 		Domain:        "asd",
-		PoolID:        "8e6eef18-33f0-44c6-92da-6c930299d45f",
+		PoolID:        "c6c1b692-5743-4950-8229-f03387c6386e",
 		ConnectionIDs: []string{"a", "b"},
-		Body:          "{\"g\":\"scrabble\",\"p\":true,\"w\":[{\"c\":110,\"t\":\"47d40a\",\"b\":null},{\"c\":111,\"t\":\"daa739\",\"b\":null},{\"c\":112,\"t\":\"1010f6\",\"b\":null},{\"c\":113,\"t\":\"53ed13\",\"b\":null}]}",
+		Body:          "{\"g\":\"scrabble\",\"p\":true,\"w\":[{\"c\":110,\"t\":\"1b283a\",\"b\":null},{\"c\":111,\"t\":\"d49a35\",\"b\":null},{\"c\":112,\"t\":\"f7c6a6\",\"b\":null},{\"c\":113,\"t\":\"70de9b\",\"b\":null}]}",
 	})
 	// x := scrabble.NewGame("english", p, scrabble.NewDynamoValidator())
 	// z := x.JSON()
