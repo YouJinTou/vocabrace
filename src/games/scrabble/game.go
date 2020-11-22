@@ -72,7 +72,7 @@ func NewGame(language string, players []*Player, validator CanValidate) *Game {
 		Bag:      bag,
 		Players:  players,
 		ToMoveID: toMove,
-		Language: "en",
+		Language: language,
 		Order:    orderedIDs,
 		v:        validator,
 	}
