@@ -16,6 +16,8 @@ type Bag struct {
 // NewBag creates a new bag.
 func NewBag(language string) *Bag {
 	switch strings.ToLower(language) {
+	case "bulgarian":
+		return NewBulgarianBag()
 	case "english":
 		return NewEnglishBag()
 	default:
