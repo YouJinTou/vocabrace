@@ -14,9 +14,16 @@ type cell struct {
 	TileID    string `json:"t"`
 	Blank     string `json:"b"`
 }
+type player struct {
+	ID     string `json:"i"`
+	Name   string `json:"n"`
+	Points int    `json:"p"`
+	Tiles  int    `json:"t"`
+}
 type start struct {
-	Tiles  *scrabble.Tiles `json:"t"`
-	ToMove string          `json:"m"`
+	Tiles   *scrabble.Tiles `json:"t"`
+	ToMove  string          `json:"m"`
+	Players []*player       `json:"p"`
 }
 type turn struct {
 	IsPlace       bool     `json:"p"`
@@ -37,13 +44,15 @@ type clientMessage struct {
 
 func (s scrabblews) OnStart(data *ReceiverData) {
 	players := s.loadPlayers(data.ConnectionIDs)
-	game := scrabble.NewGame("english", players, scrabble.NewDynamoValidator())
+	projected := s.projectPlayers(players)
+	game := scrabble.NewGame("bulgarian", players, scrabble.NewDynamoValidator())
 	messages := []*Message{}
 
 	for _, p := range game.Players {
 		startState := start{
-			Tiles:  p.Tiles,
-			ToMove: game.ToMove().Name,
+			Tiles:   p.Tiles,
+			ToMove:  game.ToMove().Name,
+			Players: projected,
 		}
 		b, _ := json.Marshal(startState)
 		messages = append(messages, &Message{
@@ -150,6 +159,19 @@ func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
 		})
 	}
 	return players
+}
+
+func (s *scrabblews) projectPlayers(players []*scrabble.Player) []*player {
+	result := []*player{}
+	for _, p := range players {
+		result = append(result, &player{
+			ID:     p.ID,
+			Name:   p.Name,
+			Points: p.Points,
+			Tiles:  p.Tiles.Count(),
+		})
+	}
+	return result
 }
 
 func (s *scrabblews) validateTurn(data *ReceiverData, g *scrabble.Game) error {
