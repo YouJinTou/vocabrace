@@ -67,7 +67,6 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
       })
     }
     this.wsService.send(payload);
-    this.placedTiles = [];
   }
 
   onExchangeClicked() {
@@ -91,6 +90,25 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onCancelClicked() {
+    this.cancel();
+  }
+
+  private pipeline(m: any) {
+    this.payload = new Payload(m);
+    if (this.payload.isError) {
+      this.cancel();
+      return;
+    }
+
+    this.placedTiles = [];
+    this.renderPlayers();
+    this.renderPlayerTiles();
+    this.handleExchange();
+    this.handlePlace();
+    this.originalTiles = this.tiles;
+  }
+
+  private cancel() {
     this.tiles = this.originalTiles.map(ot => { ot.selected = false; return ot; });
     for (var pc of this.placedTiles)
       for (var c of this.cells) {
@@ -99,18 +117,6 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
         }
       }
     this.placedTiles = [];
-  }
-
-  private pipeline(m: any) {
-    this.payload = new Payload(m);
-    if (this.payload.isError) {
-      return;
-    }
-
-    this.renderPlayers();
-    this.renderPlayerTiles();
-    this.handleExchange();
-    this.handlePlace();
   }
 
   private loadCells() {
@@ -158,6 +164,9 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
       for (var c of this.payload.placedCells) {
         this.cells[c.id] = c;
       }
+    } else if (this.payload.wasPlace && this.payload.exchangeTiles) {
+      this.tiles = this.tiles.filter(t => !t.selected);
+      this.tiles.push(...this.payload.exchangeTiles);
     }
   }
 

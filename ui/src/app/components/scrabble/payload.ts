@@ -17,7 +17,10 @@ export class Payload {
 
     constructor(m: any) {
         console.log(m);
-        this.isError = 'message' in m && m['message'].indexOf('Internal server error') > -1;
+        this.isError = this.returnedError(m);
+        if (this.isError) {
+            return;
+        }
         this.yourMove = m['y'];
         this.isStart = !('d' in m);
         if (this.isStart) {
@@ -33,8 +36,14 @@ export class Payload {
         }
     }
 
+    private returnedError(m: any): boolean {
+        let isServerError = 'message' in m && m['message'].indexOf('Internal server error') > -1
+        let isBadMove = 'Type' in m && m['Type'] == 'ERROR';
+        return isServerError || isBadMove;
+    }
+
     private getExchangeTiles(m: any): Tile[] {
-        if (!(this.wasExchange && Array.isArray(m['d']))) {
+        if (!((this.wasExchange || this.wasPlace) && Array.isArray(m['d']))) {
             return null;
         }
         return this.getTiles(m['d']);
@@ -69,7 +78,7 @@ export class Payload {
 
     private getTile(s: string): Tile {
         let tokens = s.split("|");
-        let tile = new Tile(tokens[0], tokens[1], parseInt(tokens[2])); 
+        let tile = new Tile(tokens[0], tokens[1], parseInt(tokens[2]));
         return tile;
     }
 }
