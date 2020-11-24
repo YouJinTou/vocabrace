@@ -1,3 +1,4 @@
+import { Cell, getCellClass } from './cell'
 import { Player } from './player'
 import { Tile } from './tile'
 
@@ -5,10 +6,12 @@ export class Payload {
     isError: boolean
     isStart: boolean
     wasExchange: boolean
+    wasPlace: boolean
     yourMove: boolean
     lastAction: string
     lastMovedId: string
     exchangeTiles: Tile[]
+    placedCells: Cell[]
     players: Player[]
     tiles: Tile[]
 
@@ -24,7 +27,9 @@ export class Payload {
             this.lastAction = m['l'];
             this.lastMovedId = m['i'];
             this.wasExchange = this.lastAction === 'Exchange';
+            this.wasPlace = this.lastAction === 'Place';
             this.exchangeTiles = this.getExchangeTiles(m);
+            this.placedCells = this.getPlacedCells(m);
         }
     }
 
@@ -35,11 +40,21 @@ export class Payload {
         return this.getTiles(m['d']);
     }
 
+    private getPlacedCells(m: any): Cell[] {
+        if (!(this.wasPlace && this.yourMove)) {
+            return null;
+        }
+        let cells = [];
+        for (var c of m['o']['Cells']) {
+            cells.push(new Cell(c['i'], this.getTile(c['t']), getCellClass(c['i'])))
+        }
+        return cells;
+    }
+
     private getTiles(m: any): Tile[] {
         let tiles = [];
         for (var s of m) {
-            let tokens = s.split("|");
-            tiles.push(new Tile(tokens[0], tokens[1], tokens[2]));
+            tiles.push(this.getTile(s));
         }
         return tiles;
     }
@@ -50,5 +65,11 @@ export class Payload {
             result.push(new Player(p['n'], p['p']));
         }
         return players;
+    }
+
+    private getTile(s: string): Tile {
+        let tokens = s.split("|");
+        let tile = new Tile(tokens[0], tokens[1], parseInt(tokens[2])); 
+        return tile;
     }
 }

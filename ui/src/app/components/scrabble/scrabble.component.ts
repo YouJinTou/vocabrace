@@ -3,16 +3,12 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { WebsocketService } from 'src/services/websocket.service';
-import { Cell } from './cell';
+import { Cell, getCellClass } from './cell';
 import { Payload } from './payload';
 import { Player } from './player';
 import { Tile } from './tile';
 
 const GAME = 'scrabble';
-const DOUBLE_LETTER_INDICES = [3, 11, 36, 38, 45, 52, 59, 92, 96, 98, 102, 108, 116, 122, 126, 128, 132, 165, 172, 179, 186, 188, 213, 221];
-const DOUBLE_WORD_INDICES = [16, 32, 48, 64, 112, 160, 176, 192, 208, 28, 42, 56, 70, 154, 168, 182, 196];
-const TRIPLE_LETTER_INDICES = [20, 24, 76, 80, 84, 88, 136, 140, 144, 148, 200, 204];
-const TRIPLE_WORD_INDICES = [0, 7, 14, 105, 119, 210, 217, 224];
 
 @Component({
   selector: 'scrabble',
@@ -122,13 +118,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     let i = 0;
     for (let r = 0; r < 15; r++) {
       for (let c = 0; c < 15; c++) {
-        let cell = new Cell(i, null,
-          DOUBLE_LETTER_INDICES.includes(i) ? 'double-letter' :
-            TRIPLE_LETTER_INDICES.includes(i) ? 'triple-letter' :
-              DOUBLE_WORD_INDICES.includes(i) ? 'double-word' :
-                TRIPLE_WORD_INDICES.includes(i) ? 'triple-word' :
-                  'tile'
-        );
+        let cell = new Cell(i, null, getCellClass(i));
         this.cells.push(cell);
         i++;
       }
@@ -164,7 +154,11 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   private handlePlace() {
-
+    if (this.payload.yourMove && this.payload.wasPlace) {
+      for (var c of this.payload.placedCells) {
+        this.cells[c.id] = c;
+      }
+    }
   }
 
   private selected(): Tile[] {
