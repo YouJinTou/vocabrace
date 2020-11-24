@@ -46,6 +46,10 @@ func (v *Validator) ValidatePlace(g Game, w *Word) error {
 		return err
 	}
 
+	if err := v.firstPlaceAtOrigin(&g, w.Cells); err != nil {
+		return err
+	}
+
 	if err := v.checkPlayerTiles(&g, w.Cells); err != nil {
 		return err
 	}
@@ -100,4 +104,16 @@ func (v *Validator) checkPlayerTiles(g *Game, cells []*Cell) error {
 		}
 	}
 	return nil
+}
+
+func (v *Validator) firstPlaceAtOrigin(g *Game, cells []*Cell) error {
+	if len(g.Board.Cells) > 0 {
+		return nil
+	}
+	for _, c := range cells {
+		if c.Index == BoardOrigin {
+			return nil
+		}
+	}
+	return errors.New("first place must cross the origin")
 }

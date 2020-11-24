@@ -35,7 +35,7 @@ func TestPlaceAssignsCorrectValueToBlanks(t *testing.T) {
 	g.ToMove().Tiles.GetAt(2).Value = 0
 	g.Place(w)
 
-	if g.Board.Cells[w.Cells[0].Index].Tile.Letter != w.Cells[0].Tile.Letter {
+	if g.Board.GetAt(w.Cells[0].Index).Tile.Letter != w.Cells[0].Tile.Letter {
 		t.Errorf("expected blank to have been replaced")
 	}
 }
@@ -198,11 +198,11 @@ func setupPlace() (Game, []*Player, *Word) {
 	cells := []*Cell{
 		&Cell{
 			Tile:  *g.ToMove().Tiles.GetAt(2).Copy(true),
-			Index: 0,
+			Index: BoardOrigin,
 		},
 		&Cell{
 			Tile:  *g.ToMove().Tiles.GetAt(3).Copy(true),
-			Index: 1,
+			Index: BoardOrigin + 1,
 		},
 	}
 	return *g, players, NewWord(cells)

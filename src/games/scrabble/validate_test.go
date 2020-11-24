@@ -17,6 +17,14 @@ func (w wordCheckerMock) ValidateWords(language string, words []string) ([]strin
 	return validateWordsMock(language, words)
 }
 
+func TestValidatePlace_StartDifferentFromOrigin_ReturnsError(t *testing.T) {
+	g := testValidatorGame()
+	err := v().ValidatePlace(g, word("test", 0, false, []int{}, []int{}, []int{}))
+	if err == nil || err.Error() != "first place must cross the origin" {
+		t.Errorf("expected error")
+	}
+}
+
 func TestValidatePlace_NoTiles_ReturnsError(t *testing.T) {
 	err := v().ValidatePlace(testValidatorGame(), &Word{})
 	if err == nil || err.Error() != "at least one tile required to form a word" {
@@ -92,7 +100,7 @@ func TestValidatePlace_PassesWhenPlayerHasCorrectTiles(t *testing.T) {
 	g := testValidatorGame()
 	cells := []*Cell{}
 	for _, t := range g.ToMove().Tiles.Value {
-		cells = append(cells, NewCell(t, 0))
+		cells = append(cells, NewCell(t, BoardOrigin))
 	}
 	w := NewWord(cells)
 	err := v().ValidatePlace(g, w)
@@ -104,7 +112,7 @@ func TestValidatePlace_PassesWhenPlayerHasCorrectTiles(t *testing.T) {
 func TestValidatePlace_FailsWhenPlayerHasIncorrectTiles(t *testing.T) {
 	g := testValidatorGame()
 	tile := NewTile("f", 1)
-	cells := []*Cell{NewCell(tile, 0)}
+	cells := []*Cell{NewCell(tile, BoardOrigin)}
 	w := NewWord(cells)
 	err := v().ValidatePlace(g, w)
 	if err == nil || err.Error() != fmt.Sprintf("tile with ID %s not found", tile.ID) {
@@ -116,7 +124,7 @@ func TestValidatePlace_FailsWhenWordsNotValid(t *testing.T) {
 	g := testValidatorGame()
 	cells := []*Cell{}
 	for _, t := range g.ToMove().Tiles.Value {
-		cells = append(cells, NewCell(t, 0))
+		cells = append(cells, NewCell(t, BoardOrigin))
 	}
 	w := NewWord(cells)
 	validateWordsMock = func(a string, b []string) ([]string, error) {
@@ -132,7 +140,7 @@ func TestValidatePlace_PassesWhenWordsValid(t *testing.T) {
 	g := testValidatorGame()
 	cells := []*Cell{}
 	for _, t := range g.ToMove().Tiles.Value {
-		cells = append(cells, NewCell(t, 0))
+		cells = append(cells, NewCell(t, BoardOrigin))
 	}
 	w := NewWord(cells)
 	validateWordsMock = func(a string, b []string) ([]string, error) { return []string{}, nil }
@@ -172,5 +180,7 @@ func v() CanValidate {
 
 func testValidatorGame() Game {
 	players := []*Player{testPlayer(), testPlayer()}
-	return *NewGame(English, players, v())
+	g := *NewGame(English, players, v())
+	// g.Board.SetCells([]*Cell{NewCell(BlankTile(), BoardMaxIndex)})
+	return g
 }
