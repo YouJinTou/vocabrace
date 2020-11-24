@@ -24,7 +24,7 @@
 }
 
 .triple-letter {
-    background-color: mediumblue;
+    background-color: rgb(115, 115, 255);
 }
 
 .double-word {
@@ -32,7 +32,7 @@
 }
 
 .triple-word {
-    background-color: red;
+    background-color: rgb(255, 82, 82);
 }
 
 .controls {
