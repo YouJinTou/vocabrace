@@ -1,6 +1,9 @@
 package scrabble
 
-import "math"
+import (
+	"math"
+	"strings"
+)
 
 // Word encapsulates a valid arrangement of tiles.
 type Word struct {
@@ -13,6 +16,18 @@ func NewWord(cells []*Cell) *Word {
 		panic("word must not be empty")
 	}
 	return &Word{Cells: cells}
+}
+
+// NewWordFromString creates a word given a string and its indices on the board.
+func NewWordFromString(s string, values, indices []int) *Word {
+	tokens := strings.Split(s, "")
+	cells := []*Cell{}
+	for i, idx := range indices {
+		tile := NewTile(tokens[i], values[i])
+		cells = append(cells, NewCell(tile, idx))
+	}
+	w := NewWord(cells)
+	return w
 }
 
 // ToStrings converts words to their string representations.
