@@ -1,12 +1,16 @@
 package ws
 
 import (
+	"os"
 	"testing"
 
 	"github.com/YouJinTou/vocabrace/games/scrabble"
 )
 
 func TestDoublesPointsOnFirstMove(t *testing.T) {
+	os.Setenv("AWS_REGION", "eu-central-1")
+	os.Setenv("AWS_PROFILE", "vocabrace")
+
 	pid := "testing_pid"
 	rd := ReceiverData{
 		Initiator:     "initiator",
