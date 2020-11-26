@@ -7,6 +7,16 @@ import (
 	"github.com/YouJinTou/vocabrace/tools"
 )
 
+func TestEmptyWordPanics(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("The code did not panic")
+		}
+	}()
+
+	NewWord([]*Cell{})
+}
+
 // _ _ _ _ _ _
 // _ h o r n _
 // _ _ _ _ _ _

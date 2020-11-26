@@ -47,9 +47,9 @@ func (b *Board) GetAt(i int) *Cell {
 
 // SetAt sets the cell at a given index.
 func (b *Board) SetAt(i int, v Cell) {
-	for _, c := range b.Cells {
+	for idx, c := range b.Cells {
 		if c.Index == i {
-			c = v
+			b.Cells[idx] = v
 			return
 		}
 	}

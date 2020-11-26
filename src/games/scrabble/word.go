@@ -1,5 +1,7 @@
 package scrabble
 
+import "math"
+
 // Word encapsulates a valid arrangement of tiles.
 type Word struct {
 	Cells []*Cell
@@ -7,6 +9,9 @@ type Word struct {
 
 // NewWord creates a new word.
 func NewWord(cells []*Cell) *Word {
+	if len(cells) == 0 {
+		panic("word must not be empty")
+	}
 	return &Word{Cells: cells}
 }
 
@@ -93,6 +98,36 @@ func (w *Word) Indices() []int {
 		result = append(result, c.Index)
 	}
 	return result
+}
+
+// IsVertical checks if a word is vertical on the board.
+func (w *Word) IsVertical() bool {
+	if w.Length() == 1 {
+		return true
+	}
+	indices := w.Indices()
+	for i := 0; i < w.Length()-1; i++ {
+		abs := int(math.Abs(float64(indices[i+1] - indices[i])))
+		if abs != BoardHeight {
+			return false
+		}
+	}
+	return true
+}
+
+// IsHorizontal checks if a word is horizontal on the board.
+func (w *Word) IsHorizontal() bool {
+	if w.Length() == 1 {
+		return true
+	}
+	indices := w.Indices()
+	for i := 0; i < w.Length()-1; i++ {
+		abs := int(math.Abs(float64(indices[i+1] - indices[i])))
+		if abs != 1 {
+			return false
+		}
+	}
+	return true
 }
 
 func traverseVertically(b *Board, c *Cell) *Word {

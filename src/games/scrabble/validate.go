@@ -54,6 +54,14 @@ func (v *Validator) ValidatePlace(g Game, w *Word) error {
 		return err
 	}
 
+	if err := v.checkStraightWord(&g, w); err != nil {
+		return err
+	}
+
+	if err := v.checkAdjacentTilesExist(&g, w); err != nil {
+		return err
+	}
+
 	g.SetCellTiles(w.Cells)
 
 	g.Board.SetCells(w.Cells)
@@ -107,7 +115,7 @@ func (v *Validator) checkPlayerTiles(g *Game, cells []*Cell) error {
 }
 
 func (v *Validator) firstPlaceAtOrigin(g *Game, cells []*Cell) error {
-	if len(g.Board.Cells) > 0 {
+	if g.FirstMovePlayed() {
 		return nil
 	}
 	for _, c := range cells {
@@ -116,4 +124,29 @@ func (v *Validator) firstPlaceAtOrigin(g *Game, cells []*Cell) error {
 		}
 	}
 	return errors.New("first place must cross the origin")
+}
+
+func (v *Validator) checkStraightWord(g *Game, w *Word) error {
+	if !(w.IsHorizontal() || w.IsVertical()) {
+		return errors.New("word must be straight")
+	}
+	return nil
+}
+
+func (v *Validator) checkAdjacentTilesExist(g *Game, w *Word) error {
+	if !g.FirstMovePlayed() {
+		return nil
+	}
+
+	possibilities := []int{}
+	for _, c := range w.Cells {
+		possibilities = append(
+			possibilities, c.Index-1, c.Index+1, c.Index+BoardHeight, c.Index-BoardHeight)
+	}
+	for _, c := range g.Board.Cells {
+		if tools.ContainsInt(possibilities, c.Index) {
+			return nil
+		}
+	}
+	return errors.New("adjacent tiles not found")
 }

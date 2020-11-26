@@ -25,6 +25,83 @@ func TestValidatePlace_StartDifferentFromOrigin_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestValidatePlace_WordNotHorizontal_ReturnsError(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+
+	w2 := playerWord(g, []int{BoardOrigin + 30, BoardOrigin + 15 + 1, BoardOrigin + 15 + 2})
+	err := v().ValidatePlace(g, w2)
+
+	if err == nil || err.Error() != "word must be straight" {
+		t.Errorf("expected error")
+	}
+}
+
+func TestValidatePlace_WordNotHVertical_ReturnsError(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, false, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+
+	w2 := playerWord(
+		g,
+		[]int{BoardOrigin + 1, BoardOrigin + 1 + BoardHeight, BoardOrigin + 1 + BoardHeight + 1})
+	err := v().ValidatePlace(g, w2)
+
+	if err == nil || err.Error() != "word must be straight" {
+		t.Errorf("expected error")
+	}
+}
+
+// _ _ _ _ _
+// t e s t _
+// _ _ _ _ _
+// X X _ _ _
+
+// _ _ _ _ _ _
+// t e s t _ _
+// _ _ _ _ X X
+
+// X X _ _
+// _ _ _ _
+// t e s t
+
+// _ _ _ _ _ _
+// X X _ _ _ _
+// _ _ t e s t
+func TestValidatePlace_WordDoesNotTouchAdjacentTiles_ReturnsError(t *testing.T) {
+	testMap := [][]int{
+		[]int{BoardOrigin + BoardHeight*2, BoardOrigin + BoardHeight*2 + 1},
+		[]int{BoardOrigin + BoardHeight + 4, BoardOrigin + BoardHeight + 5},
+		[]int{BoardOrigin - BoardHeight*2, BoardOrigin - BoardHeight*2 - 1},
+		[]int{BoardOrigin - BoardHeight - 1, BoardOrigin - BoardHeight - 2},
+	}
+	for _, tm := range testMap {
+		g := testValidatorGame()
+		w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+		g.Board.SetCells(w1.Cells)
+
+		w2 := playerWord(g, tm)
+		err := v().ValidatePlace(g, w2)
+
+		if err == nil || err.Error() != "adjacent tiles not found" {
+			t.Errorf("expected error")
+		}
+	}
+}
+
+func TestValidatePlace_SingleLetterWordFailsDuringWordLookup_ReturnsError(t *testing.T) {
+	g := testValidatorGame()
+	w := playerWord(g, []int{BoardOrigin})
+	validateWordsMock = func(a string, b []string) ([]string, error) {
+		return []string{"a"}, errors.New("invalid words")
+	}
+	err := v().ValidatePlace(g, w)
+	if err == nil || err.Error() != "invalid words: [\"a\"]; err: invalid words" {
+		t.Errorf("expected error")
+	}
+}
+
 func TestValidatePlace_NoTiles_ReturnsError(t *testing.T) {
 	err := v().ValidatePlace(testValidatorGame(), &Word{})
 	if err == nil || err.Error() != "at least one tile required to form a word" {
@@ -98,11 +175,8 @@ func TestValidatePlace_TilesDoNotExistOnInidces_DoesNotReturnError(t *testing.T)
 
 func TestValidatePlace_PassesWhenPlayerHasCorrectTiles(t *testing.T) {
 	g := testValidatorGame()
-	cells := []*Cell{}
-	for _, t := range g.ToMove().Tiles.Value {
-		cells = append(cells, NewCell(t, BoardOrigin))
-	}
-	w := NewWord(cells)
+	w := playerWord(g, []int{BoardOrigin, BoardOrigin + 1})
+	validateWordsMock = nil
 	err := v().ValidatePlace(g, w)
 	if err != nil {
 		t.Errorf(err.Error())
@@ -122,11 +196,7 @@ func TestValidatePlace_FailsWhenPlayerHasIncorrectTiles(t *testing.T) {
 
 func TestValidatePlace_FailsWhenWordsNotValid(t *testing.T) {
 	g := testValidatorGame()
-	cells := []*Cell{}
-	for _, t := range g.ToMove().Tiles.Value {
-		cells = append(cells, NewCell(t, BoardOrigin))
-	}
-	w := NewWord(cells)
+	w := playerWord(g, []int{BoardOrigin, BoardOrigin + 1})
 	validateWordsMock = func(a string, b []string) ([]string, error) {
 		return []string{"test"}, errors.New("invalid words")
 	}
@@ -138,11 +208,7 @@ func TestValidatePlace_FailsWhenWordsNotValid(t *testing.T) {
 
 func TestValidatePlace_PassesWhenWordsValid(t *testing.T) {
 	g := testValidatorGame()
-	cells := []*Cell{}
-	for _, t := range g.ToMove().Tiles.Value {
-		cells = append(cells, NewCell(t, BoardOrigin))
-	}
-	w := NewWord(cells)
+	w := playerWord(g, []int{BoardOrigin, BoardOrigin + 1})
 	validateWordsMock = func(a string, b []string) ([]string, error) { return []string{}, nil }
 	err := v().ValidatePlace(g, w)
 	if err != nil {
@@ -181,6 +247,14 @@ func v() CanValidate {
 func testValidatorGame() Game {
 	players := []*Player{testPlayer(), testPlayer()}
 	g := *NewGame(English, players, v())
-	// g.Board.SetCells([]*Cell{NewCell(BlankTile(), BoardMaxIndex)})
 	return g
+}
+
+func playerWord(g Game, indices []int) *Word {
+	t := NewTiles(g.ToMove().Tiles.Value[0:len(indices)]...)
+	cells := []*Cell{}
+	for i, ti := range t.Value {
+		cells = append(cells, NewCell(ti, indices[i]))
+	}
+	return NewWord(cells)
 }

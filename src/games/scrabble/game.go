@@ -175,6 +175,11 @@ func (g *Game) SetCellTiles(cells []*Cell) error {
 	return nil
 }
 
+// FirstMovePlayed checks if the first move has been played.
+func (g *Game) FirstMovePlayed() bool {
+	return g.Board.GetAt(BoardOrigin) != nil
+}
+
 func (g *Game) setNext() {
 	for i, p := range g.Order {
 		if p == g.ToMoveID {
