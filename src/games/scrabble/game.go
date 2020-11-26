@@ -206,6 +206,21 @@ func (g *Game) ToMove() *Player {
 	panic("cannot find player")
 }
 
+// GetPlayerByID gets a player by ID.
+func (g *Game) GetPlayerByID(ID string) *Player {
+	for _, p := range g.Players {
+		if p.ID == ID {
+			return p
+		}
+	}
+	return nil
+}
+
+// GetLastMovedID returns the player ID that moved last.
+func (g *Game) GetLastMovedID() string {
+	return g.delta.LastActionPlayerID
+}
+
 // LastToMove gets the player who moved last.
 func (g *Game) LastToMove() *Player {
 	for _, p := range g.Players {
