@@ -3,6 +3,7 @@ package scrabble
 import (
 	"math/rand"
 	"strings"
+	"time"
 )
 
 const _StartingTileCount = 100
@@ -15,6 +16,7 @@ type Bag struct {
 
 // NewBag creates a new bag.
 func NewBag(language string) *Bag {
+	rand.Seed(time.Now().UTC().UnixNano())
 	switch strings.ToLower(language) {
 	case "bulgarian":
 		return NewBulgarianBag()
