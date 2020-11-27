@@ -128,7 +128,7 @@ func TestBulgarianBagHasCorrectDistribution(t *testing.T) {
 		{"Ю", 1, 8},
 		{"Ф", 1, 10},
 		{"Щ", 1, 10},
-		{"Ы", 1, 10},
+		{"Ь", 1, 10},
 	}
 	bagTestDistribution(tests, b, t)
 }
