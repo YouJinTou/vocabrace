@@ -25,7 +25,7 @@ export class Payload {
         this.isStart = !('d' in m);
         if (this.isStart) {
             this.tiles = this.getTiles(m['t']);
-            this.players = this.getPlayers(m['p']);
+            this.players = this.getPlayersOnStart(m['p']);
         } else {
             this.lastAction = m['l'];
             this.lastMovedId = m['i'];
@@ -33,6 +33,7 @@ export class Payload {
             this.wasPlace = this.lastAction === 'Place';
             this.exchangeTiles = this.getExchangeTiles(m);
             this.placedCells = this.getPlacedCells(m);
+            this.players = this.getUpdatedPlayers(m);
         }
     }
 
@@ -68,10 +69,23 @@ export class Payload {
         return tiles;
     }
 
-    private getPlayers(players: []): Player[] {
+    private getPlayersOnStart(players: []): Player[] {
         let result = [];
         for (var p of players) {
             result.push(new Player(p['n'], p['p']));
+        }
+        return result;
+    }
+
+    private getUpdatedPlayers(m: any): Player[] {
+        if (!('p' in m && m['p'])) {
+            return this.players;
+        }
+        
+        let result = [];
+        for (let key in m['p']) {
+            let value = m['p'][key];
+            result.push(new Player(key, value));
         }
         return result;
     }
