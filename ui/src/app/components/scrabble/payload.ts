@@ -73,7 +73,7 @@ export class Payload {
         for (var p of players) {
             result.push(new Player(p['n'], p['p']));
         }
-        return players;
+        return result;
     }
 
     private getTile(s: string): Tile {
