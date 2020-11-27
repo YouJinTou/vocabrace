@@ -57,7 +57,7 @@ func NewBulgarianBag() *Bag {
 	tiles.Append(CreateMany("Ш", 8, 1).Value...)
 	tiles.Append(CreateMany("Щ", 10, 1).Value...)
 	tiles.Append(CreateMany("Ъ", 3, 2).Value...)
-	tiles.Append(CreateMany("Ы", 10, 1).Value...)
+	tiles.Append(CreateMany("Ь", 10, 1).Value...)
 	tiles.Append(CreateMany("Ю", 8, 1).Value...)
 	tiles.Append(CreateMany("Я", 5, 2).Value...)
 	bag := Bag{
