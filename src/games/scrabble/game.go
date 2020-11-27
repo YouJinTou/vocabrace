@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+
+	"github.com/YouJinTou/vocabrace/tools"
 )
 
 // Game holds a full game's state.
@@ -178,6 +180,60 @@ func (g *Game) SetCellTiles(cells []*Cell) error {
 // FirstMovePlayed checks if the first move has been played.
 func (g *Game) FirstMovePlayed() bool {
 	return g.Board.GetAt(BoardOrigin) != nil
+}
+
+// IsVertical checks if a word is vertical on the board.
+func (g *Game) IsVertical(w *Word) bool {
+	if w.Length() == 1 {
+		return true
+	}
+	indices := tools.SortInts(w.Indices()...)
+	for i := 0; i < w.Length()-1; i++ {
+		diff := indices[i+1] - indices[i]
+		lettersSameCol := (diff % BoardHeight) == 0
+		if !lettersSameCol {
+			return false
+		}
+		areAdjacent := diff == BoardHeight
+		if areAdjacent {
+			continue
+		}
+		idx := indices[i] + BoardHeight
+		for idx != indices[i+1] {
+			if t := g.Board.GetAt(idx); t == nil {
+				return false
+			}
+			idx += BoardHeight
+		}
+	}
+	return true
+}
+
+// IsHorizontal checks if a word is horizontal on the board.
+func (g *Game) IsHorizontal(w *Word) bool {
+	if w.Length() == 1 {
+		return true
+	}
+	indices := tools.SortInts(w.Indices()...)
+	for i := 0; i < w.Length()-1; i++ {
+		diff := indices[i+1] - indices[i]
+		lettersSameRow := diff < BoardWidth
+		if !lettersSameRow {
+			return false
+		}
+		areAdjacent := diff == 1
+		if areAdjacent {
+			continue
+		}
+		idx := indices[i] + 1
+		for idx != indices[i+1] {
+			if t := g.Board.GetAt(idx); t == nil {
+				return false
+			}
+			idx++
+		}
+	}
+	return true
 }
 
 func (g *Game) setNext() {

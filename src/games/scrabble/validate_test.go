@@ -38,7 +38,7 @@ func TestValidatePlace_WordNotHorizontal_ReturnsError(t *testing.T) {
 	}
 }
 
-func TestValidatePlace_WordNotHVertical_ReturnsError(t *testing.T) {
+func TestValidatePlace_WordNotVertical_ReturnsError(t *testing.T) {
 	g := testValidatorGame()
 	w1 := word("test", BoardOrigin, false, []int{}, []int{}, []int{})
 	g.Board.SetCells(w1.Cells)
@@ -47,6 +47,103 @@ func TestValidatePlace_WordNotHVertical_ReturnsError(t *testing.T) {
 		g,
 		[]int{BoardOrigin + 1, BoardOrigin + 1 + BoardHeight, BoardOrigin + 1 + BoardHeight + 1})
 	err := v().ValidatePlace(g, w2)
+
+	if err == nil || err.Error() != "word must be straight" {
+		t.Errorf("expected error")
+	}
+}
+
+// X _ _ _
+// t e s t
+// X _ _ _
+func TestValidatePlace_WordVertical_HasGaps_DoesNotReturnError1(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+
+	w2 := playerWord(g, []int{BoardOrigin - BoardHeight, BoardOrigin + BoardHeight})
+
+	if err := v().ValidatePlace(g, w2); err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+// X _ _ _
+// t e s t
+// o _ _ _
+// X _ _ _
+func TestValidatePlace_WordVertical_HasGaps_DoesNotReturnError2(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+	w2 := word("to", BoardOrigin, false, []int{BoardOrigin}, []int{}, []int{})
+	g.Board.SetCells(w2.Cells)
+	w3 := playerWord(g, []int{BoardOrigin - BoardHeight, BoardOrigin + 2*BoardHeight})
+
+	if err := v().ValidatePlace(g, w3); err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+// X _ _ _
+// t e s t
+// o _ _ _
+// _ _ _ _
+// X _ _ _
+func TestValidatePlace_WordVertical_HasInvalidGaps_ReturnsError(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+	w2 := word("to", BoardOrigin, false, []int{BoardOrigin}, []int{}, []int{})
+	g.Board.SetCells(w2.Cells)
+
+	w3 := playerWord(g, []int{BoardOrigin - BoardHeight, BoardOrigin + 3*BoardHeight})
+	err := v().ValidatePlace(g, w3)
+
+	if err == nil || err.Error() != "word must be straight" {
+		t.Errorf("expected error")
+	}
+}
+
+// X t e s t X
+func TestValidatePlace_WordHorizontal_HasGaps_DoesNotReturnError1(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+
+	w2 := playerWord(g, []int{BoardOrigin + 4, BoardOrigin - 1})
+
+	if err := v().ValidatePlace(g, w2); err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+// X t e s t X t o X
+func TestValidatePlace_WordHorizontal_HasGaps_DoesNotReturnError2(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+	w2 := word("to", BoardOrigin+5, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w2.Cells)
+
+	w3 := playerWord(g, []int{BoardOrigin + 4, BoardOrigin - 1, BoardOrigin + 7})
+	err := v().ValidatePlace(g, w3)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+// X t e s t X t o _ X
+func TestValidatePlace_WordHorizontal_HasInvalidGaps_ReturnsError(t *testing.T) {
+	g := testValidatorGame()
+	w1 := word("test", BoardOrigin, true, []int{}, []int{}, []int{})
+	g.Board.SetCells(w1.Cells)
+	w2 := word("to", BoardOrigin, false, []int{BoardOrigin}, []int{}, []int{})
+	g.Board.SetCells(w2.Cells)
+
+	w3 := playerWord(g, []int{BoardOrigin + 4, BoardOrigin - 1, BoardOrigin + 8})
+	err := v().ValidatePlace(g, w3)
 
 	if err == nil || err.Error() != "word must be straight" {
 		t.Errorf("expected error")
@@ -177,8 +274,7 @@ func TestValidatePlace_PassesWhenPlayerHasCorrectTiles(t *testing.T) {
 	g := testValidatorGame()
 	w := playerWord(g, []int{BoardOrigin, BoardOrigin + 1})
 	validateWordsMock = nil
-	err := v().ValidatePlace(g, w)
-	if err != nil {
+	if err := v().ValidatePlace(g, w); err != nil {
 		t.Errorf(err.Error())
 	}
 }

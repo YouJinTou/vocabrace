@@ -1,6 +1,9 @@
 package tools
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 // ContainsString checks if a slice of strings contains a given string.
 func ContainsString(s []string, t string) bool {
@@ -29,4 +32,10 @@ func ToLowerStrings(s []string) []string {
 		result = append(result, strings.ToLower(x))
 	}
 	return result
+}
+
+// SortInts sorts ints in ascending order.
+func SortInts(i ...int) []int {
+	sort.Ints(i)
+	return i
 }

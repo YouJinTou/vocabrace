@@ -127,7 +127,7 @@ func (v *Validator) firstPlaceAtOrigin(g *Game, cells []*Cell) error {
 }
 
 func (v *Validator) checkStraightWord(g *Game, w *Word) error {
-	if !(w.IsHorizontal() || w.IsVertical()) {
+	if !(g.IsHorizontal(w) || g.IsVertical(w)) {
 		return errors.New("word must be straight")
 	}
 	return nil

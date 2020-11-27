@@ -12,18 +12,16 @@ func TestExchange(t *testing.T) {
 	players := []*Player{testPlayer(), testPlayer()}
 	g := NewGame(English, players, v())
 	toExchange := []string{g.ToMove().Tiles.GetAt(0).ID, g.ToMove().Tiles.GetAt(1).ID}
-	_, err := g.Exchange(toExchange)
 
-	if err != nil {
+	if _, err := g.Exchange(toExchange); err != nil {
 		t.Errorf(err.Error())
 	}
 }
 
 func TestPlace(t *testing.T) {
 	g, _, tiles := setupPlace()
-	_, err := g.Place(tiles)
 
-	if err != nil {
+	if _, err := g.Place(tiles); err != nil {
 		t.Errorf(err.Error())
 	}
 }
