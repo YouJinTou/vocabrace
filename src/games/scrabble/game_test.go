@@ -108,6 +108,19 @@ func TestPlaceSetsDeltaState(t *testing.T) {
 	}
 }
 
+func TestDeltaStateContainsPlayerPoints(t *testing.T) {
+	g, _, tiles := setupPlace()
+
+	g.Place(tiles)
+
+	delta := g.GetDelta()
+	for name, p := range delta.Points {
+		if g.GetPlayerByName(name).Points != p {
+			t.Errorf("invalid points")
+		}
+	}
+}
+
 func TestPlaceSetsNextPlayer(t *testing.T) {
 	g, _, tiles := setupPlace()
 	previousToMode := g.ToMoveID

@@ -23,12 +23,13 @@ type Game struct {
 
 // DeltaState shows the changes since the previous turn.
 type DeltaState struct {
-	ToMoveID             string      `json:"m"`
-	LastAction           string      `json:"l"`
-	LastActionPlayerID   string      `json:"i"`
-	LastActionPlayerData interface{} `json:"d"`
-	OtherPlayersData     interface{} `json:"o"`
-	YourMove             bool        `json:"y"`
+	ToMoveID             string         `json:"m"`
+	LastAction           string         `json:"l"`
+	LastActionPlayerID   string         `json:"i"`
+	LastActionPlayerData interface{}    `json:"d"`
+	OtherPlayersData     interface{}    `json:"o"`
+	YourMove             bool           `json:"y"`
+	Points               map[string]int `json:"p"`
 }
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
@@ -39,6 +40,7 @@ func (d *DeltaState) JSONWithPersonal() string {
 		LastActionPlayerID:   d.LastActionPlayerID,
 		LastActionPlayerData: d.LastActionPlayerData,
 		YourMove:             d.YourMove,
+		Points:               d.Points,
 	}
 	b, _ := json.Marshal(p)
 	result := string(b)
@@ -53,6 +55,7 @@ func (d *DeltaState) JSONWithoutPersonal() string {
 		LastActionPlayerID: d.LastActionPlayerID,
 		OtherPlayersData:   d.OtherPlayersData,
 		YourMove:           d.YourMove,
+		Points:             d.Points,
 	}
 	b, _ := json.Marshal(p)
 	result := string(b)
@@ -152,6 +155,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 		LastAction:           "Place",
 		LastActionPlayerData: toReceive,
 		OtherPlayersData:     w,
+		Points:               g.playerPoints(),
 	}
 
 	g.setNext()
@@ -236,21 +240,6 @@ func (g *Game) IsHorizontal(w *Word) bool {
 	return true
 }
 
-func (g *Game) setNext() {
-	for i, p := range g.Order {
-		if p == g.ToMoveID {
-			g.delta.LastActionPlayerID = g.ToMoveID
-			if i+1 == len(g.Order) {
-				g.ToMoveID = g.Order[0]
-			} else {
-				g.ToMoveID = g.Order[i+1]
-			}
-			g.delta.ToMoveID = g.ToMoveID
-			return
-		}
-	}
-}
-
 // ToMove gets the player to move.
 func (g *Game) ToMove() *Player {
 	for _, p := range g.Players {
@@ -272,6 +261,16 @@ func (g *Game) GetPlayerByID(ID string) *Player {
 	return nil
 }
 
+// GetPlayerByName gets a player by ID.
+func (g *Game) GetPlayerByName(name string) *Player {
+	for _, p := range g.Players {
+		if p.Name == name {
+			return p
+		}
+	}
+	return nil
+}
+
 // GetLastMovedID returns the player ID that moved last.
 func (g *Game) GetLastMovedID() string {
 	return g.delta.LastActionPlayerID
@@ -286,6 +285,29 @@ func (g *Game) LastToMove() *Player {
 	}
 
 	panic("cannot find last player")
+}
+
+func (g *Game) playerPoints() map[string]int {
+	m := map[string]int{}
+	for _, p := range g.Players {
+		m[p.Name] = p.Points
+	}
+	return m
+}
+
+func (g *Game) setNext() {
+	for i, p := range g.Order {
+		if p == g.ToMoveID {
+			g.delta.LastActionPlayerID = g.ToMoveID
+			if i+1 == len(g.Order) {
+				g.ToMoveID = g.Order[0]
+			} else {
+				g.ToMoveID = g.Order[i+1]
+			}
+			g.delta.ToMoveID = g.ToMoveID
+			return
+		}
+	}
 }
 
 func orderPlayers(players []*Player) (string, []string) {
