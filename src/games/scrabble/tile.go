@@ -33,6 +33,13 @@ func NewTile(letter string, value int) *Tile {
 	return &Tile{letter, value, tileID()}
 }
 
+// NewTileWithID creates a new tile with a given ID.
+func NewTileWithID(ID, letter string, value int) *Tile {
+	t := NewTile(letter, value)
+	t.ID = ID
+	return t
+}
+
 // NewTiles creates new tiles.
 func NewTiles(tiles ...*Tile) *Tiles {
 	value := []*Tile{}

@@ -146,10 +146,10 @@ func (s *scrabblews) pass(g *scrabble.Game) *result {
 func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
 	cells := []*scrabble.Cell{}
 	for _, c := range turn.Word {
-		cells = append(cells, &scrabble.Cell{
-			Tile:  scrabble.Tile{ID: c.TileID, Letter: c.Blank},
-			Index: c.CellIndex,
-		})
+		cells = append(cells, scrabble.NewCell(
+			scrabble.NewTileWithID(c.TileID, c.Blank, 0),
+			c.CellIndex,
+		))
 	}
 	game, err := g.Place(scrabble.NewWord(cells))
 	if err != nil {
