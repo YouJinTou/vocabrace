@@ -71,6 +71,9 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onPlaceClicked() {
+    if (!this.placedTiles.length) {
+      return
+    }
     let payload = {
       g: GAME,
       p: true,
@@ -248,8 +251,8 @@ export class BlanksDialog {
   constructor(
     public dialogRef: MatDialogRef<BlanksDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any) {
-      this.blanks = data['blanks'];
-    }
+    this.blanks = data['blanks'];
+  }
 
   onNoClick(): void {
     this.dialogRef.close();
