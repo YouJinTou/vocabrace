@@ -73,6 +73,10 @@
     width: 30px;
 }
 
+.blank-tile {
+    background-color: #ff9900fd;
+}
+
 .actions {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

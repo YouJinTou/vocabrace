@@ -1,12 +1,15 @@
+<h3 mat-dialog-title>Буква за празната плочка</h3>
 <mat-dialog-content class="mat-typography">
     <div class="tiles">
-        <div class="player-tile tile {{t.selected ? 'tile-selected' : ''}}" *ngFor=" let t of blanks">
+        <div 
+        class="player-tile tile {{t.selected ? 'tile-selected' : ''}}" 
+        *ngFor=" let t of blanks"
+        (click)="onSelected(t)">
             <div class="tile-letter">{{t.letter}}</div>
             <div class="tile-value">{{t.value}}</div>
         </div>
     </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Излез</button>
-    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Избери</button>
+    <button mat-button mat-dialog-close>Назад</button>
 </mat-dialog-actions>

@@ -20,7 +20,6 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];
-  private blankId: string;
   payload: Payload;
   players: Player[] = [];
   tiles: Tile[] = [];
@@ -50,11 +49,10 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
 
     t.selected = !t.selected;
-    this.blankClicked = t.selected && t.isBlank()
-    this.blankId = this.blankClicked ? t.id : null
+    this.blankClicked = t.selected && t.isBlank();
 
     if (this.blankClicked) {
-      this.openBlanks();
+      this.openBlanks(t);
     }
   }
 
@@ -230,13 +228,15 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  private openBlanks() {
+  private openBlanks(selectedBlank: Tile) {
     const blanksRef = this.blanksDialog.open(BlanksDialog, {
       data: { blanks: this.blanks }
     });
 
     blanksRef.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`);
+      if (result) {
+        selectedBlank.letter = result.letter;
+      }
     });
   }
 }
@@ -244,17 +244,18 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
 @Component({
   selector: 'scrabble-blanks',
   templateUrl: 'blanks.component.html',
+  styleUrls: ['./scrabble.component.css']
 })
 export class BlanksDialog {
   blanks: Tile[];
 
   constructor(
     public dialogRef: MatDialogRef<BlanksDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any) {
+    @Inject(MAT_DIALOG_DATA) public data: { blanks: Tile[] }) {
     this.blanks = data['blanks'];
   }
 
-  onNoClick(): void {
-    this.dialogRef.close();
+  onSelected(t: Tile) {
+    this.dialogRef.close(t);
   }
 }
