@@ -1,3 +1,4 @@
+import { load } from './alphabet'
 import { Cell, getCellClass } from './cell'
 import { Player } from './player'
 import { Tile } from './tile'
@@ -10,10 +11,12 @@ export class Payload {
     yourMove: boolean
     lastAction: string
     lastMovedId: string
+    language: string
     exchangeTiles: Tile[]
     placedCells: Cell[]
     players: Player[]
     tiles: Tile[]
+    blanks: Tile[]
 
     constructor(m: any) {
         console.log(m);
@@ -23,6 +26,7 @@ export class Payload {
         }
         this.yourMove = m['y'];
         this.isStart = !('d' in m);
+        this.language = "bulgarian";
         if (this.isStart) {
             this.tiles = this.getTiles(m['t']);
             this.players = this.getPlayersOnStart(m['p']);
@@ -35,6 +39,7 @@ export class Payload {
             this.placedCells = this.getPlacedCells(m);
             this.players = this.getUpdatedPlayers(m);
         }
+        this.blanks = this.getBlanks();
     }
 
     private returnedError(m: any): boolean {
@@ -94,5 +99,15 @@ export class Payload {
         let tokens = s.split("|");
         let tile = new Tile(tokens[0], tokens[1], parseInt(tokens[2]));
         return tile;
+    }
+
+    private getBlanks(): Tile[] {
+        let letters = load(this.language)
+        let result = [];
+        for (var l of letters) {
+            let tile = new Tile("to_be_replaced", l, 0);
+            result.push(tile);
+        }
+        return result;
     }
 }

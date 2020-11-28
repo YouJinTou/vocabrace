@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -19,12 +20,15 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];
+  private blankId: string;
   payload: Payload;
   players: Player[] = [];
   tiles: Tile[] = [];
   cells: Cell[] = [];
+  blanks: Tile[] = [];
+  blankClicked: boolean;
 
-  constructor(private wsService: WebsocketService) { }
+  constructor(public blanksDialog: MatDialog, private wsService: WebsocketService) { }
 
   ngOnInit(): void {
     this.loadCells();
@@ -41,8 +45,16 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onPlayerTileClicked(t: Tile) {
-    if (this.payload.yourMove) {
-      t.selected = !t.selected;
+    if (!this.payload.yourMove) {
+      return;
+    }
+
+    t.selected = !t.selected;
+    this.blankClicked = t.selected && t.isBlank()
+    this.blankId = this.blankClicked ? t.id : null
+
+    if (this.blankClicked) {
+      this.openBlanks();
     }
   }
 
@@ -111,6 +123,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     this.handleExchange();
     this.handlePlace();
     this.originalTiles = this.tiles;
+    this.blanks = this.payload.blanks;
+    this.blankClicked = false;
   }
 
   private cancel() {
@@ -211,5 +225,33 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
 
     return false;
+  }
+
+  private openBlanks() {
+    const blanksRef = this.blanksDialog.open(BlanksDialog, {
+      data: { blanks: this.blanks }
+    });
+
+    blanksRef.afterClosed().subscribe(result => {
+      console.log(`Dialog result: ${result}`);
+    });
+  }
+}
+
+@Component({
+  selector: 'scrabble-blanks',
+  templateUrl: 'blanks.component.html',
+})
+export class BlanksDialog {
+  blanks: Tile[];
+
+  constructor(
+    public dialogRef: MatDialogRef<BlanksDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: any) {
+      this.blanks = data['blanks'];
+    }
+
+  onNoClick(): void {
+    this.dialogRef.close();
   }
 }
