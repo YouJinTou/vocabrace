@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ScrabbleComponent } from './components/scrabble/scrabble.component';
 import { WebsocketService } from 'src/services/websocket.service';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -13,7 +14,8 @@ import { WebsocketService } from 'src/services/websocket.service';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    BrowserAnimationsModule
   ],
   providers: [WebsocketService],
   bootstrap: [AppComponent]
