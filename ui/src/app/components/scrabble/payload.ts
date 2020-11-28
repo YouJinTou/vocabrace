@@ -21,12 +21,16 @@ export class Payload {
     constructor(m: any) {
         console.log(m);
         this.isError = this.returnedError(m);
+        this.yourMove = true;
+
         if (this.isError) {
             return;
         }
+
         this.yourMove = m['y'];
         this.isStart = !('d' in m);
         this.language = "bulgarian";
+        
         if (this.isStart) {
             this.tiles = this.getTiles(m['t']);
             this.players = this.getPlayersOnStart(m['p']);
@@ -86,7 +90,7 @@ export class Payload {
         if (!('p' in m && m['p'])) {
             return this.players;
         }
-        
+
         let result = [];
         for (let key in m['p']) {
             let value = m['p'][key];
