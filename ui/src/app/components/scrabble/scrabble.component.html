@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <div class="actions" *ngIf="tiles.length > 0">
+        <div class="actions" *ngIf="tiles.length > 0 && payload.yourMove">
             <div (click)="onPlaceClicked()">Сложи</div>
             <div (click)="onExchangeClicked()">Размени</div>
             <div (click)="onPassClicked()">Пропусни</div>

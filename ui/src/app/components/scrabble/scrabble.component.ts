@@ -19,7 +19,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];
-  private payload: Payload;
+  payload: Payload;
   players: Player[] = [];
   tiles: Tile[] = [];
   cells: Cell[] = [];
@@ -41,10 +41,15 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onPlayerTileClicked(t: Tile) {
-    t.selected = !t.selected;
+    if (this.payload.yourMove) {
+      t.selected = !t.selected;
+    }
   }
 
   onCellTileClicked(c: Cell) {
+    if (!this.payload.yourMove) {
+      return;
+    }
     if (this.removeCellTile(c)) {
       return;
     }
