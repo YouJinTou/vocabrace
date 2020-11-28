@@ -11,14 +11,15 @@ import (
 
 // Game holds a full game's state.
 type Game struct {
-	Board    Board     `json:"b"`
-	Bag      Bag       `json:"g"`
-	Players  []*Player `json:"p"`
-	ToMoveID string    `json:"m"`
-	Language string    `json:"l"`
-	Order    []string  `json:"o"`
-	delta    DeltaState
-	v        CanValidate
+	Board      Board     `json:"b"`
+	Bag        Bag       `json:"g"`
+	Players    []*Player `json:"p"`
+	ToMoveID   string    `json:"m"`
+	Language   string    `json:"l"`
+	Order      []string  `json:"o"`
+	EndCounter int       `json:"e"`
+	delta      DeltaState
+	v          CanValidate
 }
 
 // DeltaState shows the changes since the previous turn.
@@ -30,6 +31,7 @@ type DeltaState struct {
 	OtherPlayersData     interface{}    `json:"o"`
 	YourMove             bool           `json:"y"`
 	Points               map[string]int `json:"p"`
+	WinnerID             *string        `json:"w"`
 }
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
@@ -115,18 +117,18 @@ func (g *Game) Exchange(ids []string) (Game, error) {
 		LastActionPlayerData: toReceive,
 		OtherPlayersData:     toReceive.Count(),
 	}
+	g.EndCounter++
 
-	g.setNext()
+	g.handleEnd()
 
 	return *g, err
 }
 
 // Pass passes a turn.
 func (g *Game) Pass() Game {
-	g.delta = DeltaState{
-		LastAction: "Pass",
-	}
-	g.setNext()
+	g.delta = DeltaState{LastAction: "Pass"}
+	g.EndCounter++
+	g.handleEnd()
 	return *g
 }
 
@@ -141,7 +143,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 	g.Board.SetCells(w.Cells)
 
 	words := Extract(&g.Board, w)
-	points := CalculatePoints(g, w, words)
+	points := CalculatePoints(w, words)
 	g.ToMove().AwardPoints(points)
 
 	toReceive := g.Bag.Draw(w.Length())
@@ -150,6 +152,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 		toRemove = append(toRemove, c.Tile.ID)
 	}
 	_, err := g.ToMove().ExchangeTiles(toRemove, toReceive)
+	g.EndCounter = 0
 
 	g.delta = DeltaState{
 		LastAction:           "Place",
@@ -158,7 +161,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 		Points:               g.playerPoints(),
 	}
 
-	g.setNext()
+	g.handleEnd()
 
 	return *g, err
 }
@@ -287,6 +290,40 @@ func (g *Game) LastToMove() *Player {
 	panic("cannot find last player")
 }
 
+// IsOver determines if a game is over.
+func (g *Game) IsOver() bool {
+	if g.IsPassiveEnd() {
+		return true
+	}
+	if !g.Bag.IsEmpty() {
+		return false
+	}
+	for _, p := range g.Players {
+		if !p.HasTiles() {
+			return true
+		}
+	}
+	return false
+}
+
+// Leader gets the current points leader.
+func (g *Game) Leader() *Player {
+	max := -99999
+	var leader *Player
+	for _, p := range g.Players {
+		if p.Points > max {
+			leader = p
+			max = p.Points
+		}
+	}
+	return leader
+}
+
+// IsPassiveEnd checks if all players have exchanged or passed for the past n * 2 turns.
+func (g *Game) IsPassiveEnd() bool {
+	return g.EndCounter >= len(g.Players)*2
+}
+
 func (g *Game) playerPoints() map[string]int {
 	m := map[string]int{}
 	for _, p := range g.Players {
@@ -308,6 +345,34 @@ func (g *Game) setNext() {
 			return
 		}
 	}
+}
+
+func (g *Game) handleEnd() {
+	if g.IsOver() {
+		g.tallyFinalPoints()
+		g.delta.Points = g.playerPoints()
+		g.delta.WinnerID = &g.Leader().ID
+	} else {
+		g.setNext()
+	}
+}
+
+func (g *Game) tallyFinalPoints() {
+	if g.IsPassiveEnd() {
+		for _, p := range g.Players {
+			p.Points -= p.Tiles.Sum()
+		}
+		return
+	}
+
+	otherPlayersTilesSum := 0
+	for _, p := range g.Players {
+		if p.ID != g.ToMoveID {
+			otherPlayersTilesSum += p.Tiles.Sum()
+			p.Points -= p.Tiles.Sum()
+		}
+	}
+	g.ToMove().Points += otherPlayersTilesSum
 }
 
 func orderPlayers(players []*Player) (string, []string) {

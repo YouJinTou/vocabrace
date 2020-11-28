@@ -5,7 +5,7 @@ import (
 )
 
 // CalculatePoints calculates points given some words.
-func CalculatePoints(g *Game, primary *Word, words []*Word) int {
+func CalculatePoints(primary *Word, words []*Word) int {
 	disableMultipliers(primary, words)
 	sum := sumTiles(words)
 	sum = tryAward50PointsBonus(sum, primary)

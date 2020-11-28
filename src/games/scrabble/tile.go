@@ -118,6 +118,15 @@ func (t *Tiles) Count() int {
 	return len(t.Value)
 }
 
+// Sum returns the sum of the tiles.
+func (t *Tiles) Sum() int {
+	sum := 0
+	for _, tile := range t.Value {
+		sum += tile.Value
+	}
+	return sum
+}
+
 // RemoveByID removes a tile by an ID.
 func (t *Tiles) RemoveByID(ID string) *Tile {
 	newTiles := NewTiles()

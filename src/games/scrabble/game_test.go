@@ -19,7 +19,7 @@ func TestExchange(t *testing.T) {
 }
 
 func TestPlace(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, tiles := setupGame(2)
 
 	if _, err := g.Place(tiles); err != nil {
 		t.Errorf(err.Error())
@@ -27,7 +27,7 @@ func TestPlace(t *testing.T) {
 }
 
 func TestPlaceAssignsCorrectValueToBlanks(t *testing.T) {
-	g, _, w := setupPlace()
+	g, _, w := setupGame(2)
 	w.Cells[0].Tile.Value = 0
 	w.Cells[0].Tile.Letter = "a"
 	g.ToMove().Tiles.GetAt(2).Value = 0
@@ -39,7 +39,7 @@ func TestPlaceAssignsCorrectValueToBlanks(t *testing.T) {
 }
 
 func TestPlaceReturnsErrorOnInvalidTileIndices(t *testing.T) {
-	g, _, w := setupPlace()
+	g, _, w := setupGame(2)
 	idx := "qqqqqqq"
 	w.Cells[0].Tile.ID = idx
 	_, err := g.Place(w)
@@ -50,7 +50,7 @@ func TestPlaceReturnsErrorOnInvalidTileIndices(t *testing.T) {
 }
 
 func TestPlaceSetsBoard(t *testing.T) {
-	g, _, w := setupPlace()
+	g, _, w := setupGame(2)
 
 	g.Place(w)
 
@@ -60,7 +60,7 @@ func TestPlaceSetsBoard(t *testing.T) {
 }
 
 func TestPlaceAwardsPoints(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, tiles := setupGame(2)
 
 	g.Place(tiles)
 
@@ -70,7 +70,7 @@ func TestPlaceAwardsPoints(t *testing.T) {
 }
 
 func TestPlaceRemovesTilesFromBag(t *testing.T) {
-	g, _, w := setupPlace()
+	g, _, w := setupGame(2)
 	bagStartingCount := g.Bag.Count()
 
 	g.Place(w)
@@ -81,7 +81,7 @@ func TestPlaceRemovesTilesFromBag(t *testing.T) {
 }
 
 func TestPlaceGivesTilesBackToPlayer(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, tiles := setupGame(2)
 
 	g.Place(tiles)
 
@@ -99,7 +99,7 @@ func TestPlaceGivesTilesBackToPlayer(t *testing.T) {
 }
 
 func TestPlaceSetsDeltaState(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, tiles := setupGame(2)
 
 	g.Place(tiles)
 
@@ -109,7 +109,7 @@ func TestPlaceSetsDeltaState(t *testing.T) {
 }
 
 func TestDeltaStateContainsPlayerPoints(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, tiles := setupGame(2)
 
 	g.Place(tiles)
 
@@ -122,7 +122,7 @@ func TestDeltaStateContainsPlayerPoints(t *testing.T) {
 }
 
 func TestPlaceSetsNextPlayer(t *testing.T) {
-	g, _, tiles := setupPlace()
+	g, _, tiles := setupGame(2)
 	previousToMode := g.ToMoveID
 
 	g.Place(tiles)
@@ -192,6 +192,159 @@ func TestSetNext(t *testing.T) {
 	}
 }
 
+func Test_AllLettersNotDrawn_NotOver(t *testing.T) {
+	g, _, _ := setupGame(2)
+	g.Bag.Draw(50)
+	d := g.GetDelta()
+
+	if d.WinnerID != nil {
+		t.Errorf("should not be over")
+	}
+}
+
+func Test_BagEmpty_PlayersStillHaveTiles_NotAllPassedTwice_NotOver(t *testing.T) {
+	g, _, _ := setupGame(2)
+	g.Bag.Draw(100)
+	d := g.GetDelta()
+
+	if d.WinnerID != nil {
+		t.Errorf("should not be over")
+	}
+}
+
+func Test_BagEmpty_PlayerExhaustsTiles_Over(t *testing.T) {
+	g, _, _ := setupGame(2)
+	g.Bag.Draw(100)
+	w := testCreateWord(BoardOrigin, true, g.ToMove().Tiles.Value...)
+	result, _ := g.Place(w)
+	d := result.GetDelta()
+
+	if d.WinnerID == nil {
+		t.Errorf("should be over")
+	}
+}
+
+func Test_BagEmpty_PlayerExhaustsTiles_AddsOtherPlayersTilesSumToLastPlaced(t *testing.T) {
+	for i := 0; i < 50; i++ {
+		g, _, _ := setupGame(3)
+		g.Bag.Draw(100)
+		w := testCreateWord(BoardOrigin, true, g.ToMove().Tiles.Value...)
+		toMovePointsBeforePlace := g.ToMove().Points
+		finalWordPoints := CalculatePoints(w, []*Word{w})
+		sumOfAllOpponentTiles := 0
+		for _, p := range g.Players {
+			if p.ID != g.ToMoveID {
+				sumOfAllOpponentTiles += p.Tiles.Sum()
+			}
+		}
+		expectedFinal := toMovePointsBeforePlace + finalWordPoints + sumOfAllOpponentTiles
+
+		result, _ := g.Place(w)
+		d := result.GetDelta()
+		actual := d.Points[result.ToMove().Name]
+
+		if actual != expectedFinal {
+			t.Errorf("expected %d, got %d", expectedFinal, actual)
+			break
+		}
+	}
+}
+
+func Test_BagEmpty_PlayerExhaustsTiles_SubtractsTilesSumFromOtherPlayers(t *testing.T) {
+	for i := 0; i < 50; i++ {
+		g, _, _ := setupGame(3)
+		g.Bag.Draw(100)
+		w := testCreateWord(BoardOrigin, true, g.ToMove().Tiles.Value...)
+		beforePlace := g.playerPoints()
+		result, _ := g.Place(w)
+		afterPlace := result.playerPoints()
+
+		for name, points := range beforePlace {
+			player := g.GetPlayerByName(name)
+			leader := g.Leader()
+			if leader == player {
+				continue
+			}
+
+			actual := afterPlace[name]
+			expected := points - player.Tiles.Sum()
+			if expected != actual {
+				t.Errorf("expected %d, got %d", expected, actual)
+				return
+			}
+		}
+	}
+}
+
+func Test_AllPassedTwice_Over(t *testing.T) {
+	g, _, _ := setupGame(3)
+	for i := 0; i < 2*len(g.Players); i++ {
+		g.Pass()
+	}
+
+	d := g.GetDelta()
+	if d.WinnerID == nil {
+		t.Errorf("should be over")
+	}
+}
+
+func Test_AllPassedButLast_NotOver(t *testing.T) {
+	g, _, _ := setupGame(3)
+	for i := 0; i < 2*len(g.Players)-1; i++ {
+		g.Pass()
+	}
+
+	d := g.GetDelta()
+	if d.WinnerID != nil {
+		t.Errorf("should not be over")
+	}
+}
+
+func Test_AllExchangedTwice_Over(t *testing.T) {
+	g, _, _ := setupGame(3)
+	for i := 0; i < 2*len(g.Players); i++ {
+		g.Exchange([]string{g.ToMove().Tiles.GetAt(0).ID})
+	}
+
+	d := g.GetDelta()
+	if d.WinnerID == nil {
+		t.Errorf("should be over")
+	}
+}
+
+func Test_AllExchangedButLast_NotOver(t *testing.T) {
+	g, _, _ := setupGame(3)
+	for i := 0; i < 2*len(g.Players)-1; i++ {
+		g.Exchange([]string{g.ToMove().Tiles.GetAt(0).ID})
+	}
+
+	d := g.GetDelta()
+	if d.WinnerID != nil {
+		t.Errorf("should not be over")
+	}
+}
+
+func Test_EndCounterExceeded_SubtractsPlayerTilesSum(t *testing.T) {
+	g, _, _ := setupGame(3)
+	for i := 0; i < 2*len(g.Players)-1; i++ {
+		g.Pass()
+	}
+	beforePoints := g.playerPoints()
+
+	g.Pass()
+
+	afterPoints := g.playerPoints()
+	for name, points := range beforePoints {
+		player := g.GetPlayerByName(name)
+		actual := afterPoints[name]
+		expected := points - player.Tiles.Sum()
+		if expected != actual {
+			t.Errorf("expected %d, got %d", expected, actual)
+			return
+		}
+	}
+}
+
 func getExpectedOrder(idx, total int) []string {
 	result := []string{strconv.Itoa(idx)}
 	for i := idx + 1; i < total; i++ {
@@ -203,18 +356,31 @@ func getExpectedOrder(idx, total int) []string {
 	return result
 }
 
-func setupPlace() (Game, []*Player, *Word) {
-	players := []*Player{testPlayer(), testPlayer()}
-	g := NewGame(English, players, v())
-	cells := []*Cell{
-		&Cell{
-			Tile:  *g.ToMove().Tiles.GetAt(2).Copy(true),
-			Index: BoardOrigin,
-		},
-		&Cell{
-			Tile:  *g.ToMove().Tiles.GetAt(3).Copy(true),
-			Index: BoardOrigin + 1,
-		},
+func setupGame(playerCount int) (Game, []*Player, *Word) {
+	players := []*Player{}
+	for i := 0; i < playerCount; i++ {
+		players = append(players, testPlayer())
 	}
-	return *g, players, NewWord(cells)
+	g := NewGame(English, players, v())
+	w := testCreateWord(
+		BoardOrigin,
+		true,
+		g.ToMove().Tiles.GetAt(2).Copy(true),
+		g.ToMove().Tiles.GetAt(3).Copy(true))
+	return *g, players, w
+}
+
+func testCreateWord(startIndex int, isAcross bool, t ...*Tile) *Word {
+	cells := []*Cell{}
+	for i, tile := range t {
+		var idx int
+		if isAcross {
+			idx = startIndex + i
+		} else {
+			idx = startIndex + BoardHeight
+		}
+		cells = append(cells, NewCell(tile, idx))
+	}
+	w := NewWord(cells)
+	return w
 }

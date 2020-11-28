@@ -10,15 +10,6 @@ import (
 
 var toReceive = NewTiles(&Tile{Letter: "Q"}, &Tile{Letter: "X"})
 
-func TestExchangeTilesReturnsErrorAboutCountsMismatch(t *testing.T) {
-	p := testPlayer()
-	_, err := p.ExchangeTiles([]string{"A"}, NewTiles(&Tile{}, &Tile{}))
-
-	if err == nil || err.Error() != "exchange and receive tile counts should match" {
-		t.Errorf("Should return error about counts mismatch.")
-	}
-}
-
 func TestExchangeTilesReturnsErrorAboutMissingTiles(t *testing.T) {
 	p := testPlayer()
 	_, err := p.ExchangeTiles([]string{"ZZ"}, NewTiles(&Tile{}))

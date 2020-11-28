@@ -1,7 +1,6 @@
 package scrabble
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -15,10 +14,6 @@ type Player struct {
 
 // ExchangeTiles removes a set of tiles from the player's set of tiles and replaces them.
 func (p *Player) ExchangeTiles(ids []string, toReceive *Tiles) (*Tiles, error) {
-	if len(ids) != toReceive.Count() {
-		return NewTiles(), errors.New("exchange and receive tile counts should match")
-	}
-
 	returnTiles := NewTiles()
 	for _, tr := range ids {
 		match := p.Tiles.RemoveByID(tr)
@@ -33,6 +28,11 @@ func (p *Player) ExchangeTiles(ids []string, toReceive *Tiles) (*Tiles, error) {
 	}
 
 	return returnTiles, nil
+}
+
+// HasTiles checks if the player has any tiles.
+func (p *Player) HasTiles() bool {
+	return p.Tiles.Count() > 0
 }
 
 // AwardPoints awards points to the player.

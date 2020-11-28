@@ -106,6 +106,11 @@ func (b *Bag) Count() int {
 	return b.Tiles.Count()
 }
 
+// IsEmpty checks if the bag is empty.
+func (b *Bag) IsEmpty() bool {
+	return b.Count() == 0
+}
+
 // Draw selects a number of random tiles from the bag.
 func (b *Bag) Draw(n int) *Tiles {
 	if n > b.Count() {
