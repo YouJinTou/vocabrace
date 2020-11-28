@@ -23,7 +23,7 @@ func (c *Cell) Value() int {
 	if !c.enableMultiplier {
 		return c.Tile.Value
 	}
-	return c.Tile.Value * multiplier(c.Index)
+	return c.Tile.Value * c.LetterMultiplier()
 }
 
 // WordMultiplier returns the word multiplier of the cell.
@@ -42,13 +42,14 @@ func (c *Cell) WordMultiplier() int {
 	return 1
 }
 
-func multiplier(i int) int {
+// LetterMultiplier returns the letter multiplier of the cell.
+func (c *Cell) LetterMultiplier() int {
 	doubleLetterIndices := []int{3, 11, 36, 38, 45, 52, 59, 92, 96, 98, 102, 108, 116, 122, 126, 128, 132, 165, 172, 179, 186, 188, 213, 221}
-	if tools.ContainsInt(doubleLetterIndices, i) {
+	if tools.ContainsInt(doubleLetterIndices, c.Index) {
 		return 2
 	}
 	tripleLetterIndices := []int{20, 24, 76, 80, 84, 88, 136, 140, 144, 148, 200, 204}
-	if tools.ContainsInt(tripleLetterIndices, i) {
+	if tools.ContainsInt(tripleLetterIndices, c.Index) {
 		return 3
 	}
 	return 1
