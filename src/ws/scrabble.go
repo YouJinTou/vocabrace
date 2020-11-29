@@ -25,6 +25,7 @@ type start struct {
 	ToMove   string          `json:"m"`
 	Players  []*player       `json:"p"`
 	YourMove bool            `json:"y"`
+	PoolID   string          `json:"pid"`
 }
 type turn struct {
 	IsPlace       bool     `json:"p"`
@@ -55,6 +56,7 @@ func (s scrabblews) OnStart(data *ReceiverData) {
 			ToMove:   game.ToMove().Name,
 			Players:  projected,
 			YourMove: game.ToMoveID == p.ID,
+			PoolID:   data.PoolID,
 		}
 		b, _ := json.Marshal(startState)
 		messages = append(messages, &Message{
