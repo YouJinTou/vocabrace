@@ -1,25 +1,41 @@
+locals {
+  scrabble_language_limit = [
+    for pair in setproduct(["bulgarian", "english"], [2, 3, 4]) : {
+      language = pair[0]
+      players = pair[1]
+    }
+  ]
+  sqs_sources = [
+    for q in aws_sqs_queue.scrabble_pooler : {
+      arn = q.arn
+      batch_size = (
+        length(regexall("_2_", q.arn)) > 0 ? 2 :
+        length(regexall("_3_", q.arn)) > 0 ? 3 :
+        4)
+    }
+  ]
+}
+
 module "scrabble_pooler" {
     source = "../lambda"
     aws_account_id = var.aws_account_id
     aws_region = var.aws_region
     filename = "../payloads/pooler.zip"
-    function_name = "${var.stage}_pooler"
+    function_name = "${var.stage}_scrabble_pooler"
     handler = "pooler"
     environment_variables = {
         STAGE: var.stage
         REGION: var.aws_region
         ACCOUNT_ID: var.aws_account_id
-        POOL_LIMIT: 2
     }
     function_can_invoke_api_gateway = true
-    cloudwatch_can_invoke_function = true
-    cloudwatch_event_rule = "rate(1 minute)"
-    timeout = 60
-    reserved_concurrent_executions = 1
+    sqs_sources = local.sqs_sources
+    timeout = 10
 }
 
 resource "aws_sqs_queue" "scrabble_pooler" {
-  name                      = "${var.stage}_scrabble_pooler"
+  for_each = {for x in local.scrabble_language_limit : "${x.language}_${x.players}" => x}
+  name                      = "${var.stage}_scrabble_${each.value.language}_${each.value.players}_pooler"
   message_retention_seconds = 3600
-  visibility_timeout_seconds = 25
+  visibility_timeout_seconds = 10
 }

@@ -43,14 +43,12 @@ variable api_gateway_source_arn {
     default = ""
 }
 
-variable sqs_can_invoke_function {
-    type = bool
-    default = false
-}
-
-variable sqs_source_arn {
-    type = string
-    default = ""
+variable sqs_sources {
+    type = list(object({
+        arn = string,
+        batch_size = number
+    }))
+    default = []
 }
 
 variable cloudwatch_can_invoke_function {

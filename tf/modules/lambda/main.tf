@@ -84,14 +84,15 @@ resource "aws_lambda_permission" "api_gateway_permission" {
 }
 
 resource "aws_lambda_event_source_mapping" "sqs" {
-  count = var.sqs_can_invoke_function ? 1 : 0
-  batch_size        = 10
-  event_source_arn  = var.sqs_source_arn
+  count = length(var.sqs_sources)
+  batch_size        = var.sqs_sources[count.index].batch_size
+  event_source_arn  = var.sqs_sources[count.index].arn
   function_name     = aws_lambda_function.function.function_name
+  maximum_batching_window_in_seconds  = 300
 }
 
 resource "aws_iam_role_policy_attachment" "sqs" {
-  count = var.sqs_can_invoke_function ? 1 : 0
+  count = length(var.sqs_sources) == 0 ? 0 : 1
   role       = aws_iam_role.role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }

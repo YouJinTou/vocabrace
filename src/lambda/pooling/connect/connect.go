@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
 
@@ -26,14 +27,12 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	c := lambdapooling.GetConfig()
 	sess := session.Must(session.NewSession())
 	svc := sqs.New(sess)
-	game := req.QueryStringParameters["game"]
-	bucket := req.QueryStringParameters["bucket"]
-	queueName := fmt.Sprintf("%s_%s_pooler", c.Stage, game)
+	queueName := buildQueueName(c, req.QueryStringParameters)
 	marshalled, _ := json.Marshal(lambdapooling.PoolerPayload{
 		Domain:       req.RequestContext.DomainName,
 		ConnectionID: req.RequestContext.ConnectionID,
-		Bucket:       bucket,
-		Game:         game,
+		Bucket:       "novice",
+		Game:         req.QueryStringParameters["game"],
 	})
 	_, err := svc.SendMessage(&sqs.SendMessageInput{
 		QueueUrl:    aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
@@ -45,4 +44,19 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
+}
+
+func buildQueueName(c *lambdapooling.Config, params map[string]string) string {
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	queueName := fmt.Sprintf("%s_%s", c.Stage, params["game"])
+	for _, k := range keys {
+		queueName += fmt.Sprintf("_%s", params[k])
+	}
+	queueName += "_pooler"
+	return queueName
 }
