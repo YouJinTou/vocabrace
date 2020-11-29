@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -27,11 +28,22 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   blanks: Tile[] = [];
   blankClicked: boolean;
 
-  constructor(public blanksDialog: MatDialog, private wsService: WebsocketService) { }
+  constructor(
+    public blanksDialog: MatDialog, 
+    private wsService: WebsocketService, 
+    private route: ActivatedRoute) { }
 
   ngOnInit(): void {
     this.loadCells();
-    this.wsService.connect(environment.wsEndpoint, GAME).pipe(
+
+    if (this.wsService.last) {
+      this.pipeline(this.wsService.last);
+    }
+
+    let connection$ = this.wsService.connection() ? 
+      this.wsService.connection() : 
+      this.wsService.connect(environment.wsEndpoint, 'scrabble');
+    connection$.pipe(
       takeUntil(this.destroyed$)
     ).subscribe({
       next: m => this.pipeline(m),

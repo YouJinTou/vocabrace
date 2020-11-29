@@ -8,17 +8,23 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 })
 export class WebsocketService implements OnDestroy {
   private connection$: WebSocketSubject<any>;
+  public last: any;
 
   connect(url: string, game: string): Observable<any> {
     let result = `${url}?game=${game}`
     return of(result).pipe(_ => {
       if (!this.connection$) {
         this.connection$ = webSocket(result);
+        this.connection$.subscribe(r => this.last = r);
       }
       return this.connection$;
     },
       retryWhen(errors => errors.pipe(delay(5)))
     );
+  }
+
+  connection(): WebSocketSubject<any> {
+    return this.connection$;
   }
 
   send(data: any) {
