@@ -1,0 +1,15 @@
+<div class="wrapper">
+    <h1>Play a quick game</h1>
+    <mat-divider></mat-divider>
+    <div>
+        <h3>Scrabble</h3>
+        <mat-form-field class="scrabble-players" appearance="fill">
+            <mat-label>Players</mat-label>
+            <mat-select (selectionChange)="onScrabblePlayersChanged($event)">
+                <mat-option [value]="2">2</mat-option>
+                <mat-option [value]="3">3</mat-option>
+                <mat-option [value]="4">4</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+</div>
