@@ -18,11 +18,7 @@ export class ScrabbleOverviewComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  onPlayersChanged() {
-    this.connect();
-  }
-
-  onLanguageChanged() {
+  onSelectChanged() {
     this.connect();
   }
 
