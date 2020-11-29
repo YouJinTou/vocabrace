@@ -53,7 +53,7 @@ func buildQueueName(c *lambdapooling.Config, params map[string]string) string {
 	}
 	sort.Strings(keys)
 
-	queueName := fmt.Sprintf("%s_%s", c.Stage, params["game"])
+	queueName := c.Stage
 	for _, k := range keys {
 		queueName += fmt.Sprintf("_%s", params[k])
 	}
