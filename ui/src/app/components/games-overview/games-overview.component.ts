@@ -16,12 +16,8 @@ export class GamesOverviewComponent implements OnInit {
 
   onScrabblePlayersChanged(e) {
     this.wsService.connect(environment.wsEndpoint, 'scrabble').subscribe({
-      next: m => this.redirect(m),
+      next: m => this.router.navigate(['scrabble', m['pid']]),
       error: e => console.log(e)
     });
-  }
-
-  private redirect(m: any) {
-    this.router.navigate(['scrabble', 'test']);
   }
 }
