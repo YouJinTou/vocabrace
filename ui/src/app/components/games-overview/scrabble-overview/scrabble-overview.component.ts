@@ -26,7 +26,10 @@ export class ScrabbleOverviewComponent implements OnInit {
     if (!(this.selectedLanguage && this.selectedPlayers)) {
       return;
     }
-    this.wsService.connect(environment.wsEndpoint, 'scrabble').subscribe({
+    this.wsService.connect(environment.wsEndpoint, 'scrabble', {
+      'players': parseInt(this.selectedPlayers),
+      'language': this.selectedLanguage,
+    }).subscribe({
       next: m => this.router.navigate(['scrabble', m['pid']]),
       error: e => console.log(e)
     });

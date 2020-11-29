@@ -10,8 +10,14 @@ export class WebsocketService implements OnDestroy {
   private connection$: WebSocketSubject<any>;
   public last: any;
 
-  connect(url: string, game: string): Observable<any> {
-    let result = `${url}?game=${game}`
+  connect(url: string, game: string, params={}): Observable<any> {
+    let queryString = `?game=${game}`;
+    for (let key in params) {
+      let val = params[key];
+      queryString += `&${key}=${val}`;
+    }
+    let result = `${url}${queryString}`
+    
     return of(result).pipe(_ => {
       if (!this.connection$) {
         this.connection$ = webSocket(result);
