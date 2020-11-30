@@ -37,5 +37,5 @@ resource "aws_sqs_queue" "scrabble_pooler" {
   for_each = {for x in local.scrabble_language_limit : "${x.language}_${x.players}" => x}
   name                      = "${var.stage}_scrabble_${each.value.language}_${each.value.players}_pooler"
   message_retention_seconds = 3600
-  visibility_timeout_seconds = 10
+  visibility_timeout_seconds = 60 + 300
 }
