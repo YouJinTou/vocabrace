@@ -9,11 +9,9 @@ import (
 
 // Config holds configuration data.
 type Config struct {
-	Stage        string `env:"STAGE"`
-	Region       string `env:"REGION"`
-	AccountID    string `env:"ACCOUNT_ID"`
-	PoolLimit    int    `env:"POOL_LIMIT"`
-	PoolLimitStr string `env:"POOL_LIMIT"`
+	Stage     string `env:"STAGE"`
+	Region    string `env:"REGION"`
+	AccountID string `env:"ACCOUNT_ID"`
 }
 
 // GetConfig gets the config.

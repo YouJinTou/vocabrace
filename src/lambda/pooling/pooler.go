@@ -6,4 +6,5 @@ type PoolerPayload struct {
 	ConnectionID string
 	Bucket       string
 	Game         string
+	Players      int
 }

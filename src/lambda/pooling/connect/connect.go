@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 
 	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
 
@@ -28,11 +29,13 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	sess := session.Must(session.NewSession())
 	svc := sqs.New(sess)
 	queueName := buildQueueName(c, req.QueryStringParameters)
+	players, _ := strconv.Atoi(req.QueryStringParameters["players"])
 	marshalled, _ := json.Marshal(lambdapooling.PoolerPayload{
 		Domain:       req.RequestContext.DomainName,
 		ConnectionID: req.RequestContext.ConnectionID,
 		Bucket:       "novice",
 		Game:         req.QueryStringParameters["game"],
+		Players:      players,
 	})
 	_, err := svc.SendMessage(&sqs.SendMessageInput{
 		QueueUrl:    aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
