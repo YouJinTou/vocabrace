@@ -12,6 +12,7 @@ import { WebsocketService } from 'src/services/websocket.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GamesOverviewComponent } from './components/games-overview/games-overview.component';
 import { ScrabbleOverviewComponent } from './components/games-overview/scrabble-overview/scrabble-overview.component';
+import { FacebookComponent } from './components/login/facebook/facebook.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { ScrabbleOverviewComponent } from './components/games-overview/scrabble-
     ScrabbleComponent,
     BlanksDialog,
     GamesOverviewComponent,
-    ScrabbleOverviewComponent
+    ScrabbleOverviewComponent,
+    FacebookComponent
   ],
   imports: [
     BrowserModule,
