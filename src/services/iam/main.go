@@ -1,17 +1,20 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func main() {
-	r := gin.Default()
-	r.POST("/iam/provider-auth", providerAuth)
-	r.Run()
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	response := events.APIGatewayProxyResponse{
+		Body:       "{}",
+		StatusCode: 200,
+	}
+	return response, nil
 }
 
-func providerAuth(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"result": 1,
-	})
+func main() {
+	lambda.Start(handler)
 }
