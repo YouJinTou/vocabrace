@@ -7,25 +7,25 @@ services_root="$tf_root""/../src/services"
 
 cd $services_root/pooling/pooler
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o pooler pooler.go
-build-lambda-zip -output pooler.zip pooler ../config.$1.json
+build-lambda-zip -output pooler.zip pooler
 rm pooler
 mv pooler.zip $tf_root/payloads
 
 cd $services_root/pooling/connect
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o connect connect.go
-build-lambda-zip -output connect.zip connect ../config.$1.json
+build-lambda-zip -output connect.zip connect
 rm connect
 mv connect.zip $tf_root/payloads
 
 cd $services_root/pooling/disconnect
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o disconnect disconnect.go
-build-lambda-zip -output disconnect.zip disconnect ../config.$1.json
+build-lambda-zip -output disconnect.zip disconnect
 rm disconnect
 mv disconnect.zip $tf_root/payloads
 
 cd $services_root/pooling/publish
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o publish publish.go
-build-lambda-zip -output publish.zip publish ../config.$1.json
+build-lambda-zip -output publish.zip publish
 rm publish
 mv publish.zip $tf_root/payloads
 
