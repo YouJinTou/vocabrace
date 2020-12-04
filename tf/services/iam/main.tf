@@ -1,5 +1,9 @@
+locals {
+  prefix = "${var.stage}_iam"
+}
+
 resource "aws_api_gateway_rest_api" "iam" {
-  name        = "${var.stage}_iam"
+  name        = local.prefix
 }
 
 resource "aws_api_gateway_stage" "iam" {
@@ -22,7 +26,7 @@ module "iam" {
   aws_region = var.aws_region
   aws_account_id = var.aws_account_id
   filename = "../../payloads/iam.zip"
-  function_name = "${var.stage}_iam"
+  function_name = local.prefix
   handler = "iam"
   timeout = 30
   environment_variables = {
@@ -38,4 +42,15 @@ module "iam" {
         path_parts: ["iam", "provider-auth"],
         http_methods: ["POST"]
     }
+}
+
+resource "aws_dynamodb_table" "users" {
+  name           = "${local.prefix}_users"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "Email"
+  attribute {
+    name = "Email"
+    type = "S"
+  }
 }
