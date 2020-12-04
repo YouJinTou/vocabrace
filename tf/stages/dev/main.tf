@@ -19,14 +19,14 @@ locals {
 }
 
 module "iam" {
-  source = "../modules/iam"
+  source = "../../services/iam"
   stage = local.stage
   aws_account_id = data.aws_caller_identity.current.account_id
   aws_region = var.aws_region
 }
 
 module "pooling" {
-  source = "../modules/pooling"
+  source = "../../services/pooling"
   stage = local.stage
   aws_account_id = data.aws_caller_identity.current.account_id
   aws_region = var.aws_region

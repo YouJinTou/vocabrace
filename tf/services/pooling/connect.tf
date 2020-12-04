@@ -1,8 +1,8 @@
 module "connect" {
-  source = "../lambda"
+  source = "../../modules/lambda"
   aws_region = var.aws_region
   aws_account_id = var.aws_account_id
-  filename = "../payloads/connect.zip"
+  filename = "../../payloads/connect.zip"
   function_name = "${var.stage}_connect"
   handler = "connect"
   environment_variables = {

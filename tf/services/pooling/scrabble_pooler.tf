@@ -16,10 +16,10 @@ locals {
 
 module "scrabble_pooler" {
     for_each = local.players_by_arn
-    source = "../lambda"
+    source = "../../modules/lambda"
     aws_account_id = var.aws_account_id
     aws_region = var.aws_region
-    filename = "../payloads/pooler.zip"
+    filename = "../../payloads/pooler.zip"
     function_name = split(":", each.key)[5]
     handler = "pooler"
     environment_variables = {

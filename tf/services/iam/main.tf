@@ -18,10 +18,10 @@ resource "aws_api_gateway_deployment" "iam" {
 }
 
 module "iam" {
-  source = "../lambda"
+  source = "../../modules/lambda"
   aws_region = var.aws_region
   aws_account_id = var.aws_account_id
-  filename = "../payloads/iam.zip"
+  filename = "../../payloads/iam.zip"
   function_name = "${var.stage}_iam"
   handler = "iam"
   timeout = 30
