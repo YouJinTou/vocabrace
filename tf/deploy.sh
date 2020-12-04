@@ -4,6 +4,7 @@ cd ../tf
 
 tf_root=$PWD
 lambda_root="$tf_root""/../src/lambda"
+iam="$tf_root""/../src/iam"
 
 cd $lambda_root/pooling/pooler
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o pooler pooler.go
@@ -28,6 +29,12 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o publish publish.go
 build-lambda-zip -output publish.zip publish ../config.$1.json
 rm publish
 mv publish.zip $tf_root/payloads
+
+cd $iam
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o iam main.go
+build-lambda-zip -output iam.zip iam
+rm iam
+mv iam.zip $tf_root/payloads
 
 cd $tf_root/shared
 terraform apply -auto-approve

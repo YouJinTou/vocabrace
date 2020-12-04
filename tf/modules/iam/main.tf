@@ -1,5 +1,5 @@
 resource "aws_api_gateway_rest_api" "iam" {
-  name        = "IAM"
+  name        = "iam"
 }
 
 resource "aws_api_gateway_stage" "iam" {
@@ -9,9 +9,12 @@ resource "aws_api_gateway_stage" "iam" {
 }
 
 resource "aws_api_gateway_deployment" "iam" {
-  depends_on  = [aws_api_gateway_integration.test]
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  stage_name  = "dev"
+  depends_on  = [module.iam]
+  rest_api_id = aws_api_gateway_rest_api.iam.id
+  description = "Terraform deployment at ${timestamp()}"
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 module "iam" {
@@ -20,12 +23,18 @@ module "iam" {
   aws_account_id = var.aws_account_id
   filename = "../payloads/iam.zip"
   function_name = "${var.stage}_iam"
-  handler = "iam"
+  handler = "main"
   environment_variables = {
     STAGE: var.stage
     REGION: var.aws_region
     ACCOUNT_ID: var.aws_account_id
   }
   api_gateway_can_invoke_function = true
-  api_gateway_source_arn = "${aws_api_gateway_rest_api.iam.execution_arn}/*/$iam"
+  api_gateway_source_arn = "${aws_api_gateway_rest_api.iam.execution_arn}/*"
+  rest_api_integration = {
+        rest_api_id: aws_api_gateway_rest_api.iam.id,
+        root_resource_id: aws_api_gateway_rest_api.iam.root_resource_id,
+        path_parts: ["iam", "provider-auth"],
+        http_methods: ["POST"]
+    }
 }
