@@ -38,6 +38,21 @@ variable api_gateway_can_invoke_function {
     default = false
 }
 
+variable rest_api_integration {
+    type = object({
+        rest_api_id: string,
+        root_resource_id: string,
+        path_parts: list(string),
+        http_methods: list(string)
+    })
+    default = {
+        rest_api_id: "",
+        root_resource_id: "",
+        path_parts: [],
+        http_methods: []
+    }
+}
+
 variable api_gateway_source_arn {
     type = string
     default = ""

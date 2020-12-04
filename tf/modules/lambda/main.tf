@@ -117,3 +117,12 @@ resource "aws_lambda_permission" "rule_permission" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.rule[0].arn
 }
+
+module "rest" {
+  source = "./agw_integration"
+  rest_api_id = var.rest_api_integration.rest_api_id
+  root_resource_id = var.rest_api_integration.root_resource_id
+  path_parts = var.rest_api_integration.path_parts
+  http_methods = var.rest_api_integration.http_methods
+  function_invoke_arn = aws_lambda_function.function.invoke_arn
+}
