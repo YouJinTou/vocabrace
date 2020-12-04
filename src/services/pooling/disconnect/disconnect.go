@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
+	"github.com/YouJinTou/vocabrace/services/pooling"
 
-	"github.com/YouJinTou/vocabrace/pooling"
 	"github.com/YouJinTou/vocabrace/tools"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -29,7 +28,7 @@ func handle(_ context.Context, req events.APIGatewayWebsocketProxyRequest) (even
 }
 
 func markDisconnection(ID string) {
-	c := lambdapooling.GetConfig()
+	c := pooling.GetConfig()
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	dynamo.PutItem(&dynamodb.PutItemInput{
@@ -42,7 +41,7 @@ func markDisconnection(ID string) {
 }
 
 func tryRemoveFromPool(ID string) {
-	c := lambdapooling.GetConfig()
+	c := pooling.GetConfig()
 	poolID, gErr := pooling.GetPoolID(ID, c.Stage)
 
 	if gErr != nil {

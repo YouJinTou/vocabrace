@@ -1,4 +1,4 @@
-package lambdapooling
+package pooling
 
 // PoolerPayload encapsulated data needed to push a message to the pooler.
 type PoolerPayload struct {

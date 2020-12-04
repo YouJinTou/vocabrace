@@ -7,13 +7,12 @@ import (
 	"sort"
 	"strconv"
 
-	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 
+	"github.com/YouJinTou/vocabrace/services/pooling"
 	"github.com/YouJinTou/vocabrace/tools"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -25,12 +24,12 @@ func main() {
 }
 
 func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
-	c := lambdapooling.GetConfig()
+	c := pooling.GetConfig()
 	sess := session.Must(session.NewSession())
 	svc := sqs.New(sess)
 	queueName := buildQueueName(c, req.QueryStringParameters)
 	players, _ := strconv.Atoi(req.QueryStringParameters["players"])
-	marshalled, _ := json.Marshal(lambdapooling.PoolerPayload{
+	marshalled, _ := json.Marshal(pooling.PoolerPayload{
 		Domain:       req.RequestContext.DomainName,
 		ConnectionID: req.RequestContext.ConnectionID,
 		Bucket:       "novice",
@@ -49,7 +48,7 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
 
-func buildQueueName(c *lambdapooling.Config, params map[string]string) string {
+func buildQueueName(c *pooling.Config, params map[string]string) string {
 	keys := make([]string, 0, len(params))
 	for k := range params {
 		keys = append(keys, k)

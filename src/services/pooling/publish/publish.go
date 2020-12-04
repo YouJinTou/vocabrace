@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
-
-	"github.com/YouJinTou/vocabrace/pooling"
+	"github.com/YouJinTou/vocabrace/services/pooling"
 	"github.com/YouJinTou/vocabrace/ws"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -19,7 +17,7 @@ func main() {
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	data, game := getData(req.Body)
-	c := lambdapooling.GetConfig()
+	c := pooling.GetConfig()
 	pool, err := pooling.GetPool(req.RequestContext.ConnectionID, c.Stage)
 
 	if err != nil {

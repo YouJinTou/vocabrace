@@ -1,4 +1,4 @@
-package lambdapooling
+package pooling
 
 import (
 	"fmt"

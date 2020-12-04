@@ -10,7 +10,7 @@ import (
 
 	"github.com/YouJinTou/vocabrace/ws"
 
-	lambdapooling "github.com/YouJinTou/vocabrace/lambda/pooling"
+	"github.com/YouJinTou/vocabrace/services/pooling"
 
 	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -60,7 +60,7 @@ func main() {
 }
 
 func handle(ctx context.Context, event events.SQSEvent) error {
-	c := lambdapooling.GetConfig()
+	c := pooling.GetConfig()
 
 	pool, err := createPool(event.Records, c)
 	if err != nil {
@@ -84,10 +84,10 @@ func handle(ctx context.Context, event events.SQSEvent) error {
 	return nil
 }
 
-func createPool(batch []events.SQSMessage, c *lambdapooling.Config) (*pool, error) {
+func createPool(batch []events.SQSMessage, c *pooling.Config) (*pool, error) {
 	p := pool{Connections: []*connection{}, Stage: c.Stage}
 	for _, message := range batch {
-		payload := lambdapooling.PoolerPayload{}
+		payload := pooling.PoolerPayload{}
 		json.Unmarshal([]byte(message.Body), &payload)
 
 		if payload.Players > len(batch) {
@@ -106,7 +106,7 @@ func createPool(batch []events.SQSMessage, c *lambdapooling.Config) (*pool, erro
 	return &p, nil
 }
 
-func setPool(p *pool, c *lambdapooling.Config) {
+func setPool(p *pool, c *pooling.Config) {
 	p.ID = uuid.New().String()
 	_, pErr := dynamo().PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(fmt.Sprintf("%s_pools", c.Stage)),
@@ -146,7 +146,7 @@ func setPool(p *pool, c *lambdapooling.Config) {
 	}
 }
 
-func handleDisconnections(event events.SQSEvent, p *pool, c *lambdapooling.Config) error {
+func handleDisconnections(event events.SQSEvent, p *pool, c *pooling.Config) error {
 	flagDisconnections(p, c)
 
 	sess := session.Must(session.NewSession())
@@ -180,7 +180,7 @@ func handleDisconnections(event events.SQSEvent, p *pool, c *lambdapooling.Confi
 	return errors.New("disconnections exist")
 }
 
-func flagDisconnections(p *pool, c *lambdapooling.Config) {
+func flagDisconnections(p *pool, c *pooling.Config) {
 	o, err := tools.BatchGetItem(fmt.Sprintf("%s_disconnections", c.Stage), "ID", p.ConnectionIDs())
 
 	if err != nil {
