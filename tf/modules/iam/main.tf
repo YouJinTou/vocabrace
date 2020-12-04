@@ -1,5 +1,5 @@
 resource "aws_api_gateway_rest_api" "iam" {
-  name        = "iam"
+  name        = "${var.stage}_iam"
 }
 
 resource "aws_api_gateway_stage" "iam" {
