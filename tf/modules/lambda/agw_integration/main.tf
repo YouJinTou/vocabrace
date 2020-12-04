@@ -47,6 +47,13 @@ resource "aws_api_gateway_method" "method" {
   authorization = "NONE"
 }
 
+module "cors" {
+  count = var.enable_cors ? 1 : 0
+  source = "./cors"
+  rest_api_id = var.rest_api_id
+  resource_id = local.last_resource_id
+}
+
 resource "aws_api_gateway_integration" "integration" {
   for_each = { for idx, method in toset(var.http_methods): method => idx }
   rest_api_id             = var.rest_api_id

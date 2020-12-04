@@ -125,4 +125,5 @@ module "rest" {
   path_parts = var.rest_api_integration.path_parts
   http_methods = var.rest_api_integration.http_methods
   function_invoke_arn = aws_lambda_function.function.invoke_arn
+  enable_cors = var.rest_api_integration.enable_cors
 }

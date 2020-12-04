@@ -43,13 +43,15 @@ variable rest_api_integration {
         rest_api_id: string,
         root_resource_id: string,
         path_parts: list(string),
-        http_methods: list(string)
+        http_methods: list(string),
+        enable_cors: bool
     })
     default = {
         rest_api_id: "",
         root_resource_id: "",
         path_parts: [],
-        http_methods: []
+        http_methods: [],
+        enable_cors: false
     }
 }
 
