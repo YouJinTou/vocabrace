@@ -23,7 +23,8 @@ module "iam" {
   aws_account_id = var.aws_account_id
   filename = "../payloads/iam.zip"
   function_name = "${var.stage}_iam"
-  handler = "main"
+  handler = "iam"
+  timeout = 30
   environment_variables = {
     STAGE: var.stage
     REGION: var.aws_region
