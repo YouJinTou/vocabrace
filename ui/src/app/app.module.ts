@@ -4,6 +4,7 @@ import { NgModule } from '@angular/core';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -31,6 +32,7 @@ import { FacebookComponent } from './components/login/facebook/facebook.componen
     MatDialogModule,
     MatSelectModule,
     MatDividerModule,
+    HttpClientModule
   ],
   providers: [WebsocketService],
   bootstrap: [AppComponent]
