@@ -33,6 +33,7 @@ module "iam" {
     STAGE: var.stage
     REGION: var.aws_region
     ACCOUNT_ID: var.aws_account_id
+    IS_SERVERLESS: true
   }
   api_gateway_can_invoke_function = true
   api_gateway_source_arn = "${aws_api_gateway_rest_api.iam.execution_arn}/*"
@@ -40,7 +41,8 @@ module "iam" {
         rest_api_id: aws_api_gateway_rest_api.iam.id,
         root_resource_id: aws_api_gateway_rest_api.iam.root_resource_id,
         path_parts: ["iam", "provider-auth"],
-        http_methods: ["POST"]
+        http_methods: ["POST"],
+        enable_cors: true
     }
 }
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -13,6 +15,21 @@ import (
 func BuildSqsURL(region, accountID, name string) string {
 	url := fmt.Sprintf("https://sqs.%s.amazonaws.com/%s/%s", region, accountID, name)
 	return url
+}
+
+// PutItem puts an item in AWS DynamoDB.
+func PutItem(tableName string, v interface{}) (*dynamodb.PutItemOutput, error) {
+	sess := session.Must(session.NewSession())
+	dynamo := dynamodb.New(sess)
+	item, err := dynamodbattribute.MarshalMap(v)
+	if err != nil {
+		return nil, err
+	}
+	o, pErr := dynamo.PutItem(&dynamodb.PutItemInput{
+		TableName: aws.String(tableName),
+		Item:      item,
+	})
+	return o, pErr
 }
 
 // BatchGetItem gets items in batches from AWS DynamoDB.
