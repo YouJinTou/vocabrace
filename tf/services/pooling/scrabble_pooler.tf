@@ -33,6 +33,7 @@ module "scrabble_pooler" {
     ]
     timeout = 5
     reserved_concurrent_executions = 1
+    depends_on = [aws_sqs_queue.scrabble_pooler]
 }
 
 resource "aws_sqs_queue" "scrabble_pooler" {
