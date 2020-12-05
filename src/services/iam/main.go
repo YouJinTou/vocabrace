@@ -19,7 +19,7 @@ type User struct {
 
 func handler(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	response, err := providerAuth(&r)
-	response.Headers["Access-Control-Allow-Origin"] = "*"
+	setResponseHeaders(&response)
 	return response, err
 }
 
@@ -37,6 +37,13 @@ func main() {
 		r.POST("iam/provider-auth", toGinHandler(providerAuth))
 		r.Run()
 	}
+}
+
+func setResponseHeaders(r *events.APIGatewayProxyResponse) {
+	if r.Headers == nil {
+		r.Headers = make(map[string]string)
+	}
+	r.Headers["Access-Control-Allow-Origin"] = "*"
 }
 
 func toGinHandler(f func(*events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)) func(*gin.Context) {
