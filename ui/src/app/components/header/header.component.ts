@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { userStatusService } from 'src/services/user-status.service';
+import { UserStatusService } from 'src/services/user-status.service';
 
 @Component({
   selector: 'app-header',
