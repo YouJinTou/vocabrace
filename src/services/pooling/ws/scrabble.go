@@ -3,7 +3,7 @@ package ws
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 
 	"github.com/YouJinTou/vocabrace/games/scrabble"
 )
@@ -45,9 +45,9 @@ type clientMessage struct {
 }
 
 func (s scrabblews) OnStart(data *ReceiverData) {
-	players := s.loadPlayers(data.ConnectionIDs)
-	game := scrabble.NewGame("bulgarian", players, scrabble.NewDynamoValidator())
-	projected := s.projectPlayers(game.Players)
+	players := s.loadPlayers(data.Users)
+	game := scrabble.NewGame(data.Language, players, scrabble.NewDynamoValidator())
+	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
 
 	for _, p := range game.Players {
@@ -62,7 +62,7 @@ func (s scrabblews) OnStart(data *ReceiverData) {
 		messages = append(messages, &Message{
 			Domain:       data.Domain,
 			Stage:        data.Stage,
-			ConnectionID: p.ID,
+			ConnectionID: userByID(data.Users, p.ID).ConnectionID,
 			Message:      string(b),
 		})
 	}
@@ -160,19 +160,19 @@ func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
 	return &result{&game, game.GetDelta(), err}
 }
 
-func (s *scrabblews) loadPlayers(connectionIDs []string) []*scrabble.Player {
-	players := []*scrabble.Player{}
-	for _, cid := range connectionIDs {
-		players = append(players, &scrabble.Player{
-			ID:     cid,
-			Name:   cid,
+func (s *scrabblews) loadPlayers(users []*User) []*scrabble.Player {
+	result := []*scrabble.Player{}
+	for _, u := range users {
+		result = append(result, &scrabble.Player{
+			ID:     u.UserID,
+			Name:   u.Username,
 			Points: 0,
 		})
 	}
-	return players
+	return result
 }
 
-func (s *scrabblews) projectPlayers(players []*scrabble.Player) []*player {
+func (s *scrabblews) setPlayerData(players []*scrabble.Player) []*player {
 	result := []*player{}
 	for _, p := range players {
 		result = append(result, &player{
@@ -194,7 +194,7 @@ func (s *scrabblews) validateTurn(data *ReceiverData, g *scrabble.Game) error {
 }
 
 func (s *scrabblews) returnClientError(data *ReceiverData, message string, err error) {
-	fmt.Println(fmt.Sprintf("ERROR Data: %s Dump: %s", data, err.Error()))
+	log.Printf("ERROR Data: %+v Dump: %s", data, err.Error())
 	msg := clientMessage{
 		Body: message,
 		Type: "ERROR",

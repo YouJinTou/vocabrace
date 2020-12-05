@@ -12,8 +12,7 @@ export class HeaderComponent implements OnInit {
   constructor(private UserStatusService: UserStatusService) { }
 
   ngOnInit(): void {
-    this.UserStatusService.user$.subscribe(u => {
-      this.greeting = u.loggedIn ? `Let's go, ${u.name}` : '';
-    });
+    this.UserStatusService.user$.subscribe(
+      u => this.greeting = u.loggedIn ? `Let's go, ${u.name}` : '');
   }
 }

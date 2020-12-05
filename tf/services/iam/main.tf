@@ -50,9 +50,9 @@ resource "aws_dynamodb_table" "users" {
   name           = "${local.prefix}_users"
   read_capacity  = 1
   write_capacity = 1
-  hash_key       = "Email"
+  hash_key       = "ID"
   attribute {
-    name = "Email"
+    name = "ID"
     type = "S"
   }
 }

@@ -24,13 +24,15 @@ import (
 )
 
 type pool struct {
-	ID          string
-	Connections []*connection
-	Domain      string
-	Bucket      string
-	Game        string
-	Stage       string
-	Players     int
+	ID           string
+	Users        []*ws.User
+	Connections  []*connection
+	Domain       string
+	Bucket       string
+	Game         string
+	Stage        string
+	PlayersCount int
+	Language     string
 }
 
 type connection struct {
@@ -74,11 +76,13 @@ func handle(ctx context.Context, event events.SQSEvent) error {
 	setPool(pool, c)
 
 	ws.OnStart(&ws.ReceiverData{
+		Users:         pool.Users,
 		ConnectionIDs: pool.ConnectionIDs(),
 		Domain:        pool.Domain,
 		Stage:         pool.Stage,
 		Game:          pool.Game,
 		PoolID:        pool.ID,
+		Language:      pool.Language,
 	})
 
 	return nil
@@ -86,6 +90,7 @@ func handle(ctx context.Context, event events.SQSEvent) error {
 
 func createPool(batch []events.SQSMessage, c *pooling.Config) (*pool, error) {
 	p := pool{Connections: []*connection{}, Stage: c.Stage}
+	users := []*ws.User{}
 	for _, message := range batch {
 		payload := pooling.PoolerPayload{}
 		json.Unmarshal([]byte(message.Body), &payload)
@@ -94,7 +99,7 @@ func createPool(batch []events.SQSMessage, c *pooling.Config) (*pool, error) {
 			return nil, errors.New("not enough players")
 		}
 
-		p.Players = payload.Players
+		p.PlayersCount = payload.Players
 		p.Bucket = payload.Bucket
 		p.Domain = payload.Domain
 		p.Game = payload.Game
@@ -102,7 +107,14 @@ func createPool(batch []events.SQSMessage, c *pooling.Config) (*pool, error) {
 			ID:            payload.ConnectionID,
 			ReceiptHandle: message.ReceiptHandle,
 		})
+		p.Language = payload.Language
+		users = append(users, &ws.User{
+			ConnectionID: payload.ConnectionID,
+			Username:     payload.Username,
+			UserID:       payload.UserID,
+		})
 	}
+	p.Users = users
 	return &p, nil
 }
 
@@ -114,8 +126,9 @@ func setPool(p *pool, c *pooling.Config) {
 			"ID":            {S: aws.String(p.ID)},
 			"ConnectionIDs": {SS: p.ConnectionIDsPtr()},
 			"Bucket":        {S: aws.String(p.Bucket)},
-			"Limit":         {N: aws.String(strconv.Itoa(p.Players))},
+			"Limit":         {N: aws.String(strconv.Itoa(p.PlayersCount))},
 			"LiveUntil":     {N: aws.String(tools.FutureTimestampStr(36000))},
+			"Language":      {S: aws.String(p.Language)},
 		},
 	})
 

@@ -19,9 +19,12 @@ func TestDoublesPointsOnFirstMove(t *testing.T) {
 		Stage:         "dev",
 		PoolID:        pid,
 		Game:          "scrabble",
+		Users: []*User{
+			&User{}, &User{},
+		},
 	}
 	sws := scrabblews{}
-	players := sws.loadPlayers(rd.ConnectionIDs)
+	players := sws.loadPlayers(rd.Users)
 	g := scrabble.NewGame("bulgarian", players, scrabble.NewDynamoValidator())
 	w := scrabble.NewWordFromString(
 		"ТИ", []int{2, 3}, []int{scrabble.BoardOrigin, scrabble.BoardOrigin + 1})

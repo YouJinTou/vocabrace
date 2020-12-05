@@ -9,15 +9,33 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 )
 
+// User ecanpsulates user data.
+type User struct {
+	ConnectionID string
+	UserID       string
+	Username     string
+}
+
+func userByID(users []*User, ID string) *User {
+	for _, u := range users {
+		if u.UserID == ID {
+			return u
+		}
+	}
+	return nil
+}
+
 // ReceiverData encapsulates receiver data for AWS API Gateway websockets.
 type ReceiverData struct {
 	Initiator     string
 	ConnectionIDs []string
+	Users         []*User
 	Domain        string
 	Stage         string
 	PoolID        string
 	Game          string
 	Body          string
+	Language      string
 }
 
 func (rd *ReceiverData) otherConnections() []string {

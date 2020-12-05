@@ -12,10 +12,10 @@ declare var FB: any;
 })
 export class FacebookComponent implements OnInit {
   loggedIn: boolean;
-  constructor(private httpClient: HttpClient, private UserStatusService: UserStatusService) { }
+  constructor(private httpClient: HttpClient, private userStatusService: UserStatusService) { }
 
   ngOnInit(): void {
-    this.UserStatusService.user$.subscribe(u => this.loggedIn = u.loggedIn);
+    this.userStatusService.user$.subscribe(u => this.loggedIn = u.loggedIn);
     this.init();
   }
 
@@ -33,10 +33,10 @@ export class FacebookComponent implements OnInit {
       FB.getLoginStatus((r) => {
         if (r.status === 'connected') {
           console.log('connected');
-          this.UserStatusService.setLoginStatus(true);
+          this.userStatusService.setLoginStatus(true);
         } else {
           console.log('not connected');
-          this.UserStatusService.setLoginStatus(false);
+          this.userStatusService.setLoginStatus(false);
         }
       });
     };
@@ -47,17 +47,15 @@ export class FacebookComponent implements OnInit {
       if (r.authResponse) {
         FB.api('/me?fields=name,email', (res) => {
           let url = `${environment.iamEndpoint}/provider-auth`;
-          this.httpClient.post(url, res).subscribe((u: any) => {
-            this.UserStatusService.setUser({
+          this.httpClient.post(url, res).subscribe({
+            next: (u: any) => {this.userStatusService.setUser({
               loggedIn: true,
               username: u.Username,
               id: u.ID,
               name: u.Name
-            });
-          },
-            error => {
-              console.log(error);
-            });
+            }); console.log(u);},
+            error: e => console.log(e)
+          });
         });
       } else {
         console.log('User cancelled login or did not fully authorize.');

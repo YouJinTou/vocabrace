@@ -14,7 +14,9 @@ export class WebsocketService implements OnDestroy {
     let queryString = `?game=${game}`;
     for (let key in params) {
       let val = params[key];
-      queryString += `&${key}=${val}`;
+      if (val) {
+        queryString += `&${key}=${val}`;
+      }
     }
     let result = `${url}${queryString}`
     

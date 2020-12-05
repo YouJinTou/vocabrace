@@ -1,10 +1,7 @@
 package pooling
 
 import (
-	"fmt"
 	"os"
-
-	"github.com/tkanos/gonfig"
 )
 
 // Config holds configuration data.
@@ -16,14 +13,10 @@ type Config struct {
 
 // GetConfig gets the config.
 func GetConfig() *Config {
-	config := Config{}
-	stage := os.Getenv("STAGE")
-	file := fmt.Sprintf("config.%s.json", stage)
-	err := gonfig.GetConf(file, &config)
-
-	if err != nil {
-		panic(err)
+	config := Config{
+		Stage:     os.Getenv("STAGE"),
+		Region:    os.Getenv("REGION"),
+		AccountID: os.Getenv("ACCOUNT_ID"),
 	}
-
 	return &config
 }

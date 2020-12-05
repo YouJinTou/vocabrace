@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/google/uuid"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 
@@ -32,9 +32,12 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	marshalled, _ := json.Marshal(pooling.PoolerPayload{
 		Domain:       req.RequestContext.DomainName,
 		ConnectionID: req.RequestContext.ConnectionID,
-		Bucket:       "novice",
+		Bucket:       getBucket(req.QueryStringParameters),
 		Game:         req.QueryStringParameters["game"],
 		Players:      players,
+		Language:     getParam("language", "english", req.QueryStringParameters),
+		UserID:       getParam("userId", uuid.New().String(), req.QueryStringParameters),
+		Username:     getParam("username", "Anonymous", req.QueryStringParameters),
 	})
 	_, err := svc.SendMessage(&sqs.SendMessageInput{
 		QueueUrl:    aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
@@ -48,17 +51,18 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (e
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
 
-func buildQueueName(c *pooling.Config, params map[string]string) string {
-	keys := make([]string, 0, len(params))
-	for k := range params {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	queueName := c.Stage
-	for _, k := range keys {
-		queueName += fmt.Sprintf("_%s", params[k])
-	}
-	queueName += "_pooler"
+func buildQueueName(c *pooling.Config, p map[string]string) string {
+	queueName := fmt.Sprintf("%s_%s_%s_%s_pooler", c.Stage, p["game"], p["language"], p["players"])
 	return queueName
+}
+
+func getParam(key, fallback string, params map[string]string) string {
+	if val, ok := params[key]; ok {
+		return val
+	}
+	return fallback
+}
+
+func getBucket(params map[string]string) string {
+	return pooling.Novice
 }

@@ -13,7 +13,7 @@ export class User {
 })
 export class UserStatusService {
   private userSource = new BehaviorSubject(new User());
-  private current: User;
+  current: User;
   user$ = this.userSource.asObservable();
 
   constructor() {
