@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/YouJinTou/vocabrace/services/pooling"
-	"github.com/YouJinTou/vocabrace/ws"
+	"github.com/YouJinTou/vocabrace/services/pooling/ws"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

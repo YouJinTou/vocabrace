@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/YouJinTou/vocabrace/ws"
+	"github.com/YouJinTou/vocabrace/services/pooling/ws"
 
 	"github.com/YouJinTou/vocabrace/services/pooling"
 
