@@ -13,7 +13,7 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.UserStatusService.user$.subscribe(u => {
-      this.greeting = u.loggedIn ? `Hi, ${u.name}` : '';
+      this.greeting = u.loggedIn ? `Let's go, ${u.name}` : '';
     });
   }
 }
