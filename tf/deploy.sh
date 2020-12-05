@@ -36,11 +36,11 @@ rm iam
 mv iam.zip $tf_root/payloads
 
 cd $tf_root/shared
-terraform init
+# terraform init
 terraform apply -auto-approve
 
 cd $tf_root/stages/$1
-terraform init
+# terraform init
 terraform apply -auto-approve
 
 cd $tf_root
