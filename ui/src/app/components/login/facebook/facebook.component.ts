@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { User, UserStatusService } from 'src/services/user-status.service';
+import { UserStatusService } from 'src/services/user-status.service';
 
 declare var FB: any;
 

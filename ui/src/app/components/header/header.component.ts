@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { User, UserStatusService } from 'src/services/user-status.service';
+import { userStatusService } from 'src/services/user-status.service';
 
 @Component({
   selector: 'app-header',
@@ -9,10 +9,10 @@ import { User, UserStatusService } from 'src/services/user-status.service';
 export class HeaderComponent implements OnInit {
   greeting: string;
 
-  constructor(private UserStatusService: UserStatusService) { }
+  constructor(private userStatusService: UserStatusService) { }
 
   ngOnInit(): void {
-    this.UserStatusService.user$.subscribe(
+    this.userStatusService.user$.subscribe(
       u => this.greeting = u.loggedIn ? `Let's go, ${u.name}` : '');
   }
 }
