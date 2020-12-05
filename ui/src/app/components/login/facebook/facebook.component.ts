@@ -10,7 +10,7 @@ declare var FB: any;
   styleUrls: ['./facebook.component.css']
 })
 export class FacebookComponent implements OnInit {
-
+  loggedIn: boolean;
   constructor(private httpClient: HttpClient) { }
 
   ngOnInit(): void {
@@ -18,27 +18,34 @@ export class FacebookComponent implements OnInit {
   }
 
   private init() {
-    (window as any).fbAsyncInit = function () {
+    (window as any).fbAsyncInit = () => {
       FB.init({
         appId: '222363819258996',
         cookie: true,
         xfbml: true,
         version: 'v3.1'
       });
+
       FB.AppEvents.logPageView();
+
+      FB.getLoginStatus((r) => {
+        if (r.status === 'connected') {
+          console.log('connected');
+          this.loggedIn = true;
+        } else {
+          console.log('not connected');
+          this.loggedIn = false;
+        }
+      });
     };
   }
 
   login() {
-    let $httpClient = this.httpClient
-    FB.login(function (response) {
-      if (response.authResponse) {
-        console.log('Welcome!  Fetching your information.... ');
-        console.log(response);
-        FB.api('/me?fields=name,email', function (response) {
+    FB.login((r) => {
+      if (r.authResponse) {
+        FB.api('/me?fields=name,email', (r) => {
           let url = `${environment.iamEndpoint}/provider-auth`;
-          console.log(url);
-          $httpClient.post(url, response).subscribe(r => console.log(r));
+          this.httpClient.post(url, r).subscribe(r => this.loggedIn = true);
         });
       } else {
         console.log('User cancelled login or did not fully authorize.');
@@ -47,5 +54,4 @@ export class FacebookComponent implements OnInit {
       scope: "email"
     });
   }
-
 }
