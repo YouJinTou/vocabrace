@@ -14,7 +14,8 @@ export class UserStatusService {
   private current: User;
   user$ = this.userSource.asObservable();
 
-  constructor() { 
+  constructor() {
+    this.current = { username: '', loggedIn: false };
     this.user$.subscribe(u => this.current = u);
   }
 
