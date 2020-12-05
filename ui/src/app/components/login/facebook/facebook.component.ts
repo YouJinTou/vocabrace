@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { LoginStatusService } from 'src/services/login-status.service';
+import { User, UserStatusService } from 'src/services/user-status.service';
 
 declare var FB: any;
 
@@ -12,10 +12,10 @@ declare var FB: any;
 })
 export class FacebookComponent implements OnInit {
   loggedIn: boolean;
-  constructor(private httpClient: HttpClient, private loginStatusService: LoginStatusService) { }
+  constructor(private httpClient: HttpClient, private UserStatusService: UserStatusService) { }
 
   ngOnInit(): void {
-    this.loginStatusService.loggedIn$.subscribe(s => {this.loggedIn = s; console.log(s);});
+    this.UserStatusService.user$.subscribe(u => this.loggedIn = u.loggedIn);
     this.init();
   }
 
@@ -33,10 +33,10 @@ export class FacebookComponent implements OnInit {
       FB.getLoginStatus((r) => {
         if (r.status === 'connected') {
           console.log('connected');
-          this.loginStatusService.setStatus(true);
+          this.UserStatusService.setLoginStatus(true);
         } else {
           console.log('not connected');
-          this.loginStatusService.setStatus(false);
+          this.UserStatusService.setLoginStatus(false);
         }
       });
     };
@@ -45,10 +45,13 @@ export class FacebookComponent implements OnInit {
   login() {
     FB.login((r) => {
       if (r.authResponse) {
-        FB.api('/me?fields=name,email', (r) => {
+        FB.api('/me?fields=name,email', (res) => {
           let url = `${environment.iamEndpoint}/provider-auth`;
-          this.httpClient.post(url, r).subscribe(r => {
-            this.loginStatusService.setStatus(true);
+          this.httpClient.post(url, res).subscribe(r => {
+            this.UserStatusService.setUser({
+              loggedIn: true,
+              username: res.name
+            });
           });
         });
       } else {

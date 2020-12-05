@@ -14,7 +14,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GamesOverviewComponent } from './components/games-overview/games-overview.component';
 import { ScrabbleOverviewComponent } from './components/games-overview/scrabble-overview/scrabble-overview.component';
 import { FacebookComponent } from './components/login/facebook/facebook.component';
-import { LoginStatusService } from 'src/services/login-status.service';
+import { UserStatusService } from 'src/services/user-status.service';
 import { HeaderComponent } from './components/header/header.component';
 
 @NgModule({
@@ -37,7 +37,7 @@ import { HeaderComponent } from './components/header/header.component';
     MatDividerModule,
     HttpClientModule
   ],
-  providers: [WebsocketService, LoginStatusService],
+  providers: [WebsocketService, UserStatusService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
