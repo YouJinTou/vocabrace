@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 export class User {
-  loggedIn: boolean;
+  loggedIn: boolean
   username: string
+  name: string
+  id: string
 }
 
 @Injectable({
@@ -15,7 +17,7 @@ export class UserStatusService {
   user$ = this.userSource.asObservable();
 
   constructor() {
-    this.current = { username: '', loggedIn: false };
+    this.current = { username: '', loggedIn: false, id: '', name: '' };
     this.user$.subscribe(u => this.current = u);
   }
 

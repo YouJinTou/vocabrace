@@ -13,8 +13,10 @@ import (
 
 // User is the application user.
 type User struct {
-	Email string
-	Name  string
+	ID       string
+	Email    string
+	Name     string
+	Username string
 }
 
 func handler(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

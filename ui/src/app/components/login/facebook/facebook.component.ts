@@ -47,12 +47,17 @@ export class FacebookComponent implements OnInit {
       if (r.authResponse) {
         FB.api('/me?fields=name,email', (res) => {
           let url = `${environment.iamEndpoint}/provider-auth`;
-          this.httpClient.post(url, res).subscribe(r => {
+          this.httpClient.post(url, res).subscribe((u: any) => {
             this.UserStatusService.setUser({
               loggedIn: true,
-              username: res.name
+              username: u.Username,
+              id: u.ID,
+              name: u.Name
             });
-          });
+          },
+            error => {
+              console.log(error);
+            });
         });
       } else {
         console.log('User cancelled login or did not fully authorize.');
