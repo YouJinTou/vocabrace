@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { environment } from 'src/environments/environment';
+import { LoginStatusService } from 'src/services/login-status.service';
 
 declare var FB: any;
 
@@ -11,9 +12,10 @@ declare var FB: any;
 })
 export class FacebookComponent implements OnInit {
   loggedIn: boolean;
-  constructor(private httpClient: HttpClient) { }
+  constructor(private httpClient: HttpClient, private loginStatusService: LoginStatusService) { }
 
   ngOnInit(): void {
+    this.loginStatusService.loggedIn$.subscribe(s => {this.loggedIn = s; console.log(s);});
     this.init();
   }
 
@@ -31,10 +33,10 @@ export class FacebookComponent implements OnInit {
       FB.getLoginStatus((r) => {
         if (r.status === 'connected') {
           console.log('connected');
-          this.loggedIn = true;
+          this.loginStatusService.setStatus(true);
         } else {
           console.log('not connected');
-          this.loggedIn = false;
+          this.loginStatusService.setStatus(false);
         }
       });
     };
@@ -45,7 +47,9 @@ export class FacebookComponent implements OnInit {
       if (r.authResponse) {
         FB.api('/me?fields=name,email', (r) => {
           let url = `${environment.iamEndpoint}/provider-auth`;
-          this.httpClient.post(url, r).subscribe(r => this.loggedIn = true);
+          this.httpClient.post(url, r).subscribe(r => {
+            this.loginStatusService.setStatus(true);
+          });
         });
       } else {
         console.log('User cancelled login or did not fully authorize.');

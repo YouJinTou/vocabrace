@@ -14,6 +14,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GamesOverviewComponent } from './components/games-overview/games-overview.component';
 import { ScrabbleOverviewComponent } from './components/games-overview/scrabble-overview/scrabble-overview.component';
 import { FacebookComponent } from './components/login/facebook/facebook.component';
+import { LoginStatusService } from 'src/services/login-status.service';
+import { HeaderComponent } from './components/header/header.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +24,8 @@ import { FacebookComponent } from './components/login/facebook/facebook.componen
     BlanksDialog,
     GamesOverviewComponent,
     ScrabbleOverviewComponent,
-    FacebookComponent
+    FacebookComponent,
+    HeaderComponent
   ],
   imports: [
     BrowserModule,
@@ -34,7 +37,7 @@ import { FacebookComponent } from './components/login/facebook/facebook.componen
     MatDividerModule,
     HttpClientModule
   ],
-  providers: [WebsocketService],
+  providers: [WebsocketService, LoginStatusService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
