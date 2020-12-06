@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"os"
 
 	"github.com/YouJinTou/vocabrace/services/pooling"
 	"github.com/YouJinTou/vocabrace/services/pooling/ws"
@@ -17,8 +18,7 @@ func main() {
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	data, game := getData(req.Body)
-	c := pooling.GetConfig()
-	pool, err := pooling.GetPool(req.RequestContext.ConnectionID, c.Stage)
+	pool, err := pooling.GetPool(req.RequestContext.ConnectionID, os.Getenv("STAGE"))
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
@@ -27,7 +27,7 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (eve
 	ws.OnAction(&ws.ReceiverData{
 		Game:          game,
 		Domain:        req.RequestContext.DomainName,
-		Stage:         c.Stage,
+		Stage:         os.Getenv("STAGE"),
 		PoolID:        pool.ID,
 		Body:          data,
 		ConnectionIDs: pool.ConnectionIDs,
