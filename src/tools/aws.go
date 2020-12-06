@@ -18,7 +18,8 @@ func BuildSqsURL(region, accountID, name string) string {
 }
 
 // GetItem gets an item from AWS DynamoDB.
-func GetItem(tableName, pkName, pkValue string, skName, skValue *string) (*dynamodb.GetItemOutput, error) {
+func GetItem(tableName, pkName, pkValue string, skName, skValue *string, projection *string) (
+	*dynamodb.GetItemOutput, error) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	key := map[string]*dynamodb.AttributeValue{
@@ -29,10 +30,14 @@ func GetItem(tableName, pkName, pkValue string, skName, skValue *string) (*dynam
 			S: skValue,
 		}
 	}
-	o, err := dynamo.GetItem(&dynamodb.GetItemInput{
+	i := &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
 		Key:       key,
-	})
+	}
+	if projection != nil {
+		i.ProjectionExpression = projection
+	}
+	o, err := dynamo.GetItem(i)
 	return o, err
 }
 

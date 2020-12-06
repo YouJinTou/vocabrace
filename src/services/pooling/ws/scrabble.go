@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/YouJinTou/vocabrace/games/scrabble"
-	"github.com/google/uuid"
 )
 
 type scrabblews struct{}
@@ -45,12 +44,11 @@ type clientMessage struct {
 	Type string
 }
 
-func (s scrabblews) OnStart(data *ReceiverData) PoolID {
+func (s scrabblews) OnStart(data *ReceiverData) {
 	players := s.loadPlayers(data.Users)
 	game := scrabble.NewGame(data.Language, players, scrabble.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
-	data.PoolID = uuid.New().String()
 
 	for _, p := range game.Players {
 		startState := start{
@@ -74,8 +72,6 @@ func (s scrabblews) OnStart(data *ReceiverData) PoolID {
 	}
 
 	SendManyUnique(messages)
-
-	return PoolID(data.PoolID)
 }
 
 func (s scrabblews) OnAction(data *ReceiverData) {

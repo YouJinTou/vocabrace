@@ -10,7 +10,7 @@ import (
 )
 
 type state interface {
-	OnStart(*ReceiverData) PoolID
+	OnStart(*ReceiverData)
 	OnAction(*ReceiverData)
 }
 
@@ -23,12 +23,9 @@ func load(data *ReceiverData) state {
 	}
 }
 
-// PoolID is the pool ID.
-type PoolID string
-
 // OnStart executes communication logic at the start of a game.
-func OnStart(data *ReceiverData) PoolID {
-	return load(data).OnStart(data)
+func OnStart(data *ReceiverData) {
+	load(data).OnStart(data)
 }
 
 // OnAction executes communication logic when a player takes an action.

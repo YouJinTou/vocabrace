@@ -3,22 +3,33 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 
-	"github.com/YouJinTou/vocabrace/services/pooling"
+	"github.com/aws/aws-sdk-go/aws"
+
+	"github.com/YouJinTou/vocabrace/tools"
+
 	"github.com/YouJinTou/vocabrace/services/pooling/ws"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
+
+type pool struct {
+	ID            string
+	ConnectionIDs []string
+}
 
 func main() {
 	lambda.Start(handle)
 }
 
-func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
+	events.APIGatewayProxyResponse, error) {
 	data, game := getData(req.Body)
-	pool, err := pooling.GetPool(req.RequestContext.ConnectionID, os.Getenv("STAGE"))
+	pool, err := getPool(req.RequestContext.ConnectionID)
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
@@ -59,4 +70,25 @@ func getData(body string) (string, string) {
 	}
 
 	return p.Data, g.Game
+}
+
+func getPool(connectionID string) (*pool, error) {
+	con, cErr := tools.GetItem(
+		fmt.Sprintf("%s_connections", os.Getenv("STAGE")), "ID", connectionID, nil, nil, nil)
+	if cErr != nil {
+		return nil, cErr
+	}
+	p, pErr := tools.GetItem(fmt.Sprintf(
+		"%s_pools", os.Getenv("STAGE")),
+		"ID",
+		*con.Item["PoolID"].S,
+		nil,
+		nil,
+		aws.String("ID, ConnectionIDs"))
+	if pErr != nil {
+		return nil, pErr
+	}
+	pool := pool{}
+	dynamodbattribute.UnmarshalMap(p.Item, &pool)
+	return &pool, nil
 }

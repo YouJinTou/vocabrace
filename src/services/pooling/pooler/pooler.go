@@ -30,7 +30,7 @@ func toMapping(s string) mapping {
 }
 
 type pooler struct {
-	OnStart func(*ws.ReceiverData) ws.PoolID
+	OnStart func(*ws.ReceiverData)
 }
 
 func (p *pooler) joinWaitlist(connectionID string, params map[string]string) (
@@ -69,7 +69,8 @@ func (p *pooler) leaveWaitlist(connectionID string, params map[string]string) er
 
 func (p *pooler) onWaitlistFull(o *dynamodb.UpdateItemOutput, r *events.APIGatewayWebsocketProxyRequest) {
 	players, _ := strconv.Atoi(getParam("players", r.QueryStringParameters))
-	poolFull := len(o.Attributes["ConnectionIDs"].SS) == players
+	connectionIDs := tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS)
+	poolFull := len(connectionIDs) == players
 	if !poolFull {
 		return
 	}
@@ -84,16 +85,18 @@ func (p *pooler) onWaitlistFull(o *dynamodb.UpdateItemOutput, r *events.APIGatew
 		})
 	}
 
-	pid := p.OnStart(&ws.ReceiverData{
+	pid := p.createPool(connectionIDs)
+	p.setPoolForConnections(connectionIDs, pid)
+
+	p.OnStart(&ws.ReceiverData{
 		Users:         users,
-		ConnectionIDs: tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS),
+		PoolID:        pid,
+		ConnectionIDs: connectionIDs,
 		Domain:        r.RequestContext.DomainName,
 		Stage:         os.Getenv("STAGE"),
 		Game:          getParam("game", r.QueryStringParameters),
 		Language:      getParam("language", r.QueryStringParameters),
 	})
-
-	p.setPoolForConnections(tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS), string(pid))
 
 	p.flushWaitlist(r.QueryStringParameters)
 }
@@ -107,6 +110,15 @@ func (p *pooler) flushWaitlist(params map[string]string) error {
 	}
 	_, err := dynamo().UpdateItem(&i)
 	return err
+}
+
+func (p *pooler) createPool(connectionIDs []string) string {
+	ID := uuid.New().String()
+	tools.PutItem(*table("pools"), struct {
+		ID            string
+		ConnectionIDs []string
+	}{ID, connectionIDs})
+	return ID
 }
 
 func (p *pooler) setPoolForConnections(connectionIDs []string, poolID string) {

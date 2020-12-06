@@ -20,6 +20,7 @@ var mappings = []*mapping{
 	&mapping{ConnectionID: "999", UserID: "rrr"},
 	&mapping{ConnectionID: "000", UserID: "ttt"},
 }
+var pid string
 
 func TestMain(m *testing.M) {
 	setup()
@@ -122,7 +123,7 @@ func Test_OnWaitlistNotFull_DoesNotFlush(t *testing.T) {
 
 	p().onWaitlistFull(oPtr, req(userID))
 
-	bucket, _ := tools.GetItem("dev_waitlist", "ID", ID(), nil, nil)
+	bucket, _ := tools.GetItem("dev_waitlist", "ID", ID(), nil, nil, nil)
 
 	if _, ok := bucket.Item["ConnectionIDs"]; !ok {
 		t.Errorf("expected connections to be there")
@@ -141,7 +142,7 @@ func Test_OnWaitlistFull_FlushesWaitlist(t *testing.T) {
 
 	p().onWaitlistFull(oPtr, req(userID))
 
-	bucket, _ := tools.GetItem("dev_waitlist", "ID", ID(), nil, nil)
+	bucket, _ := tools.GetItem("dev_waitlist", "ID", ID(), nil, nil, nil)
 
 	if _, ok := bucket.Item["ConnectionIDs"]; ok {
 		t.Errorf("expected connections to have been cleared")
@@ -161,6 +162,24 @@ func Test_OnWaitlistFull_PoolsPlayers(t *testing.T) {
 	p().onWaitlistFull(oPtr, req(userID))
 }
 
+func Test_OnWaitlistFull_CreatesPool(t *testing.T) {
+	var oPtr *dynamodb.UpdateItemOutput
+	for _, m := range mappings {
+		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		oPtr = o
+	}
+
+	p().onWaitlistFull(oPtr, req(userID))
+
+	if result, err := tools.GetItem(*table("pools"), "ID", pid, nil, nil, nil); err == nil {
+		if result.Item == nil {
+			t.Errorf("pool not created")
+		}
+	} else {
+		t.Errorf(err.Error())
+	}
+}
+
 func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
 	var oPtr *dynamodb.UpdateItemOutput
 	for _, m := range mappings {
@@ -170,10 +189,11 @@ func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
 
 	p().onWaitlistFull(oPtr, req(userID))
 
-	connection, err := tools.GetItem("dev_connections", "ID", mappings[1].ConnectionID, nil, nil)
+	connection, err := tools.GetItem(
+		"dev_connections", "ID", mappings[1].ConnectionID, nil, nil, nil)
 	if err == nil {
 		if val, ok := connection.Item["PoolID"]; ok {
-			if val.S == nil || *val.S != "test_pool_id" {
+			if val.S == nil || *val.S != pid {
 				t.Errorf("incorrect pool ID set")
 			}
 		} else {
@@ -204,7 +224,7 @@ func params(userID string) map[string]string {
 }
 
 func bucket() (*dynamodb.GetItemOutput, error) {
-	return tools.GetItem("dev_waitlist", "ID", ID(), nil, nil)
+	return tools.GetItem("dev_waitlist", "ID", ID(), nil, nil, nil)
 }
 
 func ID() string {
@@ -223,8 +243,8 @@ func shutdown() {
 
 func p() *pooler {
 	return &pooler{
-		OnStart: func(*ws.ReceiverData) ws.PoolID {
-			return "test_pool_id"
+		OnStart: func(d *ws.ReceiverData) {
+			pid = d.PoolID
 		},
 	}
 }
