@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 
@@ -115,6 +116,7 @@ func Test_OnDisconnect_RemovesMapping(t *testing.T) {
 }
 
 func Test_OnWaitlistNotFull_DoesNotFlush(t *testing.T) {
+	time.Sleep(7 * time.Second)
 	var oPtr *dynamodb.UpdateItemOutput
 	for _, m := range mappings[0:3] {
 		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
@@ -123,7 +125,7 @@ func Test_OnWaitlistNotFull_DoesNotFlush(t *testing.T) {
 
 	p().onWaitlistFull(oPtr, req(userID))
 
-	bucket, _ := tools.GetItem("dev_waitlist", "ID", ID(), nil, nil, nil)
+	bucket, _ := tools.GetItem(tools.Table("waitlist"), "ID", ID(), nil, nil, nil)
 
 	if _, ok := bucket.Item["ConnectionIDs"]; !ok {
 		t.Errorf("expected connections to be there")
@@ -142,7 +144,7 @@ func Test_OnWaitlistFull_FlushesWaitlist(t *testing.T) {
 
 	p().onWaitlistFull(oPtr, req(userID))
 
-	bucket, _ := tools.GetItem("dev_waitlist", "ID", ID(), nil, nil, nil)
+	bucket, _ := tools.GetItem(tools.Table("waitlist"), "ID", ID(), nil, nil, nil)
 
 	if _, ok := bucket.Item["ConnectionIDs"]; ok {
 		t.Errorf("expected connections to have been cleared")
@@ -171,7 +173,7 @@ func Test_OnWaitlistFull_CreatesPool(t *testing.T) {
 
 	p().onWaitlistFull(oPtr, req(userID))
 
-	if result, err := tools.GetItem(*table("pools"), "ID", pid, nil, nil, nil); err == nil {
+	if result, err := tools.GetItem(tools.Table("pools"), "ID", pid, nil, nil, nil); err == nil {
 		if result.Item == nil {
 			t.Errorf("pool not created")
 		}
@@ -190,7 +192,7 @@ func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
 	p().onWaitlistFull(oPtr, req(userID))
 
 	connection, err := tools.GetItem(
-		"dev_connections", "ID", mappings[1].ConnectionID, nil, nil, nil)
+		tools.Table("connections"), "ID", mappings[1].ConnectionID, nil, nil, nil)
 	if err == nil {
 		if val, ok := connection.Item["PoolID"]; ok {
 			if val.S == nil || *val.S != pid {
@@ -224,7 +226,7 @@ func params(userID string) map[string]string {
 }
 
 func bucket() (*dynamodb.GetItemOutput, error) {
-	return tools.GetItem("dev_waitlist", "ID", ID(), nil, nil, nil)
+	return tools.GetItem(tools.Table("waitlist"), "ID", ID(), nil, nil, nil)
 }
 
 func ID() string {
@@ -238,13 +240,13 @@ func setup() {
 }
 
 func shutdown() {
-	tools.DeleteItem("dev_waitlist", "ID", ID(), nil, nil)
+	tools.DeleteItem(tools.Table("waitlist"), "ID", ID(), nil, nil)
 }
 
 func p() *pooler {
 	return &pooler{
-		OnStart: func(d *ws.ReceiverData) {
-			pid = d.PoolID
+		OnStart: func(i *ws.OnStartInput) {
+			pid = i.PoolID
 		},
 	}
 }

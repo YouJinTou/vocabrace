@@ -2,9 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
 
+	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -29,7 +28,7 @@ func updateUser(u *user) error {
 	u.Username = u.getDefaultUsernameIfNotExists()
 	ue := "SET #n = :n, Username = :u, Email = :e"
 	_, err := dynamo.UpdateItem(&dynamodb.UpdateItemInput{
-		TableName:        aws.String(fmt.Sprintf("%s_iam_users", os.Getenv("STAGE"))),
+		TableName:        tools.Table("iam_users"),
 		Key:              map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(u.ID)}},
 		UpdateExpression: aws.String(ue),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{

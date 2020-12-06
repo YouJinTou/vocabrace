@@ -9,22 +9,13 @@ import (
 
 func TestDoublesPointsOnFirstMove(t *testing.T) {
 	os.Setenv("AWS_REGION", "eu-central-1")
+	os.Setenv("STAGE", "dev")
 	os.Setenv("AWS_PROFILE", "vocabrace")
 
 	pid := "testing_pid"
-	rd := ReceiverData{
-		Initiator:     "initiator",
-		ConnectionIDs: []string{"1", "2"},
-		Domain:        "domain",
-		Stage:         "dev",
-		PoolID:        pid,
-		Game:          "scrabble",
-		Users: []*User{
-			&User{}, &User{},
-		},
-	}
+	users := []*User{&User{}, &User{}}
 	sws := scrabblews{}
-	players := sws.loadPlayers(rd.Users)
+	players := sws.loadPlayers(users)
 	g := scrabble.NewGame("bulgarian", players, scrabble.NewDynamoValidator())
 	w := scrabble.NewWordFromString(
 		"ТИ", []int{2, 3}, []int{scrabble.BoardOrigin, scrabble.BoardOrigin + 1})
@@ -36,12 +27,12 @@ func TestDoublesPointsOnFirstMove(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := saveState(&rd, g); err != nil {
+	if err := saveState(pid, g); err != nil {
 		t.Errorf(err.Error())
 	}
 
 	game := &scrabble.Game{}
-	loadState(&rd, game)
+	loadState(pid, game)
 
 	if game.GetPlayerByID(g.GetLastMovedID()).Points != 10 {
 		t.Errorf("invalid points")

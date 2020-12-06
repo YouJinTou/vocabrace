@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -18,7 +19,7 @@ func BuildSqsURL(region, accountID, name string) string {
 }
 
 // GetItem gets an item from AWS DynamoDB.
-func GetItem(tableName, pkName, pkValue string, skName, skValue *string, projection *string) (
+func GetItem(table *string, pkName, pkValue string, skName, skValue *string, projection *string) (
 	*dynamodb.GetItemOutput, error) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
@@ -31,7 +32,7 @@ func GetItem(tableName, pkName, pkValue string, skName, skValue *string, project
 		}
 	}
 	i := &dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
+		TableName: table,
 		Key:       key,
 	}
 	if projection != nil {
@@ -42,7 +43,7 @@ func GetItem(tableName, pkName, pkValue string, skName, skValue *string, project
 }
 
 // PutItem puts an item in AWS DynamoDB.
-func PutItem(tableName string, v interface{}) (*dynamodb.PutItemOutput, error) {
+func PutItem(table *string, v interface{}) (*dynamodb.PutItemOutput, error) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	item, err := dynamodbattribute.MarshalMap(v)
@@ -50,14 +51,15 @@ func PutItem(tableName string, v interface{}) (*dynamodb.PutItemOutput, error) {
 		return nil, err
 	}
 	o, pErr := dynamo.PutItem(&dynamodb.PutItemInput{
-		TableName: aws.String(tableName),
+		TableName: table,
 		Item:      item,
 	})
 	return o, pErr
 }
 
 // DeleteItem deletes an item from AWS DynamoDB.
-func DeleteItem(tableName, pkName, pkValue string, skName, skValue *string) (*dynamodb.DeleteItemOutput, error) {
+func DeleteItem(table *string, pkName, pkValue string, skName, skValue *string) (
+	*dynamodb.DeleteItemOutput, error) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	key := map[string]*dynamodb.AttributeValue{
@@ -69,14 +71,15 @@ func DeleteItem(tableName, pkName, pkValue string, skName, skValue *string) (*dy
 		}
 	}
 	o, err := dynamo.DeleteItem(&dynamodb.DeleteItemInput{
-		TableName: aws.String(tableName),
+		TableName: table,
 		Key:       key,
 	})
 	return o, err
 }
 
 // BatchGetItem gets items in batches from AWS DynamoDB.
-func BatchGetItem(tableName, partitionKey string, keys []string) (*dynamodb.BatchGetItemOutput, error) {
+func BatchGetItem(table *string, partitionKey string, keys []string) (
+	*dynamodb.BatchGetItemOutput, error) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	kaa := &dynamodb.KeysAndAttributes{}
@@ -91,9 +94,18 @@ func BatchGetItem(tableName, partitionKey string, keys []string) (*dynamodb.Batc
 
 	o, err := dynamo.BatchGetItem(&dynamodb.BatchGetItemInput{
 		RequestItems: map[string]*dynamodb.KeysAndAttributes{
-			tableName: kaa,
+			*table: kaa,
 		},
 	})
 
 	return o, err
+}
+
+// Table builds a stage-prepended table name.
+func Table(name string) *string {
+	var stage = os.Getenv("STAGE")
+	if stage == "" {
+		stage = "dev"
+	}
+	return aws.String(fmt.Sprintf("%s_%s", stage, name))
 }

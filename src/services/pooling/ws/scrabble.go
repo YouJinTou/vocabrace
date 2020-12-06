@@ -33,7 +33,7 @@ type result struct {
 	err error
 }
 
-func (s scrabblews) OnStart(data *ReceiverData) {
+func (s scrabblews) OnStart(data *OnStartInput) {
 	players := s.loadPlayers(data.Users)
 	game := scrabble.NewGame(data.Language, players, scrabble.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
@@ -52,20 +52,19 @@ func (s scrabblews) OnStart(data *ReceiverData) {
 		b, _ := json.Marshal(startState)
 		messages = append(messages, &Message{
 			Domain:       data.Domain,
-			Stage:        data.Stage,
 			ConnectionID: userByID(data.Users, p.ID).ConnectionID,
 			Message:      string(b),
 		})
 	}
 
-	if sErr := saveState(data, game); sErr != nil {
+	if sErr := saveState(data.PoolID, game); sErr != nil {
 		panic(sErr.Error())
 	}
 
 	SendManyUnique(messages)
 }
 
-func (s scrabblews) OnAction(data *ReceiverData) {
+func (s scrabblews) OnAction(data *OnActionInput) {
 	turn := turn{}
 	bErr := json.Unmarshal([]byte(data.Body), &turn)
 
@@ -75,7 +74,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	}
 
 	game := &scrabble.Game{}
-	loadState(data, game)
+	loadState(data.PoolID, game)
 	game.SetValidator(scrabble.NewDynamoValidator())
 
 	if vErr := s.validateTurn(data, game); vErr != nil {
@@ -99,14 +98,13 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 		return
 	}
 
-	if sErr := saveState(data, game); sErr != nil {
+	if sErr := saveState(data.PoolID, game); sErr != nil {
 		panic(sErr.Error())
 	}
 
 	Send(&Message{
 		ConnectionID: data.Initiator,
 		Domain:       data.Domain,
-		Stage:        data.Stage,
 		Message:      r.d.JSONWithPersonal(),
 	})
 
@@ -116,7 +114,6 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 		messages = append(messages, &Message{
 			ConnectionID: cid,
 			Domain:       data.Domain,
-			Stage:        data.Stage,
 			Message:      r.d.JSONWithoutPersonal(),
 		})
 	}
@@ -176,7 +173,7 @@ func (s *scrabblews) setPlayerData(players []*scrabble.Player) []*player {
 	return result
 }
 
-func (s *scrabblews) validateTurn(data *ReceiverData, g *scrabble.Game) error {
+func (s *scrabblews) validateTurn(data *OnActionInput, g *scrabble.Game) error {
 	if data.Initiator != g.ToMoveID {
 		return errors.New("invalid player turn")
 	}
@@ -184,7 +181,7 @@ func (s *scrabblews) validateTurn(data *ReceiverData, g *scrabble.Game) error {
 	return nil
 }
 
-func (s *scrabblews) returnClientError(data *ReceiverData, message string, err error) {
+func (s *scrabblews) returnClientError(data *OnActionInput, message string, err error) {
 	log.Printf("ERROR Data: %+v Dump: %s", data, err.Error())
 	msg := struct {
 		Body string
@@ -194,7 +191,6 @@ func (s *scrabblews) returnClientError(data *ReceiverData, message string, err e
 	Send(&Message{
 		ConnectionID: data.Initiator,
 		Domain:       data.Domain,
-		Stage:        data.Stage,
 		Message:      string(b),
 	})
 }

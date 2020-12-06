@@ -2,6 +2,7 @@ package ws
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -9,49 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 )
 
-// User ecanpsulates user data.
-type User struct {
-	ConnectionID string
-	UserID       string
-	Username     string
-}
-
-func userByID(users []*User, ID string) *User {
-	for _, u := range users {
-		if u.UserID == ID {
-			return u
-		}
-	}
-	return nil
-}
-
-// ReceiverData encapsulates receiver data for AWS API Gateway websockets.
-type ReceiverData struct {
-	Initiator     string
-	ConnectionIDs []string
-	Users         []*User
-	Domain        string
-	Stage         string
-	PoolID        string
-	Game          string
-	Body          string
-	Language      string
-}
-
-func (rd *ReceiverData) otherConnections() []string {
-	connections := []string{}
-	for _, cid := range rd.ConnectionIDs {
-		if cid != rd.Initiator {
-			connections = append(connections, cid)
-		}
-	}
-	return connections
-}
-
 // Message is used in sending data over a websocket.
 type Message struct {
 	Domain       string
-	Stage        string
 	ConnectionID string
 	Message      string
 }
@@ -59,7 +20,7 @@ type Message struct {
 // Send sends a message to a connection ID.
 func Send(m *Message) error {
 	session := session.Must(session.NewSession())
-	endpoint := fmt.Sprintf("https://%s/%s/", m.Domain, m.Stage)
+	endpoint := fmt.Sprintf("https://%s/%s/", m.Domain, os.Getenv("STAGE"))
 	apiClient := apigatewaymanagementapi.New(session, aws.NewConfig().WithEndpoint(endpoint))
 	connectionInput := apigatewaymanagementapi.PostToConnectionInput{
 		ConnectionId: aws.String(m.ConnectionID),

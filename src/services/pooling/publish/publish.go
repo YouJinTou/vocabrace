@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 
@@ -35,10 +33,9 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
-	ws.OnAction(&ws.ReceiverData{
+	ws.OnAction(&ws.OnActionInput{
 		Game:          game,
 		Domain:        req.RequestContext.DomainName,
-		Stage:         os.Getenv("STAGE"),
 		PoolID:        pool.ID,
 		Body:          data,
 		ConnectionIDs: pool.ConnectionIDs,
@@ -74,12 +71,12 @@ func getData(body string) (string, string) {
 
 func getPool(connectionID string) (*pool, error) {
 	con, cErr := tools.GetItem(
-		fmt.Sprintf("%s_connections", os.Getenv("STAGE")), "ID", connectionID, nil, nil, nil)
+		tools.Table("connections"), "ID", connectionID, nil, nil, nil)
 	if cErr != nil {
 		return nil, cErr
 	}
-	p, pErr := tools.GetItem(fmt.Sprintf(
-		"%s_pools", os.Getenv("STAGE")),
+	p, pErr := tools.GetItem(
+		tools.Table("pools"),
 		"ID",
 		*con.Item["PoolID"].S,
 		nil,
