@@ -1,221 +1,153 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/YouJinTou/vocabrace/services/pooling/ws"
-
-	"github.com/YouJinTou/vocabrace/services/pooling"
-
 	"github.com/YouJinTou/vocabrace/tools"
-	"github.com/aws/aws-sdk-go/service/sqs"
-
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/uuid"
 )
 
-type pool struct {
-	ID           string
-	Users        []*ws.User
-	Connections  []*connection
-	Domain       string
-	Bucket       string
-	Game         string
-	Stage        string
-	PlayersCount int
-	Language     string
+type mapping struct {
+	ConnectionID string
+	UserID       string
 }
 
-type connection struct {
-	ID             string
-	ReceiptHandle  string
-	IsDisconnected bool
+func (m *mapping) String() string {
+	return fmt.Sprintf("%s|%s", m.ConnectionID, m.UserID)
 }
 
-func (p *pool) ConnectionIDs() []string {
-	IDs := []string{}
-	for _, c := range p.Connections {
-		IDs = append(IDs, c.ID)
+func toMapping(s string) mapping {
+	tokens := strings.Split(s, "|")
+	return mapping{ConnectionID: tokens[0], UserID: tokens[1]}
+}
+
+type pooler struct {
+	OnStart func(*ws.ReceiverData)
+}
+
+func (p *pooler) joinWaitlist(connectionID string, params map[string]string) (
+	*dynamodb.UpdateItemOutput, error) {
+	mapping := p.getMapping(connectionID, params)
+	i := dynamodb.UpdateItemInput{
+		TableName: aws.String(fmt.Sprintf("%s_waitlist", os.Getenv("STAGE"))),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {S: aws.String(p.getBucket(params))}},
+		UpdateExpression: aws.String("ADD ConnectionIDs :c, Mappings :m"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":c": &dynamodb.AttributeValue{SS: []*string{aws.String(connectionID)}},
+			":m": &dynamodb.AttributeValue{SS: []*string{aws.String(mapping)}},
+		},
+		ReturnValues: aws.String("ALL_NEW"),
 	}
-	return IDs
+	o, err := dynamo().UpdateItem(&i)
+	return o, err
 }
 
-func (p *pool) ConnectionIDsPtr() []*string {
-	IDs := []*string{}
-	for _, c := range p.Connections {
-		IDs = append(IDs, &c.ID)
+func (p *pooler) leaveWaitlist(connectionID string, params map[string]string) error {
+	mapping := p.getMapping(connectionID, params)
+	i := dynamodb.UpdateItemInput{
+		TableName: aws.String(fmt.Sprintf("%s_waitlist", os.Getenv("STAGE"))),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {S: aws.String(p.getBucket(params))}},
+		UpdateExpression: aws.String("DELETE ConnectionIDs :c, Mappings :m"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":c": &dynamodb.AttributeValue{SS: []*string{aws.String(connectionID)}},
+			":m": &dynamodb.AttributeValue{SS: []*string{aws.String(mapping)}},
+		},
 	}
-	return IDs
+	_, err := dynamo().UpdateItem(&i)
+	return err
 }
 
-func main() {
-	lambda.Start(handle)
+func (p *pooler) flushWaitlist(params map[string]string) error {
+	i := dynamodb.UpdateItemInput{
+		TableName: aws.String(fmt.Sprintf("%s_waitlist", os.Getenv("STAGE"))),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {S: aws.String(p.getBucket(params))}},
+		UpdateExpression: aws.String("REMOVE ConnectionIDs, Mappings"),
+	}
+	_, err := dynamo().UpdateItem(&i)
+	return err
 }
 
-func handle(ctx context.Context, event events.SQSEvent) error {
-	c := pooling.GetConfig()
-
-	pool, err := createPool(event.Records, c)
-	if err != nil {
-		return err
+func (p *pooler) onWaitlistFull(o *dynamodb.UpdateItemOutput, r *events.APIGatewayWebsocketProxyRequest) {
+	players, _ := strconv.Atoi(getParam("players", r.QueryStringParameters))
+	poolFull := len(o.Attributes["ConnectionIDs"].SS) == players
+	if !poolFull {
+		return
 	}
 
-	if err := handleDisconnections(event, pool, c); err != nil {
-		return err
+	users := []*ws.User{}
+	for _, s := range o.Attributes["Mappings"].SS {
+		m := toMapping(*s)
+		users = append(users, &ws.User{
+			ConnectionID: m.ConnectionID,
+			Username:     "seom-test",
+			UserID:       m.UserID,
+		})
 	}
 
-	setPool(pool, c)
-
-	ws.OnStart(&ws.ReceiverData{
-		Users:         pool.Users,
-		ConnectionIDs: pool.ConnectionIDs(),
-		Domain:        pool.Domain,
-		Stage:         pool.Stage,
-		Game:          pool.Game,
-		PoolID:        pool.ID,
-		Language:      pool.Language,
+	p.OnStart(&ws.ReceiverData{
+		Users:         users,
+		ConnectionIDs: tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS),
+		Domain:        r.RequestContext.DomainName,
+		Stage:         os.Getenv("STAGE"),
+		Game:          getParam("game", r.QueryStringParameters),
+		Language:      getParam("language", r.QueryStringParameters),
 	})
 
+	p.flushWaitlist(r.QueryStringParameters)
+}
+
+func (p *pooler) getSkill(params map[string]string) string {
+	return "novice"
+}
+
+func (p *pooler) getBucket(params map[string]string) string {
+	bucket := fmt.Sprintf("%s_%s_%s_%s_%s",
+		os.Getenv("STAGE"),
+		getParam("game", params),
+		getParam("language", params),
+		p.getSkill(params),
+		getParam("players", params))
+	return bucket
+}
+
+func (p *pooler) getMapping(connectionID string, params map[string]string) string {
+	mapping := mapping{
+		ConnectionID: connectionID,
+		UserID:       uuid.New().String(),
+	}
+	isAnonymousVal := getNilParam("isAnonymous", params)
+	isAnonymous := isAnonymousVal == nil || *isAnonymousVal == "true"
+	userID := getNilParam("userID", params)
+	if isAnonymous && userID == nil {
+		return mapping.String()
+	}
+	mapping.UserID = *userID
+	return mapping.String()
+}
+
+func getNilParam(key string, params map[string]string) *string {
+	if val, ok := params[key]; ok {
+		return &val
+	}
 	return nil
 }
 
-func createPool(batch []events.SQSMessage, c *pooling.Config) (*pool, error) {
-	p := pool{Connections: []*connection{}, Stage: c.Stage}
-	users := []*ws.User{}
-	for _, message := range batch {
-		payload := pooling.PoolerPayload{}
-		json.Unmarshal([]byte(message.Body), &payload)
-
-		if payload.Players > len(batch) {
-			return nil, errors.New("not enough players")
-		}
-
-		p.PlayersCount = payload.Players
-		p.Bucket = payload.Bucket
-		p.Domain = payload.Domain
-		p.Game = payload.Game
-		p.Connections = append(p.Connections, &connection{
-			ID:            payload.ConnectionID,
-			ReceiptHandle: message.ReceiptHandle,
-		})
-		p.Language = payload.Language
-		users = append(users, &ws.User{
-			ConnectionID: payload.ConnectionID,
-			Username:     payload.Username,
-			UserID:       payload.UserID,
-		})
+func getParam(key string, params map[string]string) string {
+	if val, ok := params[key]; ok {
+		return val
 	}
-	p.Users = users
-	return &p, nil
-}
-
-func setPool(p *pool, c *pooling.Config) {
-	p.ID = uuid.New().String()
-	_, pErr := dynamo().PutItem(&dynamodb.PutItemInput{
-		TableName: aws.String(fmt.Sprintf("%s_pools", c.Stage)),
-		Item: map[string]*dynamodb.AttributeValue{
-			"ID":            {S: aws.String(p.ID)},
-			"ConnectionIDs": {SS: p.ConnectionIDsPtr()},
-			"Bucket":        {S: aws.String(p.Bucket)},
-			"Limit":         {N: aws.String(strconv.Itoa(p.PlayersCount))},
-			"LiveUntil":     {N: aws.String(tools.FutureTimestampStr(36000))},
-			"Language":      {S: aws.String(p.Language)},
-		},
-	})
-
-	if pErr != nil {
-		panic(pErr.Error())
-	}
-
-	requests := []*dynamodb.WriteRequest{}
-	for _, cid := range p.ConnectionIDs() {
-		requests = append(requests, &dynamodb.WriteRequest{
-			PutRequest: &dynamodb.PutRequest{
-				Item: map[string]*dynamodb.AttributeValue{
-					"ID":        {S: aws.String(cid)},
-					"PoolID":    {S: aws.String(p.ID)},
-					"LiveUntil": {N: aws.String(tools.FutureTimestampStr(7200))},
-				},
-			},
-		})
-	}
-	_, err := dynamo().BatchWriteItem(&dynamodb.BatchWriteItemInput{
-		RequestItems: map[string][]*dynamodb.WriteRequest{
-			fmt.Sprintf("%s_connections", c.Stage): requests,
-		},
-	})
-
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
-func handleDisconnections(event events.SQSEvent, p *pool, c *pooling.Config) error {
-	flagDisconnections(p, c)
-
-	sess := session.Must(session.NewSession())
-	svc := sqs.New(sess)
-	queueName := extractQueueName(event)
-	entries := []*sqs.DeleteMessageBatchRequestEntry{}
-
-	for _, c := range p.Connections {
-		if c.IsDisconnected {
-			entry := &sqs.DeleteMessageBatchRequestEntry{
-				Id:            aws.String(uuid.New().String()),
-				ReceiptHandle: aws.String(c.ReceiptHandle),
-			}
-			entries = append(entries, entry)
-		}
-	}
-
-	if len(entries) == 0 {
-		return nil
-	}
-
-	_, err := svc.DeleteMessageBatch(&sqs.DeleteMessageBatchInput{
-		Entries:  entries,
-		QueueUrl: aws.String(tools.BuildSqsURL(c.Region, c.AccountID, queueName)),
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return errors.New("disconnections exist")
-}
-
-func flagDisconnections(p *pool, c *pooling.Config) {
-	o, err := tools.BatchGetItem(fmt.Sprintf("%s_disconnections", c.Stage), "ID", p.ConnectionIDs())
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	for _, items := range o.Responses {
-		for _, kv := range items {
-			for _, c := range p.Connections {
-				if c.ID == *kv["ID"].S {
-					c.IsDisconnected = true
-				}
-			}
-		}
-	}
-}
-
-func extractQueueName(event events.SQSEvent) string {
-	arn := event.Records[0].EventSourceARN
-	tokens := strings.Split(arn, ":")
-	queueName := tokens[len(tokens)-1]
-	return queueName
+	panic(fmt.Sprintf("expected param %s", key))
 }
 
 func dynamo() *dynamodb.DynamoDB {

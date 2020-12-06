@@ -15,6 +15,19 @@ func ContainsString(s []string, t string) bool {
 	return false
 }
 
+// ContainsStringPtr checks if a slice of strings contains a given string.
+func ContainsStringPtr(s []*string, t string) bool {
+	for _, i := range s {
+		if i == nil {
+			continue
+		}
+		if *i == t {
+			return true
+		}
+	}
+	return false
+}
+
 // ContainsInt checks if a slice of ints contains a given int.
 func ContainsInt(s []int, t int) bool {
 	for _, i := range s {
@@ -38,4 +51,22 @@ func ToLowerStrings(s []string) []string {
 func SortInts(i ...int) []int {
 	sort.Ints(i)
 	return i
+}
+
+// ToStringPtrs takes a slice of strings and returns a slice of pointers to strings.
+func ToStringPtrs(s []string) []*string {
+	result := make([]*string, len(s), len(s))
+	for i := 0; i < len(s); i++ {
+		result[i] = &s[i]
+	}
+	return result
+}
+
+// FromStringPtrs takes a slice of pointer strings and returns a slice of strings.
+func FromStringPtrs(s []*string) []string {
+	result := make([]string, len(s), len(s))
+	for i := 0; i < len(s); i++ {
+		result[i] = *s[i]
+	}
+	return result
 }

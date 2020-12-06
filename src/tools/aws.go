@@ -17,6 +17,25 @@ func BuildSqsURL(region, accountID, name string) string {
 	return url
 }
 
+// GetItem gets an item from AWS DynamoDB.
+func GetItem(tableName, pkName, pkValue string, skName, skValue *string) (*dynamodb.GetItemOutput, error) {
+	sess := session.Must(session.NewSession())
+	dynamo := dynamodb.New(sess)
+	key := map[string]*dynamodb.AttributeValue{
+		pkName: {S: aws.String(pkValue)},
+	}
+	if skName != nil && skValue != nil {
+		key[*skName] = &dynamodb.AttributeValue{
+			S: skValue,
+		}
+	}
+	o, err := dynamo.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(tableName),
+		Key:       key,
+	})
+	return o, err
+}
+
 // PutItem puts an item in AWS DynamoDB.
 func PutItem(tableName string, v interface{}) (*dynamodb.PutItemOutput, error) {
 	sess := session.Must(session.NewSession())
@@ -30,6 +49,25 @@ func PutItem(tableName string, v interface{}) (*dynamodb.PutItemOutput, error) {
 		Item:      item,
 	})
 	return o, pErr
+}
+
+// DeleteItem deletes an item from AWS DynamoDB.
+func DeleteItem(tableName, pkName, pkValue string, skName, skValue *string) (*dynamodb.DeleteItemOutput, error) {
+	sess := session.Must(session.NewSession())
+	dynamo := dynamodb.New(sess)
+	key := map[string]*dynamodb.AttributeValue{
+		pkName: {S: aws.String(pkValue)},
+	}
+	if skName != nil && skValue != nil {
+		key[*skName] = &dynamodb.AttributeValue{
+			S: skValue,
+		}
+	}
+	o, err := dynamo.DeleteItem(&dynamodb.DeleteItemInput{
+		TableName: aws.String(tableName),
+		Key:       key,
+	})
+	return o, err
 }
 
 // BatchGetItem gets items in batches from AWS DynamoDB.

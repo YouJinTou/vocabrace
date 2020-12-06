@@ -11,18 +11,6 @@ build-lambda-zip -output pooler.zip pooler
 rm pooler
 mv pooler.zip $tf_root/payloads
 
-cd $services_root/pooling/connect
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o connect .
-build-lambda-zip -output connect.zip connect
-rm connect
-mv connect.zip $tf_root/payloads
-
-cd $services_root/pooling/disconnect
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o disconnect .
-build-lambda-zip -output disconnect.zip disconnect
-rm disconnect
-mv disconnect.zip $tf_root/payloads
-
 cd $services_root/pooling/publish
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o publish .
 build-lambda-zip -output publish.zip publish

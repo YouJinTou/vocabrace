@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/YouJinTou/vocabrace/games/scrabble"
+	"github.com/google/uuid"
 )
 
 type scrabblews struct{}
@@ -49,6 +50,7 @@ func (s scrabblews) OnStart(data *ReceiverData) {
 	game := scrabble.NewGame(data.Language, players, scrabble.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
+	data.PoolID = uuid.New().String()
 
 	for _, p := range game.Players {
 		startState := start{

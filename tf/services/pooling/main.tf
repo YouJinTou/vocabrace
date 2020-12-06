@@ -12,7 +12,7 @@ resource "aws_apigatewayv2_stage" "pooling" {
 resource "aws_apigatewayv2_deployment" "pooling" {
   api_id      = aws_apigatewayv2_api.pooling.id
   description = "Terraform deployment at ${timestamp()}"
-  depends_on = [module.connect, module.disconnect, module.publish]
+  depends_on = [module.pooler, module.publish]
   lifecycle {
     create_before_destroy = true
   }
