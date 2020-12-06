@@ -34,7 +34,6 @@ export class ScrabbleOverviewComponent implements OnInit {
       'players': parseInt(this.selectedPlayers),
       'language': this.selectedLanguage,
       'userId': this.userStatusService.current.id,
-      'username': this.userStatusService.current.username
     }).subscribe({
         next: m => this.router.navigate(['scrabble', m['pid']]),
         error: e => console.log(e)
