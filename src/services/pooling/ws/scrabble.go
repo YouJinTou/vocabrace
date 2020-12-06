@@ -45,7 +45,7 @@ type clientMessage struct {
 	Type string
 }
 
-func (s scrabblews) OnStart(data *ReceiverData) {
+func (s scrabblews) OnStart(data *ReceiverData) PoolID {
 	players := s.loadPlayers(data.Users)
 	game := scrabble.NewGame(data.Language, players, scrabble.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
@@ -74,6 +74,8 @@ func (s scrabblews) OnStart(data *ReceiverData) {
 	}
 
 	SendManyUnique(messages)
+
+	return PoolID(data.PoolID)
 }
 
 func (s scrabblews) OnAction(data *ReceiverData) {

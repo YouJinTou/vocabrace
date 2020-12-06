@@ -30,14 +30,14 @@ func toMapping(s string) mapping {
 }
 
 type pooler struct {
-	OnStart func(*ws.ReceiverData)
+	OnStart func(*ws.ReceiverData) ws.PoolID
 }
 
 func (p *pooler) joinWaitlist(connectionID string, params map[string]string) (
 	*dynamodb.UpdateItemOutput, error) {
 	mapping := p.getMapping(connectionID, params)
 	i := dynamodb.UpdateItemInput{
-		TableName: aws.String(fmt.Sprintf("%s_waitlist", os.Getenv("STAGE"))),
+		TableName: table("waitlist"),
 		Key: map[string]*dynamodb.AttributeValue{
 			"ID": {S: aws.String(p.getBucket(params))}},
 		UpdateExpression: aws.String("ADD ConnectionIDs :c, Mappings :m"),
@@ -54,7 +54,7 @@ func (p *pooler) joinWaitlist(connectionID string, params map[string]string) (
 func (p *pooler) leaveWaitlist(connectionID string, params map[string]string) error {
 	mapping := p.getMapping(connectionID, params)
 	i := dynamodb.UpdateItemInput{
-		TableName: aws.String(fmt.Sprintf("%s_waitlist", os.Getenv("STAGE"))),
+		TableName: table("waitlist"),
 		Key: map[string]*dynamodb.AttributeValue{
 			"ID": {S: aws.String(p.getBucket(params))}},
 		UpdateExpression: aws.String("DELETE ConnectionIDs :c, Mappings :m"),
@@ -62,17 +62,6 @@ func (p *pooler) leaveWaitlist(connectionID string, params map[string]string) er
 			":c": &dynamodb.AttributeValue{SS: []*string{aws.String(connectionID)}},
 			":m": &dynamodb.AttributeValue{SS: []*string{aws.String(mapping)}},
 		},
-	}
-	_, err := dynamo().UpdateItem(&i)
-	return err
-}
-
-func (p *pooler) flushWaitlist(params map[string]string) error {
-	i := dynamodb.UpdateItemInput{
-		TableName: aws.String(fmt.Sprintf("%s_waitlist", os.Getenv("STAGE"))),
-		Key: map[string]*dynamodb.AttributeValue{
-			"ID": {S: aws.String(p.getBucket(params))}},
-		UpdateExpression: aws.String("REMOVE ConnectionIDs, Mappings"),
 	}
 	_, err := dynamo().UpdateItem(&i)
 	return err
@@ -95,7 +84,7 @@ func (p *pooler) onWaitlistFull(o *dynamodb.UpdateItemOutput, r *events.APIGatew
 		})
 	}
 
-	p.OnStart(&ws.ReceiverData{
+	pid := p.OnStart(&ws.ReceiverData{
 		Users:         users,
 		ConnectionIDs: tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS),
 		Domain:        r.RequestContext.DomainName,
@@ -105,6 +94,29 @@ func (p *pooler) onWaitlistFull(o *dynamodb.UpdateItemOutput, r *events.APIGatew
 	})
 
 	p.flushWaitlist(r.QueryStringParameters)
+
+	p.setPoolForConnections(tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS), string(pid))
+}
+
+func (p *pooler) flushWaitlist(params map[string]string) error {
+	i := dynamodb.UpdateItemInput{
+		TableName: table("waitlist"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {S: aws.String(p.getBucket(params))}},
+		UpdateExpression: aws.String("REMOVE ConnectionIDs, Mappings"),
+	}
+	_, err := dynamo().UpdateItem(&i)
+	return err
+}
+
+func (p *pooler) setPoolForConnections(connectionIDs []string, poolID string) {
+	for _, cid := range connectionIDs {
+		tools.PutItem(*table("connections"), struct {
+			ID        string
+			PoolID    string
+			LiveUntil int
+		}{cid, poolID, tools.FutureTimestamp(7200)})
+	}
 }
 
 func (p *pooler) getSkill(params map[string]string) string {
@@ -153,4 +165,8 @@ func getParam(key string, params map[string]string) string {
 func dynamo() *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession())
 	return dynamodb.New(sess)
+}
+
+func table(name string) *string {
+	return aws.String(fmt.Sprintf("%s_%s", os.Getenv("STAGE"), name))
 }

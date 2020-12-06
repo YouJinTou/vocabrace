@@ -161,6 +161,29 @@ func Test_OnWaitlistFull_PoolsPlayers(t *testing.T) {
 	p().onWaitlistFull(oPtr, req(userID))
 }
 
+func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
+	var oPtr *dynamodb.UpdateItemOutput
+	for _, m := range mappings {
+		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		oPtr = o
+	}
+
+	p().onWaitlistFull(oPtr, req(userID))
+
+	connection, err := tools.GetItem("dev_connections", "ID", mappings[1].ConnectionID, nil, nil)
+	if err == nil {
+		if val, ok := connection.Item["PoolID"]; ok {
+			if val.S == nil || *val.S != "test_pool_id" {
+				t.Errorf("incorrect pool ID set")
+			}
+		} else {
+			t.Errorf("pool ID not set for connection")
+		}
+	} else {
+		t.Errorf(err.Error())
+	}
+}
+
 func req(userID string) *events.APIGatewayWebsocketProxyRequest {
 	return &events.APIGatewayWebsocketProxyRequest{
 		QueryStringParameters: params(userID),
@@ -200,6 +223,8 @@ func shutdown() {
 
 func p() *pooler {
 	return &pooler{
-		OnStart: func(*ws.ReceiverData) {},
+		OnStart: func(*ws.ReceiverData) ws.PoolID {
+			return "test_pool_id"
+		},
 	}
 }
