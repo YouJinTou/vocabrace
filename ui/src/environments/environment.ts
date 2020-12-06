@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  wsEndpoint: 'wss://28ntqd6b2f.execute-api.eu-central-1.amazonaws.com/dev',
+  wsEndpoint: 'wss://n1b93gorug.execute-api.eu-central-1.amazonaws.com/dev',
   iamEndpoint: 'https://w66h7cv0qd.execute-api.eu-central-1.amazonaws.com/dev/iam'
 };
 

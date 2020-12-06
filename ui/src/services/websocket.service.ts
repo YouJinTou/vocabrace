@@ -10,8 +10,8 @@ export class WebsocketService implements OnDestroy {
   private connection$: WebSocketSubject<any>;
   public last: any;
 
-  connect(url: string, game: string, params={}): Observable<any> {
-    let queryString = `?game=${game}`;
+  connect(url: string, params={}): Observable<any> {
+    let queryString = '?';
     for (let key in params) {
       let val = params[key];
       if (val) {
@@ -19,7 +19,7 @@ export class WebsocketService implements OnDestroy {
       }
     }
     let result = `${url}${queryString}`
-    
+    console.log(result);
     return of(result).pipe(_ => {
       if (!this.connection$) {
         this.connection$ = webSocket(result);

@@ -29,8 +29,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   blankClicked: boolean;
 
   constructor(
-    public blanksDialog: MatDialog, 
-    private wsService: WebsocketService, 
+    public blanksDialog: MatDialog,
+    private wsService: WebsocketService,
     private route: ActivatedRoute) { }
 
   ngOnInit(): void {
@@ -40,9 +40,9 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
       this.pipeline(this.wsService.last);
     }
 
-    let connection$ = this.wsService.connection() ? 
-      this.wsService.connection() : 
-      this.wsService.connect(environment.wsEndpoint, 'scrabble');
+    let connection$ = this.wsService.connection() ?
+      this.wsService.connection() :
+      this.wsService.connect(environment.wsEndpoint, { 'game': 'scrabble' });
     connection$.pipe(
       takeUntil(this.destroyed$)
     ).subscribe({
