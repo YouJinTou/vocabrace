@@ -20,13 +20,6 @@ type player struct {
 	Points int    `json:"p"`
 	Tiles  int    `json:"t"`
 }
-type start struct {
-	Tiles    *scrabble.Tiles `json:"t"`
-	ToMove   string          `json:"m"`
-	Players  []*player       `json:"p"`
-	YourMove bool            `json:"y"`
-	PoolID   string          `json:"pid"`
-}
 type turn struct {
 	IsPlace       bool     `json:"p"`
 	IsExchange    bool     `json:"e"`
@@ -39,25 +32,23 @@ type result struct {
 	d   scrabble.DeltaState
 	err error
 }
-type clientMessage struct {
-	Body string
-	Type string
-}
 
 func (s scrabblews) OnStart(data *ReceiverData) {
 	players := s.loadPlayers(data.Users)
 	game := scrabble.NewGame(data.Language, players, scrabble.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
+	startState := struct {
+		Tiles    *scrabble.Tiles `json:"t"`
+		ToMove   string          `json:"m"`
+		Players  []*player       `json:"p"`
+		YourMove bool            `json:"y"`
+		PoolID   string          `json:"pid"`
+	}{nil, game.ToMove().Name, projected, false, data.PoolID}
 
 	for _, p := range game.Players {
-		startState := start{
-			Tiles:    p.Tiles,
-			ToMove:   game.ToMove().Name,
-			Players:  projected,
-			YourMove: game.ToMoveID == p.ID,
-			PoolID:   data.PoolID,
-		}
+		startState.Tiles = p.Tiles
+		startState.YourMove = game.ToMoveID == p.ID
 		b, _ := json.Marshal(startState)
 		messages = append(messages, &Message{
 			Domain:       data.Domain,
@@ -195,10 +186,10 @@ func (s *scrabblews) validateTurn(data *ReceiverData, g *scrabble.Game) error {
 
 func (s *scrabblews) returnClientError(data *ReceiverData, message string, err error) {
 	log.Printf("ERROR Data: %+v Dump: %s", data, err.Error())
-	msg := clientMessage{
-		Body: message,
-		Type: "ERROR",
-	}
+	msg := struct {
+		Body string
+		Type string
+	}{message, "ERROR"}
 	b, _ := json.Marshal(msg)
 	Send(&Message{
 		ConnectionID: data.Initiator,
