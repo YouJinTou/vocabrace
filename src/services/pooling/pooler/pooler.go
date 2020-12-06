@@ -93,9 +93,9 @@ func (p *pooler) onWaitlistFull(o *dynamodb.UpdateItemOutput, r *events.APIGatew
 		Language:      getParam("language", r.QueryStringParameters),
 	})
 
-	p.flushWaitlist(r.QueryStringParameters)
-
 	p.setPoolForConnections(tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS), string(pid))
+
+	p.flushWaitlist(r.QueryStringParameters)
 }
 
 func (p *pooler) flushWaitlist(params map[string]string) error {
