@@ -84,7 +84,6 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 	}
 
 	game := &scrabble.Game{}
-	var r *result
 	loadState(data, game)
 	game.SetValidator(scrabble.NewDynamoValidator())
 
@@ -93,6 +92,7 @@ func (s scrabblews) OnAction(data *ReceiverData) {
 		return
 	}
 
+	var r *result
 	if turn.IsExchange {
 		r = s.exchange(&turn, game)
 	} else if turn.IsPass {
