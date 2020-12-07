@@ -15,11 +15,12 @@ export class WebsocketService implements OnDestroy {
     for (let key in params) {
       let val = params[key];
       if (val) {
-        queryString += `&${key}=${val}`;
+        queryString += `${key}=${val}&`;
       }
     }
+    queryString = queryString.slice(0, queryString.length - 1)
     let result = `${url}${queryString}`
-    
+
     return of(result).pipe(_ => {
       if (!this.connection$) {
         this.connection$ = webSocket(result);
