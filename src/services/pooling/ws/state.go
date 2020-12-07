@@ -106,15 +106,7 @@ func saveState(poolID string, v interface{}) error {
 }
 
 func loadState(poolID string, v interface{}) {
-	sess := session.Must(session.NewSession())
-	dynamo := dynamodb.New(sess)
-	i, err := dynamo.GetItem(&dynamodb.GetItemInput{
-		TableName: tools.Table("pools"),
-		Key: map[string]*dynamodb.AttributeValue{
-			"ID": {S: aws.String(poolID)},
-		},
-	})
-
+	i, err := tools.GetItem(tools.Table("pools"), "ID", poolID, nil, nil, nil)
 	if err != nil {
 		panic(err.Error())
 	}
