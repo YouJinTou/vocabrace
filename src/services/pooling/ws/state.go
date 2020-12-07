@@ -18,7 +18,12 @@ type state interface {
 func load(game string) state {
 	switch game {
 	case "scrabble":
-		return scrabblews{}
+		return scrabblews{
+			saveState:      saveState,
+			loadState:      loadState,
+			send:           Send,
+			sendManyUnique: SendManyUnique,
+		}
 	default:
 		panic(fmt.Sprintf("invalid game %s", game))
 	}

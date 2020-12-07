@@ -8,7 +8,12 @@ import (
 	"github.com/YouJinTou/vocabrace/games/scrabble"
 )
 
-type scrabblews struct{}
+type scrabblews struct {
+	loadState      func(string, interface{})
+	saveState      func(string, interface{}) error
+	send           func(*Message) error
+	sendManyUnique func([]*Message)
+}
 type cell struct {
 	CellIndex int    `json:"c"`
 	TileID    string `json:"t"`
@@ -57,11 +62,11 @@ func (s scrabblews) OnStart(data *OnStartInput) {
 		})
 	}
 
-	if sErr := saveState(data.PoolID, game); sErr != nil {
+	if sErr := s.saveState(data.PoolID, game); sErr != nil {
 		panic(sErr.Error())
 	}
 
-	SendManyUnique(messages)
+	s.sendManyUnique(messages)
 }
 
 func (s scrabblews) OnAction(data *OnActionInput) {
@@ -74,7 +79,7 @@ func (s scrabblews) OnAction(data *OnActionInput) {
 	}
 
 	game := &scrabble.Game{}
-	loadState(data.PoolID, game)
+	s.loadState(data.PoolID, game)
 	game.SetValidator(scrabble.NewDynamoValidator())
 
 	if vErr := s.validateTurn(data, game); vErr != nil {
@@ -98,11 +103,11 @@ func (s scrabblews) OnAction(data *OnActionInput) {
 		return
 	}
 
-	if sErr := saveState(data.PoolID, game); sErr != nil {
+	if sErr := s.saveState(data.PoolID, game); sErr != nil {
 		panic(sErr.Error())
 	}
 
-	Send(&Message{
+	s.send(&Message{
 		ConnectionID: data.Initiator,
 		Domain:       data.Domain,
 		Message:      r.d.JSONWithPersonal(),
@@ -117,7 +122,7 @@ func (s scrabblews) OnAction(data *OnActionInput) {
 			Message:      r.d.JSONWithoutPersonal(),
 		})
 	}
-	SendManyUnique(messages)
+	s.sendManyUnique(messages)
 }
 
 func (s *scrabblews) exchange(turn *turn, g *scrabble.Game) *result {
@@ -188,7 +193,7 @@ func (s *scrabblews) returnClientError(data *OnActionInput, message string, err 
 		Type string
 	}{message, "ERROR"}
 	b, _ := json.Marshal(msg)
-	Send(&Message{
+	s.send(&Message{
 		ConnectionID: data.Initiator,
 		Domain:       data.Domain,
 		Message:      string(b),
