@@ -67,7 +67,8 @@ func (p *pooler) leaveWaitlist(connectionID string, params map[string]string) er
 	return err
 }
 
-func (p *pooler) onWaitlistFull(o *dynamodb.UpdateItemOutput, r *events.APIGatewayWebsocketProxyRequest) {
+func (p *pooler) onWaitlistFull(
+	o *dynamodb.UpdateItemOutput, r *events.APIGatewayWebsocketProxyRequest) {
 	players, _ := strconv.Atoi(getParam("players", r.QueryStringParameters))
 	connectionIDs := tools.FromStringPtrs(o.Attributes["ConnectionIDs"].SS)
 	poolFull := len(connectionIDs) == players
