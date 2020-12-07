@@ -16,7 +16,7 @@ export class ScrabbleOverviewComponent implements OnInit {
 
   constructor(
     private wsService: WebsocketService,
-    private userStatusService: UserStatusService, 
+    private userStatusService: UserStatusService,
     private router: Router) { }
 
   ngOnInit(): void {
@@ -37,8 +37,8 @@ export class ScrabbleOverviewComponent implements OnInit {
       'userID': this.userStatusService.current.id,
       'isAnonymous': this.userStatusService.current.id ? true : false
     }).subscribe({
-        next: m => this.router.navigate(['scrabble', m['pid']]),
-        error: e => console.log(e)
-      });
+      next: m => this.router.navigate(['scrabble', m['pid']]),
+      error: e => console.log(e)
+    });
   }
 }

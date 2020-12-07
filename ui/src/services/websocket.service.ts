@@ -19,7 +19,7 @@ export class WebsocketService implements OnDestroy {
       }
     }
     let result = `${url}${queryString}`
-    console.log(result);
+    
     return of(result).pipe(_ => {
       if (!this.connection$) {
         this.connection$ = webSocket(result);
