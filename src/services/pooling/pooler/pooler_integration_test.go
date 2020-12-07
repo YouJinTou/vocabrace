@@ -96,6 +96,7 @@ func Test_OnDisconnect_RemovesConnectionsFromWaitlist(t *testing.T) {
 		params["userID"] = m.UserID
 		p().joinWaitlist(m.ConnectionID, params)
 	}
+	params["game"] = ""
 	err := p().leaveWaitlist(mappings[1].ConnectionID, params)
 
 	if err == nil {
@@ -116,6 +117,7 @@ func Test_OnDisconnect_RemovesMapping(t *testing.T) {
 		params["userID"] = m.UserID
 		p().joinWaitlist(m.ConnectionID, params)
 	}
+	params["game"] = ""
 	err := p().leaveWaitlist(mappings[4].ConnectionID, params)
 
 	if err == nil {
@@ -208,7 +210,7 @@ func Test_OnWaitlistFull_CreatesPool(t *testing.T) {
 	}
 }
 
-func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
+func Test_PlayersPooled_SetsConnectionsData(t *testing.T) {
 	var pid string
 	var oPtr *dynamodb.UpdateItemOutput
 	mappings := mappings()
@@ -231,6 +233,20 @@ func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
 			}
 		} else {
 			t.Errorf("pool ID not set for connection")
+		}
+		if val, ok := connection.Item["Waitlist"]; ok {
+			if val.S == nil || *val.S != p.getBucket(params) {
+				t.Errorf("incorrect waitlist set")
+			}
+		} else {
+			t.Errorf("waitlist not set for connection")
+		}
+		if val, ok := connection.Item["UserID"]; ok {
+			if val.S == nil || *val.S != mappings[1].UserID {
+				t.Errorf("incorrect user ID set")
+			}
+		} else {
+			t.Errorf("user ID not set for connection")
 		}
 	} else {
 		t.Errorf(err.Error())

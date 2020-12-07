@@ -52,7 +52,8 @@ func (p *pooler) joinWaitlist(connectionID string, params map[string]string) (
 }
 
 func (p *pooler) leaveWaitlist(connectionID string, params map[string]string) error {
-	mapping := p.getMapping(connectionID, params)
+	con, _ := tools.GetItem(tools.Table("connections"), "ID", connectionID, nil, nil, nil)
+	mapping := mapping{ConnectionID: *con.Item["ID"].S, UserID: *con.Item["UserID"].S}
 	i := dynamodb.UpdateItemInput{
 		TableName: tools.Table("waitlist"),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -60,7 +61,7 @@ func (p *pooler) leaveWaitlist(connectionID string, params map[string]string) er
 		UpdateExpression: aws.String("DELETE ConnectionIDs :c, Mappings :m"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":c": &dynamodb.AttributeValue{SS: []*string{aws.String(connectionID)}},
-			":m": &dynamodb.AttributeValue{SS: []*string{aws.String(mapping)}},
+			":m": &dynamodb.AttributeValue{SS: []*string{aws.String(mapping.String())}},
 		},
 	}
 	_, err := dynamo().UpdateItem(&i)
@@ -87,7 +88,7 @@ func (p *pooler) onWaitlistFull(
 	}
 
 	pid := p.createPool(connectionIDs)
-	p.setPoolForConnections(connectionIDs, pid)
+	p.setConnectionsData(users, pid, p.getBucket(r.QueryStringParameters))
 
 	p.OnStart(&ws.OnStartInput{
 		Users:    users,
@@ -120,13 +121,15 @@ func (p *pooler) createPool(connectionIDs []string) string {
 	return ID
 }
 
-func (p *pooler) setPoolForConnections(connectionIDs []string, poolID string) {
-	for _, cid := range connectionIDs {
+func (p *pooler) setConnectionsData(users []*ws.User, poolID, waitlist string) {
+	for _, u := range users {
 		tools.PutItem(tools.Table("connections"), struct {
 			ID        string
 			PoolID    string
+			UserID    string
+			Waitlist  string
 			LiveUntil int
-		}{cid, poolID, tools.FutureTimestamp(7200)})
+		}{u.ConnectionID, poolID, u.UserID, waitlist, tools.FutureTimestamp(7200)})
 	}
 }
 
