@@ -2,10 +2,11 @@ package main
 
 import (
 	"os"
+	"strconv"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/google/uuid"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
@@ -14,31 +15,32 @@ import (
 )
 
 var userID = "test_user_id"
-var mappings = []*mapping{
-	&mapping{ConnectionID: "123", UserID: "qqq"},
-	&mapping{ConnectionID: "456", UserID: "www"},
-	&mapping{ConnectionID: "789", UserID: "eee"},
-	&mapping{ConnectionID: "999", UserID: "rrr"},
-	&mapping{ConnectionID: "000", UserID: "ttt"},
+var mappings = func() []*mapping {
+	return []*mapping{
+		&mapping{ConnectionID: r(), UserID: r()},
+		&mapping{ConnectionID: r(), UserID: r()},
+		&mapping{ConnectionID: r(), UserID: r()},
+		&mapping{ConnectionID: r(), UserID: r()},
+		&mapping{ConnectionID: r(), UserID: r()},
+	}
 }
-var pid string
 
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
-	shutdown()
 	os.Exit(code)
 }
 
 func Test_OnConnect_JoinsWaitlist(t *testing.T) {
-	if _, err := p().joinWaitlist("123", params(userID)); err != nil {
+	if _, err := p().joinWaitlist(r(), params(r(), r(), r(), r())); err != nil {
 		t.Errorf(err.Error())
 	}
 }
 
 func Test_OnConnect_CreatesBucket(t *testing.T) {
-	p().joinWaitlist("123", params(userID))
-	bucket, err := bucket()
+	params := params(r(), r(), r(), r())
+	p().joinWaitlist(r(), params)
+	bucket, err := bucket(params)
 
 	if bucket.Item == nil {
 		t.Errorf("key not found")
@@ -49,10 +51,12 @@ func Test_OnConnect_CreatesBucket(t *testing.T) {
 }
 
 func Test_OnConnect_SetsConnectionIDs(t *testing.T) {
+	params := params(r(), r(), r(), r())
+	mappings := mappings()
 	for _, m := range mappings {
-		p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		p().joinWaitlist(m.ConnectionID, params)
 	}
-	bucket, _ := bucket()
+	bucket, _ := bucket(params)
 
 	if value, ok := bucket.Item["ConnectionIDs"]; ok {
 		for _, m := range mappings {
@@ -66,10 +70,13 @@ func Test_OnConnect_SetsConnectionIDs(t *testing.T) {
 }
 
 func Test_OnConnect_SetsConnectionIDUserIDMapping(t *testing.T) {
+	params := params(r(), r(), r(), r())
+	mappings := mappings()
 	for _, m := range mappings {
-		p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		params["userID"] = m.UserID
+		p().joinWaitlist(m.ConnectionID, params)
 	}
-	bucket, _ := bucket()
+	bucket, _ := bucket(params)
 
 	if value, ok := bucket.Item["Mappings"]; ok {
 		for _, m := range mappings {
@@ -83,13 +90,16 @@ func Test_OnConnect_SetsConnectionIDUserIDMapping(t *testing.T) {
 }
 
 func Test_OnDisconnect_RemovesConnectionsFromWaitlist(t *testing.T) {
+	params := params(r(), r(), r(), r())
+	mappings := mappings()
 	for _, m := range mappings {
-		p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		params["userID"] = m.UserID
+		p().joinWaitlist(m.ConnectionID, params)
 	}
-	err := p().leaveWaitlist(mappings[1].ConnectionID, params(mappings[1].UserID))
+	err := p().leaveWaitlist(mappings[1].ConnectionID, params)
 
 	if err == nil {
-		bucket, _ := bucket()
+		bucket, _ := bucket(params)
 		connectionIDs := bucket.Item["ConnectionIDs"].SS
 		if tools.ContainsStringPtr(connectionIDs, mappings[1].ConnectionID) {
 			t.Errorf("found connection, expected to be removed")
@@ -100,15 +110,18 @@ func Test_OnDisconnect_RemovesConnectionsFromWaitlist(t *testing.T) {
 }
 
 func Test_OnDisconnect_RemovesMapping(t *testing.T) {
+	params := params(r(), r(), r(), r())
+	mappings := mappings()
 	for _, m := range mappings {
-		p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		params["userID"] = m.UserID
+		p().joinWaitlist(m.ConnectionID, params)
 	}
-	err := p().leaveWaitlist(mappings[1].ConnectionID, params(mappings[1].UserID))
+	err := p().leaveWaitlist(mappings[4].ConnectionID, params)
 
 	if err == nil {
-		bucket, _ := bucket()
-		if tools.ContainsStringPtr(bucket.Item["Mappings"].SS, mappings[1].String()) {
-			t.Errorf("expected %s to have been removed", mappings[1].String())
+		bucket, _ := bucket(params)
+		if tools.ContainsStringPtr(bucket.Item["Mappings"].SS, mappings[4].String()) {
+			t.Errorf("expected %s to have been removed", mappings[4].String())
 		}
 	} else {
 		t.Errorf(err.Error())
@@ -116,16 +129,17 @@ func Test_OnDisconnect_RemovesMapping(t *testing.T) {
 }
 
 func Test_OnWaitlistNotFull_DoesNotFlush(t *testing.T) {
-	time.Sleep(7 * time.Second)
 	var oPtr *dynamodb.UpdateItemOutput
-	for _, m := range mappings[0:3] {
-		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
+	params := params(r(), r(), r(), r())
+	for _, m := range mappings()[0:3] {
+		params["userID"] = m.UserID
+		o, _ := p().joinWaitlist(m.ConnectionID, params)
 		oPtr = o
 	}
 
-	p().onWaitlistFull(oPtr, req(userID))
+	p().onWaitlistFull(oPtr, req(params))
 
-	bucket, _ := tools.GetItem(tools.Table("waitlist"), "ID", ID(), nil, nil, nil)
+	bucket, _ := tools.GetItem(tools.Table("waitlist"), "ID", ID(params), nil, nil, nil)
 
 	if _, ok := bucket.Item["ConnectionIDs"]; !ok {
 		t.Errorf("expected connections to be there")
@@ -137,14 +151,18 @@ func Test_OnWaitlistNotFull_DoesNotFlush(t *testing.T) {
 
 func Test_OnWaitlistFull_FlushesWaitlist(t *testing.T) {
 	var oPtr *dynamodb.UpdateItemOutput
+	mappings := mappings()
+	params := params(r(), r(), strconv.Itoa(len(mappings)), r())
+	p := p()
 	for _, m := range mappings {
-		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		params["userID"] = m.UserID
+		o, _ := p.joinWaitlist(m.ConnectionID, params)
 		oPtr = o
 	}
 
-	p().onWaitlistFull(oPtr, req(userID))
+	p.onWaitlistFull(oPtr, req(params))
 
-	bucket, _ := tools.GetItem(tools.Table("waitlist"), "ID", ID(), nil, nil, nil)
+	bucket, _ := tools.GetItem(tools.Table("waitlist"), "ID", ID(params), nil, nil, nil)
 
 	if _, ok := bucket.Item["ConnectionIDs"]; ok {
 		t.Errorf("expected connections to have been cleared")
@@ -156,22 +174,30 @@ func Test_OnWaitlistFull_FlushesWaitlist(t *testing.T) {
 
 func Test_OnWaitlistFull_PoolsPlayers(t *testing.T) {
 	var oPtr *dynamodb.UpdateItemOutput
+	mappings := mappings()
+	params := params(r(), r(), strconv.Itoa(len(mappings)), r())
 	for _, m := range mappings {
-		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		params["userID"] = m.UserID
+		o, _ := p().joinWaitlist(m.ConnectionID, params)
 		oPtr = o
 	}
 
-	p().onWaitlistFull(oPtr, req(userID))
+	p().onWaitlistFull(oPtr, req(params))
 }
 
 func Test_OnWaitlistFull_CreatesPool(t *testing.T) {
 	var oPtr *dynamodb.UpdateItemOutput
+	var pid string
+	mappings := mappings()
+	params := params(r(), r(), strconv.Itoa(len(mappings)), r())
+	p := pos(func(i *ws.OnStartInput) { pid = i.PoolID })
 	for _, m := range mappings {
-		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		params["userID"] = m.UserID
+		o, _ := p.joinWaitlist(m.ConnectionID, params)
 		oPtr = o
 	}
 
-	p().onWaitlistFull(oPtr, req(userID))
+	p.onWaitlistFull(oPtr, req(params))
 
 	if result, err := tools.GetItem(tools.Table("pools"), "ID", pid, nil, nil, nil); err == nil {
 		if result.Item == nil {
@@ -183,13 +209,18 @@ func Test_OnWaitlistFull_CreatesPool(t *testing.T) {
 }
 
 func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
+	var pid string
 	var oPtr *dynamodb.UpdateItemOutput
+	mappings := mappings()
+	params := params(r(), r(), strconv.Itoa(len(mappings)), r())
+	p := pos(func(i *ws.OnStartInput) { pid = i.PoolID })
 	for _, m := range mappings {
-		o, _ := p().joinWaitlist(m.ConnectionID, params(m.UserID))
+		params["userID"] = m.UserID
+		o, _ := p.joinWaitlist(m.ConnectionID, params)
 		oPtr = o
 	}
 
-	p().onWaitlistFull(oPtr, req(userID))
+	p.onWaitlistFull(oPtr, req(params))
 
 	connection, err := tools.GetItem(
 		tools.Table("connections"), "ID", mappings[1].ConnectionID, nil, nil, nil)
@@ -206,9 +237,9 @@ func Test_PlayersPooled_SetsConnectionPoolMappings(t *testing.T) {
 	}
 }
 
-func req(userID string) *events.APIGatewayWebsocketProxyRequest {
+func req(params map[string]string) *events.APIGatewayWebsocketProxyRequest {
 	return &events.APIGatewayWebsocketProxyRequest{
-		QueryStringParameters: params(userID),
+		QueryStringParameters: params,
 		RequestContext: events.APIGatewayWebsocketProxyRequestContext{
 			DomainName:   "domain",
 			ConnectionID: "cid",
@@ -216,21 +247,21 @@ func req(userID string) *events.APIGatewayWebsocketProxyRequest {
 	}
 }
 
-func params(userID string) map[string]string {
+func params(g, l, p, u string) map[string]string {
 	return map[string]string{
-		"game":     "scrabble",
-		"language": "bulgarian",
-		"players":  "5",
-		"userID":   userID,
+		"game":     g,
+		"language": l,
+		"players":  p,
+		"userID":   u,
 	}
 }
 
-func bucket() (*dynamodb.GetItemOutput, error) {
-	return tools.GetItem(tools.Table("waitlist"), "ID", ID(), nil, nil, nil)
+func bucket(params map[string]string) (*dynamodb.GetItemOutput, error) {
+	return tools.GetItem(tools.Table("waitlist"), "ID", ID(params), nil, nil, nil)
 }
 
-func ID() string {
-	return p().getBucket(params(userID))
+func ID(params map[string]string) string {
+	return p().getBucket(params)
 }
 
 func setup() {
@@ -239,14 +270,16 @@ func setup() {
 	os.Setenv("AWS_PROFILE", "vocabrace")
 }
 
-func shutdown() {
-	tools.DeleteItem(tools.Table("waitlist"), "ID", ID(), nil, nil)
-}
-
 func p() *pooler {
 	return &pooler{
-		OnStart: func(i *ws.OnStartInput) {
-			pid = i.PoolID
-		},
+		OnStart: func(i *ws.OnStartInput) {},
 	}
+}
+
+func pos(f func(*ws.OnStartInput)) pooler {
+	return pooler{OnStart: f}
+}
+
+func r() string {
+	return uuid.New().String()[0:5]
 }
