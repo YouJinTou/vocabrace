@@ -91,6 +91,13 @@ resource "aws_lambda_event_source_mapping" "sqs" {
   maximum_batching_window_in_seconds  = 300
 }
 
+resource "aws_lambda_event_source_mapping" "dynamodb" {
+  count = var.enable_streaming ? 1 : 0
+  event_source_arn  = var.stream_arn
+  function_name     = aws_lambda_function.function.function_name
+  starting_position = "LATEST"
+}
+
 resource "aws_iam_role_policy_attachment" "sqs" {
   count = length(var.sqs_sources) == 0 ? 0 : 1
   role       = aws_iam_role.role.name

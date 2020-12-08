@@ -9,5 +9,5 @@ resource "aws_apigatewayv2_integration" "default" {
   integration_type = "AWS_PROXY"
   connection_type           = "INTERNET"
   integration_method        = "POST"
-  integration_uri           = module.pooler.this_lambda_function_invoke_arn
+  integration_uri           = module.connect.this_lambda_function_invoke_arn
 }

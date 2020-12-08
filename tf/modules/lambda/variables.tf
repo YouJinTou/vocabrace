@@ -87,3 +87,13 @@ variable reserved_concurrent_executions {
     type = number
     default = -1
 }
+
+variable enable_streaming {
+    type = bool
+    default = false
+}
+
+variable stream_arn {
+    type = string
+    default = ""
+}
