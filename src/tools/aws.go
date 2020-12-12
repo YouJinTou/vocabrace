@@ -3,7 +3,6 @@ package tools
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 
@@ -87,7 +86,7 @@ func BatchGetItem(table *string, partitionKey string, keys []string) (
 
 	for _, k := range keys {
 		keysMap = append(keysMap, map[string]*dynamodb.AttributeValue{
-			partitionKey: {S: aws.String(strings.ToLower(k))}})
+			partitionKey: {S: aws.String(k)}})
 	}
 
 	kaa.SetKeys(keysMap)
