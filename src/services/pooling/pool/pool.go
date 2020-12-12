@@ -28,16 +28,27 @@ func main() {
 
 func handle(ctx context.Context, e events.DynamoDBEvent) error {
 	for _, r := range e.Records {
-		if !r.Change.NewImage["ShouldPool"].Boolean() {
+		if !shouldPool(r) {
 			continue
 		}
 		if i, err := getInput(r.Change, tools.BatchGetItem); err == nil {
-			ws.OnStart(i)
+			if sErr := ws.OnStart(i); sErr != nil {
+				log.Printf(sErr.Error())
+			}
 		} else {
 			log.Printf(err.Error())
 		}
 	}
 	return nil
+}
+
+func shouldPool(r events.DynamoDBEventRecord) bool {
+	if val, ok := r.Change.NewImage["ShouldPool"]; ok {
+		if val.Boolean() {
+			return true
+		}
+	}
+	return false
 }
 
 func getInput(
@@ -54,7 +65,7 @@ func getInput(
 	input := &ws.OnStartInput{}
 
 	for _, response := range o.Responses[*table] {
-		con := connection{}
+		con := &connection{}
 		dynamodbattribute.UnmarshalMap(response, con)
 		users = append(users, &ws.User{
 			ConnectionID: con.ID,
@@ -65,7 +76,7 @@ func getInput(
 		input.Domain = con.Domain
 		input.Game = con.Game
 	}
-	input.Users = users
 
+	input.Users = users
 	return input, err
 }
