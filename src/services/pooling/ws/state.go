@@ -15,7 +15,7 @@ type state interface {
 	OnAction(*OnActionInput)
 }
 
-func load(game string) state {
+func load(game string) (state, error) {
 	switch game {
 	case "scrabble":
 		return scrabblews{
@@ -23,9 +23,9 @@ func load(game string) state {
 			loadState:      loadState,
 			send:           Send,
 			sendManyUnique: SendManyUnique,
-		}
+		}, nil
 	default:
-		panic(fmt.Sprintf("invalid game %s", game))
+		return nil, fmt.Errorf("invalid game %s", game)
 	}
 }
 
@@ -49,14 +49,17 @@ func userByID(users []*User, ID string) *User {
 type OnStartInput struct {
 	Users    []*User
 	Language string
-	PoolID   string
 	Domain   string
 	Game     string
 }
 
 // OnStart executes communication logic at the start of a game.
-func OnStart(data *OnStartInput) {
-	load(data.Game).OnStart(data)
+func OnStart(data *OnStartInput) error {
+	handler, err := load(data.Game)
+	if err == nil {
+		handler.OnStart(data)
+	}
+	return err
 }
 
 // OnActionInput encapsulates data for each turn.
@@ -80,8 +83,12 @@ func (i *OnActionInput) otherConnections() []string {
 }
 
 // OnAction executes communication logic when a player takes an action.
-func OnAction(data *OnActionInput) {
-	load(data.Game).OnAction(data)
+func OnAction(data *OnActionInput) error {
+	handler, err := load(data.Game)
+	if err == nil {
+		handler.OnAction(data)
+	}
+	return err
 }
 
 func saveState(poolID string, v interface{}) error {
