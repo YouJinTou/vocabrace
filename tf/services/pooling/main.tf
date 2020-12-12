@@ -18,21 +18,6 @@ resource "aws_apigatewayv2_deployment" "pooling" {
   }
 }
 
-resource "aws_dynamodb_table" "pools" {
-  name           = "${var.stage}_pools"
-  read_capacity  = 1
-  write_capacity = 1
-  hash_key       = "ID"
-  attribute {
-    name = "ID"
-    type = "S"
-  }
-  ttl {
-    attribute_name = "LiveUntil"
-    enabled        = true
-  }
-}
-
 resource "aws_dynamodb_table" "connections" {
   name           = "${var.stage}_connections"
   read_capacity  = 1

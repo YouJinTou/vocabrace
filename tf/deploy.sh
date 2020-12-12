@@ -23,6 +23,12 @@ build-lambda-zip -output tally.zip tally
 rm tally
 mv tally.zip $tf_root/payloads
 
+cd $services_root/pooling/pool
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o pool .
+build-lambda-zip -output pool.zip pool
+rm pool
+mv pool.zip $tf_root/payloads
+
 cd $services_root/pooling/publish
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o publish .
 build-lambda-zip -output publish.zip publish
