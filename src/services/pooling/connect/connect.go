@@ -32,6 +32,7 @@ func connect(
 		Language  string
 		UserID    string
 		Bucket    string
+		Domain    string
 		LiveUntil int
 	}{
 		r.RequestContext.ConnectionID,
@@ -40,6 +41,7 @@ func connect(
 		r.QueryStringParameters["language"],
 		userID(r.QueryStringParameters),
 		"novice",
+		r.RequestContext.DomainName,
 		tools.FutureTimestamp(7200),
 	}
 	putItem(tools.Table("connections"), connection)
