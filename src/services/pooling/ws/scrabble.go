@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/YouJinTou/vocabrace/games/scrabble"
+	"github.com/google/uuid"
 )
 
 type scrabblews struct {
@@ -49,7 +50,7 @@ func (s scrabblews) OnStart(data *OnStartInput) {
 		Players  []*player       `json:"p"`
 		YourMove bool            `json:"y"`
 		PoolID   string          `json:"pid"`
-	}{nil, game.ToMove().Name, projected, false, data.PoolID}
+	}{nil, game.ToMove().Name, projected, false, uuid.New().String()}
 
 	for _, p := range game.Players {
 		startState.Tiles = p.Tiles
@@ -62,7 +63,7 @@ func (s scrabblews) OnStart(data *OnStartInput) {
 		})
 	}
 
-	if sErr := s.saveState(data.PoolID, game); sErr != nil {
+	if sErr := s.saveState(startState.PoolID, game); sErr != nil {
 		panic(sErr.Error())
 	}
 
