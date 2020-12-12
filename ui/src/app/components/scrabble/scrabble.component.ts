@@ -21,6 +21,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];
+  private poolID: string;
   payload: Payload;
   players: Player[] = [];
   tiles: Tile[] = [];
@@ -87,7 +88,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     let payload = {
       g: GAME,
       p: true,
-      w: []
+      w: [],
+      pid: this.poolID
     };
     for (var c of this.placedTiles) {
       payload.w.push({
@@ -106,7 +108,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     let payload = {
       g: GAME,
       e: true,
-      t: this.selected().map(t => t.id)
+      t: this.selected().map(t => t.id),
+      pid: this.poolID
     };
     this.wsService.send(payload);
   }
@@ -114,7 +117,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   onPassClicked() {
     let payload = {
       g: GAME,
-      q: true
+      q: true,
+      pid: this.poolID
     };
     this.wsService.send(payload);
   }
@@ -138,6 +142,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     this.originalTiles = this.tiles;
     this.blanks = this.payload.blanks;
     this.blankClicked = false;
+    this.poolID = this.poolID ? this.poolID : this.payload.poolId;
+    console.log(this.poolID);
   }
 
   private cancel() {

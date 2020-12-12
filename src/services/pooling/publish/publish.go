@@ -20,72 +20,84 @@ type pool struct {
 	ConnectionIDs []string
 }
 
+type data struct {
+	Game   string `json:"g"`
+	PoolID string `json:"pid"`
+	Body   string `json:"d"`
+}
+
 func main() {
 	lambda.Start(handle)
 }
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 	events.APIGatewayProxyResponse, error) {
-	data, game := getData(req.Body)
-	pool, err := getPool(req.RequestContext.ConnectionID)
+	userID, uErr := getInitiatorUserID(req.RequestContext.ConnectionID)
+	if uErr != nil {
+		return events.APIGatewayProxyResponse{StatusCode: 500}, uErr
+	}
 
+	data, dErr := getData(req.Body)
+	if dErr != nil {
+		return events.APIGatewayProxyResponse{StatusCode: 500}, dErr
+	}
+
+	pool, err := getPool(data.PoolID)
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
 	ws.OnAction(&ws.OnActionInput{
-		Game:          game,
-		Domain:        req.RequestContext.DomainName,
-		PoolID:        pool.ID,
-		Body:          data,
-		ConnectionIDs: pool.ConnectionIDs,
-		Initiator:     req.RequestContext.ConnectionID,
+		Game:            data.Game,
+		Domain:          req.RequestContext.DomainName,
+		PoolID:          pool.ID,
+		Body:            data.Body,
+		ConnectionIDs:   pool.ConnectionIDs,
+		Initiator:       req.RequestContext.ConnectionID,
+		InitiatorUserID: *userID,
 	})
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
 
-func getData(body string) (string, string) {
-	type payload struct {
-		Data string `json:"d"`
-	}
-	p := payload{}
-	pErr := json.Unmarshal([]byte(body), &p)
+func getData(body string) (*data, error) {
+	d := &data{}
+	pErr := json.Unmarshal([]byte(body), d)
 
 	if pErr != nil {
-		panic(pErr.Error())
+		return nil, pErr
 	}
 
-	type game struct {
-		Game string `json:"g"`
-	}
-	g := game{}
-	gErr := json.Unmarshal([]byte(p.Data), &g)
+	gErr := json.Unmarshal([]byte(d.Body), d)
 
 	if gErr != nil {
-		panic(gErr.Error())
+		return nil, gErr
 	}
 
-	return p.Data, g.Game
+	return d, nil
 }
 
-func getPool(connectionID string) (*pool, error) {
-	con, cErr := tools.GetItem(
-		tools.Table("connections"), "ID", connectionID, nil, nil, nil)
-	if cErr != nil {
-		return nil, cErr
-	}
+func getPool(poolID string) (*pool, error) {
 	p, pErr := tools.GetItem(
 		tools.Table("pools"),
 		"ID",
-		*con.Item["PoolID"].S,
+		poolID,
 		nil,
 		nil,
 		aws.String("ID, ConnectionIDs"))
 	if pErr != nil {
 		return nil, pErr
 	}
-	pool := pool{}
-	dynamodbattribute.UnmarshalMap(p.Item, &pool)
-	return &pool, nil
+	pool := &pool{}
+	dynamodbattribute.UnmarshalMap(p.Item, pool)
+	return pool, nil
+}
+
+func getInitiatorUserID(connectionID string) (*string, error) {
+	o, err := tools.GetItem(
+		tools.Table("connections"), "ID", connectionID, nil, nil, aws.String("UserID"))
+	if err != nil || o.Item == nil {
+		return nil, err
+	}
+	return o.Item["UserID"].S, nil
 }

@@ -180,7 +180,7 @@ func (s *scrabblews) setPlayerData(players []*scrabble.Player) []*player {
 }
 
 func (s *scrabblews) validateTurn(data *OnActionInput, g *scrabble.Game) error {
-	if data.Initiator != g.ToMoveID {
+	if data.InitiatorUserID != g.ToMoveID {
 		return errors.New("invalid player turn")
 	}
 

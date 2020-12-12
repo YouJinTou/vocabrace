@@ -64,12 +64,13 @@ func OnStart(data *OnStartInput) error {
 
 // OnActionInput encapsulates data for each turn.
 type OnActionInput struct {
-	Body          string
-	Initiator     string
-	Domain        string
-	Game          string
-	PoolID        string
-	ConnectionIDs []string
+	Body            string
+	Initiator       string
+	InitiatorUserID string
+	Domain          string
+	Game            string
+	PoolID          string
+	ConnectionIDs   []string
 }
 
 func (i *OnActionInput) otherConnections() []string {

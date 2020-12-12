@@ -12,6 +12,7 @@ export class Payload {
     lastAction: string
     lastMovedId: string
     language: string
+    poolId: string
     exchangeTiles: Tile[]
     placedCells: Cell[]
     players: Player[]
@@ -34,6 +35,7 @@ export class Payload {
         if (this.isStart) {
             this.tiles = this.getTiles(m['t']);
             this.players = this.getPlayersOnStart(m['p']);
+            this.poolId = m['pid'];
         } else {
             this.lastAction = m['l'];
             this.lastMovedId = m['i'];
