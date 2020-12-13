@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/aws/aws-sdk-go/service/sqs"
 
 	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-lambda-go/events"
@@ -15,6 +18,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
+type div struct {
+	Name     string
+	Bucket   string
+	Joined   bool
+	Players  int
+	Language string
+	Game     string
+}
+
 func main() {
 	lambda.Start(handle)
 }
@@ -23,17 +35,20 @@ func handle(ctx context.Context, e events.DynamoDBEvent) error {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	for _, r := range e.Records {
-		division, joined, players := division(r.Change)
-		d, _ := tools.GetItem(tools.Table("tallies"), "ID", division, nil, nil, nil)
-		shouldPool := willReachCapacity(d, joined)
+		div := division(r.Change)
+		d, _ := tools.GetItem(tools.Table("tallies"), "ID", div.Name, nil, nil, nil)
+		connectionID := r.Change.NewImage["ID"].String()
 		var i *dynamodb.UpdateItemInput
 
-		if shouldPool {
-			i = poolInput(division, r.Change.NewImage["ID"].String())
-		} else if joined {
-			i = connectInput(division, r.Change.NewImage["ID"].String(), players)
+		if willReachCapacity(d, div.Joined) {
+			i = poolInput(div.Name, connectionID)
+			if err := send(connectionID, d.Item["ConnectionIDs"].SS, div); err != nil {
+				log.Print(err)
+			}
+		} else if div.Joined {
+			i = connectInput(div, connectionID)
 		} else {
-			i = disconnectInput(division, r.Change.OldImage["ID"].String())
+			i = disconnectInput(div.Name, r.Change.OldImage["ID"].String())
 		}
 		if _, err := dynamo.UpdateItem(i); err != nil {
 			log.Print(err)
@@ -42,30 +57,51 @@ func handle(ctx context.Context, e events.DynamoDBEvent) error {
 	return nil
 }
 
+func send(connectionID string, connectionIDs []*string, division div) error {
+	sess := session.Must(session.NewSession())
+	svc := sqs.New(sess)
+	cids := []*string{&connectionID}
+	cids = append(cids, connectionIDs...)
+	payload := struct {
+		ConnectionIDs []*string
+		Game          string
+		Bucket        string
+		Language      string
+	}{
+		cids,
+		division.Game,
+		division.Bucket,
+		division.Language,
+	}
+	payloadBytes, _ := json.Marshal(payload)
+	payloadString := string(payloadBytes)
+	fmt.Println(payloadString)
+	url := tools.BuildSqsURL(
+		os.Getenv("REGION"), os.Getenv("ACCOUNT_ID"), fmt.Sprintf("%s_pools", os.Getenv("STAGE")))
+	_, err := svc.SendMessage(&sqs.SendMessageInput{
+		MessageBody: aws.String(payloadString),
+		QueueUrl:    aws.String(url),
+	})
+	return err
+}
+
 func poolInput(division, connectionID string) *dynamodb.UpdateItemInput {
-	ue := "REMOVE ConnectionIDs SET LastConnectionID = :cid, ShouldPool = :s"
 	i := &dynamodb.UpdateItemInput{
 		TableName:        tools.Table("tallies"),
 		Key:              map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(division)}},
-		UpdateExpression: aws.String(ue),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":cid": &dynamodb.AttributeValue{S: aws.String(connectionID)},
-			":s":   &dynamodb.AttributeValue{BOOL: aws.Bool(true)},
-		},
+		UpdateExpression: aws.String("REMOVE ConnectionIDs"),
 	}
 	return i
 }
 
-func connectInput(division, connectionID string, players int) *dynamodb.UpdateItemInput {
-	ue := fmt.Sprintf("%s %s, %s", "ADD ConnectionIDs :c", "SET ShouldPool = :s", "#c = :cap")
+func connectInput(division div, connectionID string) *dynamodb.UpdateItemInput {
 	i := &dynamodb.UpdateItemInput{
 		TableName:        tools.Table("tallies"),
-		Key:              map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(division)}},
-		UpdateExpression: aws.String(ue),
+		Key:              map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(division.Name)}},
+		UpdateExpression: aws.String("ADD ConnectionIDs :c SET #c = :cap"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":c":   &dynamodb.AttributeValue{SS: []*string{aws.String(connectionID)}},
-			":cap": &dynamodb.AttributeValue{N: aws.String(strconv.Itoa(players))},
-			":s":   &dynamodb.AttributeValue{BOOL: aws.Bool(false)},
+			":cap": &dynamodb.AttributeValue{N: aws.String(strconv.Itoa(division.Players))},
 		},
 		ExpressionAttributeNames: map[string]*string{"#c": aws.String("Capacity")},
 	}
@@ -73,14 +109,12 @@ func connectInput(division, connectionID string, players int) *dynamodb.UpdateIt
 }
 
 func disconnectInput(division, connectionID string) *dynamodb.UpdateItemInput {
-	ue := fmt.Sprintf("%s %s", "DELETE ConnectionIDs :c", "SET ShouldPool = :s")
 	i := &dynamodb.UpdateItemInput{
 		TableName:        tools.Table("tallies"),
 		Key:              map[string]*dynamodb.AttributeValue{"ID": {S: aws.String(division)}},
-		UpdateExpression: aws.String(ue),
+		UpdateExpression: aws.String("DELETE ConnectionIDs :c"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":c":   &dynamodb.AttributeValue{SS: []*string{aws.String(connectionID)}},
-			":s":   &dynamodb.AttributeValue{BOOL: aws.Bool(false)},
 			":cid": &dynamodb.AttributeValue{S: aws.String(connectionID)},
 		},
 		ConditionExpression: aws.String("contains(ConnectionIDs, :cid)"),
@@ -88,7 +122,7 @@ func disconnectInput(division, connectionID string) *dynamodb.UpdateItemInput {
 	return i
 }
 
-func division(r events.DynamoDBStreamRecord) (string, bool, int) {
+func division(r events.DynamoDBStreamRecord) div {
 	_, playerJoined := r.NewImage["LiveUntil"]
 	var bucket, game, language string
 	var players int
@@ -100,7 +134,14 @@ func division(r events.DynamoDBStreamRecord) (string, bool, int) {
 	}
 
 	division := fmt.Sprintf("%s_%s_%s_%s_%d", os.Getenv("STAGE"), game, bucket, language, players)
-	return division, playerJoined, players
+	return div{
+		Name:     division,
+		Bucket:   bucket,
+		Game:     game,
+		Players:  players,
+		Language: language,
+		Joined:   playerJoined,
+	}
 }
 
 func extract(m map[string]events.DynamoDBAttributeValue) (string, string, string, int) {

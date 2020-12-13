@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 
 	"github.com/YouJinTou/vocabrace/tools"
@@ -22,16 +23,20 @@ type connection struct {
 	UserID   string
 }
 
+type payload struct {
+	ConnectionIDs []*string
+	Game          string
+	Bucket        string
+	Language      string
+}
+
 func main() {
 	lambda.Start(handle)
 }
 
-func handle(ctx context.Context, e events.DynamoDBEvent) error {
+func handle(ctx context.Context, e events.SQSEvent) error {
 	for _, r := range e.Records {
-		if !shouldPool(r) {
-			continue
-		}
-		if i, err := getInput(r.Change, tools.BatchGetItem); err == nil {
+		if i, err := getInput(r.Body, tools.BatchGetItem); err == nil {
 			if sErr := ws.OnStart(i); sErr != nil {
 				log.Printf(sErr.Error())
 			}
@@ -42,25 +47,18 @@ func handle(ctx context.Context, e events.DynamoDBEvent) error {
 	return nil
 }
 
-func shouldPool(r events.DynamoDBEventRecord) bool {
-	if val, ok := r.Change.NewImage["ShouldPool"]; ok {
-		if val.Boolean() {
-			return true
-		}
-	}
-	return false
-}
-
 func getInput(
-	r events.DynamoDBStreamRecord,
+	body string,
 	batchGetItem func(*string, string, []string) (*dynamodb.BatchGetItemOutput, error)) (
 	*ws.OnStartInput, error) {
-	lastConnectionID := r.NewImage["LastConnectionID"].String()
-	currentConnectionIDs := r.OldImage["ConnectionIDs"].StringSet()
-	connectionIDs := []string{lastConnectionID}
-	connectionIDs = append(connectionIDs, currentConnectionIDs...)
+	p := &payload{}
+	json.Unmarshal([]byte(body), p)
 	table := tools.Table("connections")
-	o, err := batchGetItem(table, "ID", connectionIDs)
+	o, err := batchGetItem(table, "ID", tools.FromStringPtrs(p.ConnectionIDs))
+	if err != nil {
+		return nil, err
+	}
+
 	users := []*ws.User{}
 	input := &ws.OnStartInput{}
 
@@ -78,5 +76,5 @@ func getInput(
 	}
 
 	input.Users = users
-	return input, err
+	return input, nil
 }

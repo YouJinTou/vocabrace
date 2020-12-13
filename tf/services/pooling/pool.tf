@@ -9,9 +9,9 @@ module "pool" {
     STAGE: var.stage
     REGION: var.aws_region
   }
-  enable_streaming = true
-  stream_arn = aws_dynamodb_table.tallies.stream_arn
-  reserved_concurrent_executions = 1
+  sqs_sources = [
+    {arn: aws_sqs_queue.pools.arn, batch_size: 1}
+  ]
 }
 
 resource "aws_dynamodb_table" "pools" {
@@ -27,4 +27,8 @@ resource "aws_dynamodb_table" "pools" {
     attribute_name = "LiveUntil"
     enabled        = true
   }
+}
+
+resource "aws_sqs_queue" "pools" {
+  name           = "${var.stage}_pools"
 }
