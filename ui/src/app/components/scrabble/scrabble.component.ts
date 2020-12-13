@@ -128,6 +128,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   private pipeline(m: any) {
+    console.log(m);
     this.payload = new Payload(m);
     if (this.payload.isError) {
       this.cancel();
@@ -143,7 +144,6 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     this.blanks = this.payload.blanks;
     this.blankClicked = false;
     this.poolID = this.poolID ? this.poolID : this.payload.poolId;
-    console.log(this.poolID);
   }
 
   private cancel() {
