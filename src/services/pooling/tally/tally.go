@@ -75,7 +75,6 @@ func send(connectionID string, connectionIDs []*string, division div) error {
 	}
 	payloadBytes, _ := json.Marshal(payload)
 	payloadString := string(payloadBytes)
-	fmt.Println(payloadString)
 	url := tools.BuildSqsURL(
 		os.Getenv("REGION"), os.Getenv("ACCOUNT_ID"), fmt.Sprintf("%s_pools", os.Getenv("STAGE")))
 	_, err := svc.SendMessage(&sqs.SendMessageInput{
