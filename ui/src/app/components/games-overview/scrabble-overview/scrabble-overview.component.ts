@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
@@ -10,7 +10,7 @@ import { WebsocketService } from 'src/services/websocket.service';
   templateUrl: './scrabble-overview.component.html',
   styleUrls: ['./scrabble-overview.component.css']
 })
-export class ScrabbleOverviewComponent implements OnInit {
+export class ScrabbleOverviewComponent implements OnInit, OnDestroy {
   selectedPlayers: string;
   selectedLanguage: string;
 
@@ -20,6 +20,10 @@ export class ScrabbleOverviewComponent implements OnInit {
     private router: Router) { }
 
   ngOnInit(): void {
+  }
+
+  ngOnDestroy(): void {
+    this.wsService.close();
   }
 
   onSelectChanged() {
