@@ -10,7 +10,7 @@ import { WebsocketService } from 'src/services/websocket.service';
   templateUrl: './scrabble-overview.component.html',
   styleUrls: ['./scrabble-overview.component.css']
 })
-export class ScrabbleOverviewComponent implements OnInit, OnDestroy {
+export class ScrabbleOverviewComponent implements OnInit {
   selectedPlayers: string;
   selectedLanguage: string;
 
@@ -20,10 +20,6 @@ export class ScrabbleOverviewComponent implements OnInit, OnDestroy {
     private router: Router) { }
 
   ngOnInit(): void {
-  }
-
-  ngOnDestroy(): void {
-    this.wsService.close();
   }
 
   onSelectChanged() {
@@ -41,7 +37,11 @@ export class ScrabbleOverviewComponent implements OnInit, OnDestroy {
       'userID': this.userStatusService.current.id,
       'isAnonymous': this.userStatusService.current.id ? true : false
     }).subscribe({
-      next: m => this.router.navigate(['scrabble', m['pid']]),
+      next: m => {
+        if ('pid' in m) {
+          this.router.navigate(['scrabble', m['pid']]);
+        }
+      },
       error: e => console.log(e)
     });
   }
