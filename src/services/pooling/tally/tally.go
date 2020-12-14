@@ -37,16 +37,16 @@ func handle(ctx context.Context, e events.DynamoDBEvent) error {
 	for _, r := range e.Records {
 		div := division(r.Change)
 		d, _ := tools.GetItem(tools.Table("tallies"), "ID", div.Name, nil, nil, nil)
-		connectionID := r.Change.NewImage["ID"].String()
 		var i *dynamodb.UpdateItemInput
 
 		if willReachCapacity(d, div.Joined) {
-			i = poolInput(div.Name, connectionID)
-			if err := send(connectionID, d.Item["ConnectionIDs"].SS, div); err != nil {
+			i = poolInput(div.Name, r.Change.NewImage["ID"].String())
+			if err := send(
+				r.Change.NewImage["ID"].String(), d.Item["ConnectionIDs"].SS, div); err != nil {
 				log.Print(err)
 			}
 		} else if div.Joined {
-			i = connectInput(div, connectionID)
+			i = connectInput(div, r.Change.NewImage["ID"].String())
 		} else {
 			i = disconnectInput(div.Name, r.Change.OldImage["ID"].String())
 		}

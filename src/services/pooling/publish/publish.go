@@ -21,7 +21,6 @@ type pool struct {
 }
 
 type data struct {
-	Game   string `json:"g"`
 	PoolID string `json:"pid"`
 	Body   string `json:"d"`
 }
@@ -32,11 +31,6 @@ func main() {
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 	events.APIGatewayProxyResponse, error) {
-	userID, uErr := getInitiatorUserID(req.RequestContext.ConnectionID)
-	if uErr != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 500}, uErr
-	}
-
 	data, dErr := getData(req.Body)
 	if dErr != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, dErr
@@ -47,14 +41,17 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
+	cons, gErr := ws.GetConnections(pool.ConnectionIDs)
+	if gErr != nil {
+		return events.APIGatewayProxyResponse{StatusCode: 500}, gErr
+	}
+
 	ws.OnAction(&ws.OnActionInput{
-		Game:            data.Game,
-		Domain:          req.RequestContext.DomainName,
 		PoolID:          pool.ID,
 		Body:            data.Body,
-		ConnectionIDs:   pool.ConnectionIDs,
+		Connections:     cons,
 		Initiator:       req.RequestContext.ConnectionID,
-		InitiatorUserID: *userID,
+		InitiatorUserID: *cons.UserIDByID(req.RequestContext.ConnectionID),
 	})
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
@@ -91,13 +88,4 @@ func getPool(poolID string) (*pool, error) {
 	pool := &pool{}
 	dynamodbattribute.UnmarshalMap(p.Item, pool)
 	return pool, nil
-}
-
-func getInitiatorUserID(connectionID string) (*string, error) {
-	o, err := tools.GetItem(
-		tools.Table("connections"), "ID", connectionID, nil, nil, aws.String("UserID"))
-	if err != nil || o.Item == nil {
-		return nil, err
-	}
-	return o.Item["UserID"].S, nil
 }

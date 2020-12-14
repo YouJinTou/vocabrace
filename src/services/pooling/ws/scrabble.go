@@ -11,7 +11,7 @@ import (
 
 type scrabblews struct {
 	loadState      func(string, interface{})
-	saveState      func(string, interface{}) error
+	saveState      func(*saveStateInput) error
 	send           func(*Message) error
 	sendManyUnique func([]*Message)
 }
@@ -39,9 +39,9 @@ type result struct {
 	err error
 }
 
-func (s scrabblews) OnStart(data *OnStartInput) {
-	players := s.loadPlayers(data.Users)
-	game := scrabble.NewGame(data.Language, players, scrabble.NewDynamoValidator())
+func (s scrabblews) OnStart(c *Connections) {
+	players := s.loadPlayers(c)
+	game := scrabble.NewGame(c.Language(), players, scrabble.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
 	startState := struct {
@@ -57,13 +57,17 @@ func (s scrabblews) OnStart(data *OnStartInput) {
 		startState.YourMove = game.ToMoveID == p.ID
 		b, _ := json.Marshal(startState)
 		messages = append(messages, &Message{
-			Domain:       data.Domain,
-			ConnectionID: userByID(data.Users, p.ID).ConnectionID,
+			Domain:       c.Domain(),
+			ConnectionID: *c.IDByUserID(p.ID),
 			Message:      string(b),
 		})
 	}
 
-	if sErr := s.saveState(startState.PoolID, game); sErr != nil {
+	if sErr := s.saveState(&saveStateInput{
+		PoolID:        startState.PoolID,
+		ConnectionIDs: c.IDs(),
+		V:             game,
+	}); sErr != nil {
 		panic(sErr.Error())
 	}
 
@@ -104,22 +108,26 @@ func (s scrabblews) OnAction(data *OnActionInput) {
 		return
 	}
 
-	if sErr := s.saveState(data.PoolID, game); sErr != nil {
+	if sErr := s.saveState(&saveStateInput{
+		PoolID:        data.PoolID,
+		ConnectionIDs: data.Connections.IDs(),
+		V:             game,
+	}); sErr != nil {
 		panic(sErr.Error())
 	}
 
 	s.send(&Message{
 		ConnectionID: data.Initiator,
-		Domain:       data.Domain,
+		Domain:       data.Connections.Domain(),
 		Message:      r.d.JSONWithPersonal(),
 	})
 
 	messages := []*Message{}
-	for _, cid := range data.otherConnections() {
-		r.d.YourMove = game.ToMoveID == cid
+	for _, cid := range data.Connections.OtherIDs(data.Initiator) {
+		r.d.YourMove = game.ToMoveID == *data.Connections.UserIDByID(cid)
 		messages = append(messages, &Message{
 			ConnectionID: cid,
-			Domain:       data.Domain,
+			Domain:       data.Connections.Domain(),
 			Message:      r.d.JSONWithoutPersonal(),
 		})
 	}
@@ -154,12 +162,12 @@ func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
 	return &result{&game, game.GetDelta(), err}
 }
 
-func (s *scrabblews) loadPlayers(users []*User) []*scrabble.Player {
+func (s *scrabblews) loadPlayers(c *Connections) []*scrabble.Player {
 	result := []*scrabble.Player{}
-	for _, u := range users {
+	for _, u := range c.UserIDs() {
 		result = append(result, &scrabble.Player{
-			ID:     u.UserID,
-			Name:   u.Username,
+			ID:     u,
+			Name:   u,
 			Points: 0,
 		})
 	}
@@ -196,7 +204,7 @@ func (s *scrabblews) returnClientError(data *OnActionInput, message string, err 
 	b, _ := json.Marshal(msg)
 	s.send(&Message{
 		ConnectionID: data.Initiator,
-		Domain:       data.Domain,
+		Domain:       data.Connections.Domain(),
 		Message:      string(b),
 	})
 }

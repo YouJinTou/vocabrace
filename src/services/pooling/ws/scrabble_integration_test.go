@@ -13,9 +13,9 @@ func TestDoublesPointsOnFirstMove(t *testing.T) {
 	os.Setenv("AWS_PROFILE", "vocabrace")
 
 	pid := "testing_pid"
-	users := []*User{&User{}, &User{}}
 	sws := scrabblews{}
-	players := sws.loadPlayers(users)
+	cons := []*Connection{&Connection{}, &Connection{}}
+	players := sws.loadPlayers(NewConnections(cons))
 	g := scrabble.NewGame("bulgarian", players, scrabble.NewDynamoValidator())
 	w := scrabble.NewWordFromString(
 		"ТИ", []int{2, 3}, []int{scrabble.BoardOrigin, scrabble.BoardOrigin + 1})
@@ -27,7 +27,11 @@ func TestDoublesPointsOnFirstMove(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := saveState(pid, g); err != nil {
+	if err := saveState(&saveStateInput{
+		PoolID:        pid,
+		ConnectionIDs: []string{"123", "456"},
+		V:             g,
+	}); err != nil {
 		t.Errorf(err.Error())
 	}
 
