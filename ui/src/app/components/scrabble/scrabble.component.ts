@@ -41,15 +41,19 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
       this.pipeline(this.wsService.last);
     }
 
-    let connection$ = this.wsService.connection() ?
-      this.wsService.connection() :
-      this.wsService.connect(environment.wsEndpoint, { 'game': 'scrabble' });
-    connection$.pipe(
-      takeUntil(this.destroyed$)
-    ).subscribe({
-      next: m => this.pipeline(m),
-      error: e => console.log(e)
-    });
+    let connection$ = this.wsService.connection();
+
+    if (connection$) {
+      connection$.pipe(
+        takeUntil(this.destroyed$)
+        )
+        .subscribe({
+        next: m => this.pipeline(m),
+        error: e => console.log(e)
+      });
+    } else {
+      console.log('not connected.');
+    }
   }
 
   ngOnDestroy(): void {
@@ -130,15 +134,21 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   private pipeline(m: any) {
     console.log(m);
     this.payload = new Payload(m);
+    console.log('entering...')
     if (this.payload.isError) {
-      this.cancel();
+    console.log('error...')
+    this.cancel();
       return;
     }
 
     this.placedTiles = [];
+    console.log('players...')
     this.renderPlayers();
+    console.log('tiles...')
     this.renderPlayerTiles();
+    console.log('exch...')
     this.handleExchange();
+    console.log('place...')
     this.handlePlace();
     this.originalTiles = this.tiles;
     this.blanks = this.payload.blanks;
@@ -199,8 +209,11 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
 
   private handlePlace() {
     if (this.payload.yourMove && this.payload.wasPlace) {
+      console.log('placed cells:');
+      console.log(this.payload.placedCells);
       for (var c of this.payload.placedCells) {
-        this.cells[c.id] = c;
+      console.log('setting...');
+      this.cells[c.id] = c;
       }
     } else if (this.payload.wasPlace && this.payload.exchangeTiles) {
       this.tiles = this.tiles.filter(t => !t.selected);
