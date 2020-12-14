@@ -20,7 +20,6 @@ export class Payload {
     blanks: Tile[]
 
     constructor(m: any) {
-        console.log(m);
         this.isError = this.returnedError(m);
         this.yourMove = true;
 
