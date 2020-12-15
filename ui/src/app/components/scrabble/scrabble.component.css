@@ -4,7 +4,14 @@
 
 .players {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+    gap: 1px;
+    padding: 3px;
+}
+
+.player-highlight {
+    background-color:white;
+    color: black;
 }
 
 .board {
@@ -12,6 +19,7 @@
     grid-template-columns: repeat(15, 1fr);
     grid-template-rows: repeat(15, 1fr);
     gap: 1px;
+    color: black;
 }
 
 .cell {
@@ -37,6 +45,7 @@
 
 .controls {
     margin-top: 10px;
+    color: black;
 }
 
 .tiles {

@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { UsernameService } from 'src/services/username.service';
 import { WebsocketService } from 'src/services/websocket.service';
 import { Cell, getCellClass } from './cell';
 import { Payload } from './payload';
@@ -32,7 +33,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   constructor(
     public blanksDialog: MatDialog,
     private wsService: WebsocketService,
-    private route: ActivatedRoute) { }
+    private route: ActivatedRoute,
+    private usernameService: UsernameService) { }
 
   ngOnInit(): void {
     this.loadCells();
@@ -46,11 +48,11 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     if (connection$) {
       connection$.pipe(
         takeUntil(this.destroyed$)
-        )
+      )
         .subscribe({
-        next: m => this.pipeline(m),
-        error: e => console.log(e)
-      });
+          next: m => this.pipeline(m),
+          error: e => console.log(e)
+        });
     } else {
       console.log('not connected.');
     }
@@ -132,23 +134,17 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   private pipeline(m: any) {
-    console.log(m);
-    this.payload = new Payload(m);
-    console.log('entering...')
+    this.payload = new Payload(m, this.usernameService);
+
     if (this.payload.isError) {
-    console.log('error...')
-    this.cancel();
+      this.cancel();
       return;
     }
 
     this.placedTiles = [];
-    console.log('players...')
     this.renderPlayers();
-    console.log('tiles...')
     this.renderPlayerTiles();
-    console.log('exch...')
     this.handleExchange();
-    console.log('place...')
     this.handlePlace();
     this.originalTiles = this.tiles;
     this.blanks = this.payload.blanks;
@@ -209,11 +205,8 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
 
   private handlePlace() {
     if (this.payload.yourMove && this.payload.wasPlace) {
-      console.log('placed cells:');
-      console.log(this.payload.placedCells);
       for (var c of this.payload.placedCells) {
-      console.log('setting...');
-      this.cells[c.id] = c;
+        this.cells[c.id] = c;
       }
     } else if (this.payload.wasPlace && this.payload.exchangeTiles) {
       this.tiles = this.tiles.filter(t => !t.selected);

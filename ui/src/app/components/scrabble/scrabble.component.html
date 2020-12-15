@@ -1,7 +1,9 @@
 <div class="wrapper">
     <div class="players">
         <div class="player" *ngFor="let p of players">
-            {{p.name}} {{p.points}}
+            <div class="{{payload.yourMove ? player-highlight : ''">
+                {{p.name}} {{p.points}}
+            </div>
         </div>
     </div>
 

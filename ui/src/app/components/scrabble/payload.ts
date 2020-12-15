@@ -1,3 +1,4 @@
+import { UsernameService } from 'src/services/username.service'
 import { load } from './alphabet'
 import { Cell, getCellClass } from './cell'
 import { Player } from './player'
@@ -19,7 +20,7 @@ export class Payload {
     tiles: Tile[]
     blanks: Tile[]
 
-    constructor(m: any) {
+    constructor(m: any, private usernameService: UsernameService) {
         this.isError = this.returnedError(m);
         this.yourMove = true;
 
@@ -82,7 +83,8 @@ export class Payload {
     private getPlayersOnStart(players: []): Player[] {
         let result = [];
         for (var p of players) {
-            result.push(new Player(p['n'], p['p']));
+            let name = this.usernameService.get(p['n']);
+            result.push(new Player(name, p['p']));
         }
         return result;
     }
@@ -94,8 +96,9 @@ export class Payload {
 
         let result = [];
         for (let key in m['p']) {
+            let name = this.usernameService.get(key);
             let value = m['p'][key];
-            result.push(new Player(key, value));
+            result.push(new Player(name, value));
         }
         return result;
     }
