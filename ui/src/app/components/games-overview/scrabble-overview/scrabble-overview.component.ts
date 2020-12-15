@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
-import { UserStatusService } from 'src/services/user-status.service';
+import { ContextService } from 'src/services/context.service';
 import { WebsocketService } from 'src/services/websocket.service';
 
 @Component({
@@ -16,7 +16,7 @@ export class ScrabbleOverviewComponent implements OnInit {
 
   constructor(
     private wsService: WebsocketService,
-    private userStatusService: UserStatusService,
+    private contextService: ContextService,
     private router: Router) { }
 
   ngOnInit(): void {
@@ -34,11 +34,12 @@ export class ScrabbleOverviewComponent implements OnInit {
       'game': 'scrabble',
       'players': parseInt(this.selectedPlayers),
       'language': this.selectedLanguage,
-      'userID': this.userStatusService.current.id,
-      'isAnonymous': this.userStatusService.current.id ? true : false
+      'userID': this.contextService.user.id,
+      'isAnonymous': this.contextService.user.id ? true : false
     }).subscribe({
       next: m => {
         if ('pid' in m) {
+          this.contextService.setIsPlaying(true);
           this.router.navigate(['scrabble', m['pid']]);
         }
       },

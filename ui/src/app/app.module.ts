@@ -13,9 +13,10 @@ import { WebsocketService } from 'src/services/websocket.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GamesOverviewComponent } from './components/games-overview/games-overview.component';
 import { ScrabbleOverviewComponent } from './components/games-overview/scrabble-overview/scrabble-overview.component';
-import { FacebookComponent } from './components/login/facebook/facebook.component';
-import { UserStatusService } from 'src/services/user-status.service';
+import { FacebookComponent } from './components/external-login/facebook/facebook.component';
+import { ContextService } from 'src/services/context.service';
 import { HeaderComponent } from './components/header/header.component';
+import { ExternalLoginComponent } from './components/external-login/external-login.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { HeaderComponent } from './components/header/header.component';
     GamesOverviewComponent,
     ScrabbleOverviewComponent,
     FacebookComponent,
-    HeaderComponent
+    HeaderComponent,
+    ExternalLoginComponent
   ],
   imports: [
     BrowserModule,
@@ -37,7 +39,7 @@ import { HeaderComponent } from './components/header/header.component';
     MatDividerModule,
     HttpClientModule
   ],
-  providers: [WebsocketService, UserStatusService],
+  providers: [WebsocketService, ContextService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

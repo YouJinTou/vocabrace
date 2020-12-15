@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { UserStatusService } from 'src/services/user-status.service';
+import { ContextService } from 'src/services/context.service';
 
 @Component({
   selector: 'app-header',
@@ -9,10 +9,10 @@ import { UserStatusService } from 'src/services/user-status.service';
 export class HeaderComponent implements OnInit {
   greeting: string;
 
-  constructor(private userStatusService: UserStatusService) { }
+  constructor(private contextService: ContextService) { }
 
   ngOnInit(): void {
-    this.userStatusService.user$.subscribe(
+    this.contextService.user$.subscribe(
       u => this.greeting = u.loggedIn ? `Let's go, ${u.name}` : "Let's go!");
   }
 }
