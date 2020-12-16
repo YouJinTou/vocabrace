@@ -32,6 +32,7 @@ type DeltaState struct {
 	YourMove             bool           `json:"y"`
 	Points               map[string]int `json:"p"`
 	WinnerID             *string        `json:"w"`
+	TilesRemaining       int            `json:"r"`
 }
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
@@ -43,6 +44,7 @@ func (d *DeltaState) JSONWithPersonal() string {
 		LastActionPlayerData: d.LastActionPlayerData,
 		YourMove:             d.YourMove,
 		Points:               d.Points,
+		TilesRemaining:       d.TilesRemaining,
 	}
 	b, _ := json.Marshal(p)
 	result := string(b)
@@ -58,6 +60,7 @@ func (d *DeltaState) JSONWithoutPersonal() string {
 		OtherPlayersData:   d.OtherPlayersData,
 		YourMove:           d.YourMove,
 		Points:             d.Points,
+		TilesRemaining:     d.TilesRemaining,
 	}
 	b, _ := json.Marshal(p)
 	result := string(b)
@@ -355,6 +358,7 @@ func (g *Game) handleEnd() {
 	} else {
 		g.setNext()
 	}
+	g.delta.TilesRemaining = g.Bag.Count()
 }
 
 func (g *Game) tallyFinalPoints() {

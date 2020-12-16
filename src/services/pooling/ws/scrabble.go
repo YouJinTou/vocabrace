@@ -45,12 +45,13 @@ func (s scrabblews) OnStart(c *Connections) {
 	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
 	startState := struct {
-		Tiles    *scrabble.Tiles `json:"t"`
-		ToMove   string          `json:"m"`
-		Players  []*player       `json:"p"`
-		YourMove bool            `json:"y"`
-		PoolID   string          `json:"pid"`
-	}{nil, game.ToMove().Name, projected, false, uuid.New().String()}
+		Tiles          *scrabble.Tiles `json:"t"`
+		ToMove         string          `json:"m"`
+		Players        []*player       `json:"p"`
+		YourMove       bool            `json:"y"`
+		PoolID         string          `json:"pid"`
+		TilesRemaining int             `json:"r"`
+	}{nil, game.ToMove().Name, projected, false, uuid.New().String(), game.Bag.Count()}
 
 	for _, p := range game.Players {
 		startState.Tiles = p.Tiles

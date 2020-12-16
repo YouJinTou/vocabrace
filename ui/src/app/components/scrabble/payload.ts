@@ -19,6 +19,7 @@ export class Payload {
     players: Player[]
     tiles: Tile[]
     blanks: Tile[]
+    tilesRemaining: number;
 
     constructor(m: any, private usernameService: UsernameService) {
         this.isError = this.returnedError(m);
@@ -31,6 +32,7 @@ export class Payload {
         this.yourMove = m['y'];
         this.isStart = !('d' in m);
         this.language = "bulgarian";
+        this.tilesRemaining = m['r'];
         
         if (this.isStart) {
             this.tiles = this.getTiles(m['t']);
