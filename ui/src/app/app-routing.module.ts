@@ -5,6 +5,7 @@ import { ScrabbleComponent } from './components/scrabble/scrabble.component';
 
 const routes: Routes = [
   { path: '', component: GamesOverviewComponent },
+  { path: '**', component: GamesOverviewComponent },
   { path: 'scrabble/:poolId', component: ScrabbleComponent }
 ];
 
