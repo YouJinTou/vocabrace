@@ -21,6 +21,9 @@ export class Payload {
     blanks: Tile[]
     tilesRemaining: number;
     toMoveId: string;
+    winnerId: string;
+    winnerName: string;
+    isGameOver: boolean;
 
     constructor(m: any, private usernameService: UsernameService) {
         this.isError = this.returnedError(m);
@@ -35,6 +38,9 @@ export class Payload {
         this.language = "bulgarian";
         this.tilesRemaining = m['r'];
         this.toMoveId = m['m'];
+        this.winnerId = m['w'];
+        this.winnerName = this.getWinnerName();
+        this.isGameOver = this.winnerId != undefined;
 
         if (this.isStart) {
             this.tiles = this.getTiles(m['t']);
@@ -121,5 +127,15 @@ export class Payload {
             result.push(tile);
         }
         return result;
+    }
+
+    
+    private getWinnerName(): string {
+        for (var p of this.players) {
+            if (p.id == this.winnerId) {
+                return p.name;
+            }
+        }
+        return 'No winner';
     }
 }

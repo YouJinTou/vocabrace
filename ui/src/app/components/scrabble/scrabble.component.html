@@ -2,7 +2,7 @@
     {{payload?.tilesRemaining}}
     <div class="players">
         <div class="player" *ngFor="let p of players">
-            <div [ngClass]="{'player-data': true, 'player-highlight': payload.toMoveId === p.id, 'client-player': true}">
+            <div [ngClass]="{'player-data': true, 'player-highlight': payload.toMoveId === p.id}">
                 {{p.name}} {{p.points}}
             </div>
         </div>
@@ -24,7 +24,7 @@
             </div>
         </div>
 
-        <div class="actions" *ngIf="tiles.length > 0 && payload.yourMove">
+        <div class="actions" *ngIf="tiles.length > 0 && payload.yourMove && !payload.isGameOver">
             <div (click)="onPlaceClicked()">Сложи</div>
             <div (click)="onExchangeClicked()">Размени</div>
             <div (click)="onPassClicked()">Пропусни</div>

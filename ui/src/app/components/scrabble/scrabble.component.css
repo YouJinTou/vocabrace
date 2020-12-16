@@ -11,16 +11,13 @@
 
 .player-data {
     padding: 1px;
+    border-top: 2px solid lightgreen;
     background-color: rgb(197, 197, 197);
     color: black;
 }
 
 .player-highlight {
     background-color: white;
-}
-
-.client-player {
-    border-top: 2px solid lightgreen;
 }
 
 .board {

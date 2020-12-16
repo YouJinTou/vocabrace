@@ -8,7 +8,7 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { BlanksDialog, ScrabbleComponent } from './components/scrabble/scrabble.component';
+import { ScrabbleComponent } from './components/scrabble/scrabble.component';
 import { WebsocketService } from 'src/services/websocket.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GamesOverviewComponent } from './components/games-overview/games-overview.component';
@@ -17,6 +17,8 @@ import { FacebookComponent } from './components/external-login/facebook/facebook
 import { ContextService } from 'src/services/context.service';
 import { HeaderComponent } from './components/header/header.component';
 import { ExternalLoginComponent } from './components/external-login/external-login.component';
+import { BlanksDialog } from './components/scrabble/blanks/blanks.component';
+import { GameOverDialog } from './components/scrabble/game-over/game-over.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +29,8 @@ import { ExternalLoginComponent } from './components/external-login/external-log
     ScrabbleOverviewComponent,
     FacebookComponent,
     HeaderComponent,
-    ExternalLoginComponent
+    ExternalLoginComponent,
+    GameOverDialog,
   ],
   imports: [
     BrowserModule,

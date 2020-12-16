@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { UsernameService } from 'src/services/username.service';
 import { WebsocketService } from 'src/services/websocket.service';
+import { BlanksDialog } from './blanks/blanks.component';
 import { Cell, getCellClass } from './cell';
+import { GameOverDialog } from './game-over/game-over.component';
 import { Payload } from './payload';
 import { Player } from './player';
 import { Tile } from './tile';
@@ -32,6 +34,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
 
   constructor(
     public blanksDialog: MatDialog,
+    public gameOverDialog: MatDialog,
     private wsService: WebsocketService,
     private route: ActivatedRoute,
     private usernameService: UsernameService) { }
@@ -63,7 +66,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onPlayerTileClicked(t: Tile) {
-    if (!this.payload.yourMove) {
+    if (!this.payload.yourMove || this.payload.isGameOver) {
       return;
     }
 
@@ -76,7 +79,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
   }
 
   onCellTileClicked(c: Cell) {
-    if (!this.payload.yourMove) {
+    if (!this.payload.yourMove || this.payload.isGameOver) {
       return;
     }
     if (this.removeCellTile(c)) {
@@ -146,6 +149,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     this.renderPlayerTiles();
     this.handleExchange();
     this.handlePlace();
+    this.onGameOver();
     this.originalTiles = this.tiles;
     this.blanks = this.payload.blanks;
     this.blankClicked = false;
@@ -263,23 +267,16 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
       }
     });
   }
-}
 
-@Component({
-  selector: 'scrabble-blanks',
-  templateUrl: 'blanks.component.html',
-  styleUrls: ['./scrabble.component.css']
-})
-export class BlanksDialog {
-  blanks: Tile[];
+  private onGameOver() {
+    if (!this.payload.isGameOver) {
+      return;
+    }
 
-  constructor(
-    public dialogRef: MatDialogRef<BlanksDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: { blanks: Tile[] }) {
-    this.blanks = data['blanks'];
-  }
+    const dialogRef = this.gameOverDialog.open(GameOverDialog, { data: this.payload });
 
-  onSelected(t: Tile) {
-    this.dialogRef.close(t);
+    dialogRef.afterClosed().subscribe(r => {
+
+    });
   }
 }
