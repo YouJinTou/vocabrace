@@ -13,7 +13,6 @@ export class ExternalLoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.contextService.isPlaying$.subscribe(i => {
-      console.log('triggering...');
       this.isPlaying = i;});
   }
 

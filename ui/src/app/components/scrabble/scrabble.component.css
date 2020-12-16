@@ -9,9 +9,18 @@
     padding: 3px;
 }
 
-.player-highlight {
-    background-color:white;
+.player-data {
+    padding: 1px;
+    background-color: rgb(197, 197, 197);
     color: black;
+}
+
+.player-highlight {
+    background-color: white;
+}
+
+.client-player {
+    border-top: 2px solid lightgreen;
 }
 
 .board {

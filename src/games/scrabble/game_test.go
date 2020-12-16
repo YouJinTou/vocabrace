@@ -114,8 +114,8 @@ func TestDeltaStateContainsPlayerPoints(t *testing.T) {
 	g.Place(tiles)
 
 	delta := g.GetDelta()
-	for name, p := range delta.Points {
-		if g.GetPlayerByName(name).Points != p {
+	for id, p := range delta.Points {
+		if g.GetPlayerByID(id).Points != p {
 			t.Errorf("invalid points")
 		}
 	}
@@ -241,7 +241,7 @@ func Test_BagEmpty_PlayerExhaustsTiles_AddsOtherPlayersTilesSumToLastPlaced(t *t
 
 		result, _ := g.Place(w)
 		d := result.GetDelta()
-		actual := d.Points[result.ToMove().Name]
+		actual := d.Points[result.ToMoveID]
 
 		if actual != expectedFinal {
 			t.Errorf("expected %d, got %d", expectedFinal, actual)
@@ -259,14 +259,14 @@ func Test_BagEmpty_PlayerExhaustsTiles_SubtractsTilesSumFromOtherPlayers(t *test
 		result, _ := g.Place(w)
 		afterPlace := result.playerPoints()
 
-		for name, points := range beforePlace {
-			player := g.GetPlayerByName(name)
+		for id, points := range beforePlace {
+			player := g.GetPlayerByID(id)
 			leader := g.Leader()
 			if leader == player {
 				continue
 			}
 
-			actual := afterPlace[name]
+			actual := afterPlace[id]
 			expected := points - player.Tiles.Sum()
 			if expected != actual {
 				t.Errorf("expected %d, got %d", expected, actual)
@@ -334,9 +334,9 @@ func Test_EndCounterExceeded_SubtractsPlayerTilesSum(t *testing.T) {
 	g.Pass()
 
 	afterPoints := g.playerPoints()
-	for name, points := range beforePoints {
-		player := g.GetPlayerByName(name)
-		actual := afterPoints[name]
+	for id, points := range beforePoints {
+		player := g.GetPlayerByID(id)
+		actual := afterPoints[id]
 		expected := points - player.Tiles.Sum()
 		if expected != actual {
 			t.Errorf("expected %d, got %d", expected, actual)

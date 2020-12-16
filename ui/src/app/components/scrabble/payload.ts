@@ -20,6 +20,7 @@ export class Payload {
     tiles: Tile[]
     blanks: Tile[]
     tilesRemaining: number;
+    toMoveId: string;
 
     constructor(m: any, private usernameService: UsernameService) {
         this.isError = this.returnedError(m);
@@ -33,7 +34,8 @@ export class Payload {
         this.isStart = !('d' in m);
         this.language = "bulgarian";
         this.tilesRemaining = m['r'];
-        
+        this.toMoveId = m['m'];
+
         if (this.isStart) {
             this.tiles = this.getTiles(m['t']);
             this.players = this.getPlayersOnStart(m['p']);
@@ -86,7 +88,7 @@ export class Payload {
         let result = [];
         for (var p of players) {
             let name = this.usernameService.get(p['n']);
-            result.push(new Player(name, p['p']));
+            result.push(new Player(p['i'], name, p['p']));
         }
         return result;
     }
@@ -97,10 +99,10 @@ export class Payload {
         }
 
         let result = [];
-        for (let key in m['p']) {
-            let name = this.usernameService.get(key);
-            let value = m['p'][key];
-            result.push(new Player(name, value));
+        for (let id in m['p']) {
+            let name = this.usernameService.get(id);
+            let points = m['p'][id];
+            result.push(new Player(id, name, points));
         }
         return result;
     }

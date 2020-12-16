@@ -161,7 +161,6 @@ func (g *Game) Place(w *Word) (Game, error) {
 		LastAction:           "Place",
 		LastActionPlayerData: toReceive,
 		OtherPlayersData:     w,
-		Points:               g.playerPoints(),
 	}
 
 	g.handleEnd()
@@ -267,16 +266,6 @@ func (g *Game) GetPlayerByID(ID string) *Player {
 	return nil
 }
 
-// GetPlayerByName gets a player by ID.
-func (g *Game) GetPlayerByName(name string) *Player {
-	for _, p := range g.Players {
-		if p.Name == name {
-			return p
-		}
-	}
-	return nil
-}
-
 // GetLastMovedID returns the player ID that moved last.
 func (g *Game) GetLastMovedID() string {
 	return g.delta.LastActionPlayerID
@@ -330,7 +319,7 @@ func (g *Game) IsPassiveEnd() bool {
 func (g *Game) playerPoints() map[string]int {
 	m := map[string]int{}
 	for _, p := range g.Players {
-		m[p.Name] = p.Points
+		m[p.ID] = p.Points
 	}
 	return m
 }
@@ -353,11 +342,11 @@ func (g *Game) setNext() {
 func (g *Game) handleEnd() {
 	if g.IsOver() {
 		g.tallyFinalPoints()
-		g.delta.Points = g.playerPoints()
 		g.delta.WinnerID = &g.Leader().ID
 	} else {
 		g.setNext()
 	}
+	g.delta.Points = g.playerPoints()
 	g.delta.TilesRemaining = g.Bag.Count()
 }
 

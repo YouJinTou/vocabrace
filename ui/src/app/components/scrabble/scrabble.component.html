@@ -1,8 +1,8 @@
 <div class="wrapper">
-    {{payload.tilesRemaining}}
+    {{payload?.tilesRemaining}}
     <div class="players">
         <div class="player" *ngFor="let p of players">
-            <div class="{{payload.yourMove ? player-highlight : ''">
+            <div [ngClass]="{'player-data': true, 'player-highlight': payload.toMoveId === p.id, 'client-player': true}">
                 {{p.name}} {{p.points}}
             </div>
         </div>
@@ -17,9 +17,8 @@
 
     <div class="controls">
         <div class="tiles">
-            <div 
-            class="player-tile tile {{t.selected ? 'tile-selected' : ''}} {{t.isBlank() ? 'blank-tile' : ''}}" (click)="onPlayerTileClicked(t)"
-                *ngFor="let t of tiles">
+            <div class="player-tile tile {{t.selected ? 'tile-selected' : ''}} {{t.isBlank() ? 'blank-tile' : ''}}"
+                (click)="onPlayerTileClicked(t)" *ngFor="let t of tiles">
                 <div class="tile-letter">{{t.letter}}</div>
                 <div class="tile-value">{{t.value}}</div>
             </div>
