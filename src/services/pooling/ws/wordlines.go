@@ -46,12 +46,13 @@ func (s wordlinesws) OnStart(c *Connections) {
 	messages := []*Message{}
 	startState := struct {
 		Tiles          *wordlines.Tiles `json:"t"`
-		ToMoveID       string          `json:"m"`
-		Players        []*player       `json:"p"`
-		YourMove       bool            `json:"y"`
-		PoolID         string          `json:"pid"`
-		TilesRemaining int             `json:"r"`
-	}{nil, game.ToMoveID, projected, false, uuid.New().String(), game.Bag.Count()}
+		ToMoveID       string           `json:"m"`
+		Players        []*player        `json:"p"`
+		YourMove       bool             `json:"y"`
+		PoolID         string           `json:"pid"`
+		TilesRemaining int              `json:"r"`
+		Language       string           `json:"z"`
+	}{nil, game.ToMoveID, projected, false, uuid.New().String(), game.Bag.Count(), c.Language()}
 
 	for _, p := range game.Players {
 		startState.Tiles = p.Tiles

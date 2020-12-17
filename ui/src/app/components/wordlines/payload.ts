@@ -35,7 +35,7 @@ export class Payload {
 
         this.yourMove = m['y'];
         this.isStart = !('d' in m);
-        this.language = "bulgarian";
+        this.language = m['z'];
         this.tilesRemaining = m['r'];
         this.toMoveId = m['m'];
         this.winnerId = m['w'];
