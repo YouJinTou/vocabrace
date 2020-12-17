@@ -5,8 +5,8 @@ import { WordlinesComponent } from './components/wordlines/wordlines.component';
 
 const routes: Routes = [
   { path: '', component: GamesOverviewComponent },
+  { path: 'wordlines/:poolId', component: WordlinesComponent },
   { path: '**', component: GamesOverviewComponent },
-  { path: 'wordlines/:poolId', component: WordlinesComponent }
 ];
 
 @NgModule({

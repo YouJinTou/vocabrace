@@ -39,7 +39,6 @@ export class Payload {
         this.tilesRemaining = m['r'];
         this.toMoveId = m['m'];
         this.winnerId = m['w'];
-        this.winnerName = this.getWinnerName();
         this.isGameOver = this.winnerId != undefined;
 
         if (this.isStart) {
@@ -56,6 +55,7 @@ export class Payload {
             this.players = this.getUpdatedPlayers(m);
         }
         this.blanks = this.getBlanks();
+        this.winnerName = this.getWinnerName();
     }
 
     private returnedError(m: any): boolean {
