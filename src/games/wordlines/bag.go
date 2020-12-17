@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-const _StartingTileCount = 100
-
 // Bag represents a bag.
 type Bag struct {
 	Tiles     *Tiles `json:"t"`
@@ -30,7 +28,7 @@ func NewBag(language string) *Bag {
 // NewBulgarianBag creates a new English bag.
 func NewBulgarianBag() *Bag {
 	tiles := NewTiles(BlankTile(), BlankTile())
-	tiles.Append(CreateMany("А", 1, 9).Value...)
+	tiles.Append(CreateMany("А", 1, 10).Value...)
 	tiles.Append(CreateMany("Б", 2, 3).Value...)
 	tiles.Append(CreateMany("В", 2, 4).Value...)
 	tiles.Append(CreateMany("Г", 3, 3).Value...)
@@ -46,7 +44,7 @@ func NewBulgarianBag() *Bag {
 	tiles.Append(CreateMany("Н", 1, 4).Value...)
 	tiles.Append(CreateMany("О", 1, 9).Value...)
 	tiles.Append(CreateMany("П", 1, 4).Value...)
-	tiles.Append(CreateMany("Р", 1, 4).Value...)
+	tiles.Append(CreateMany("Р", 1, 5).Value...)
 	tiles.Append(CreateMany("С", 1, 4).Value...)
 	tiles.Append(CreateMany("Т", 1, 5).Value...)
 	tiles.Append(CreateMany("У", 5, 3).Value...)
@@ -69,10 +67,10 @@ func NewBulgarianBag() *Bag {
 // NewEnglishBag creates a new English bag.
 func NewEnglishBag() *Bag {
 	tiles := NewTiles(BlankTile(), BlankTile())
-	tiles.Append(CreateMany("A", 1, 9).Value...)
+	tiles.Append(CreateMany("A", 1, 10).Value...)
 	tiles.Append(CreateMany("B", 3, 2).Value...)
 	tiles.Append(CreateMany("C", 3, 2).Value...)
-	tiles.Append(CreateMany("D", 2, 4).Value...)
+	tiles.Append(CreateMany("D", 2, 5).Value...)
 	tiles.Append(CreateMany("E", 1, 12).Value...)
 	tiles.Append(CreateMany("F", 4, 2).Value...)
 	tiles.Append(CreateMany("G", 2, 3).Value...)

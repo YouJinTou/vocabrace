@@ -99,14 +99,14 @@ func TestBulgarianBagHasCorrectDistribution(t *testing.T) {
 	b := NewBulgarianBag()
 	tests := []*dTile{
 		{"", 2, 0},
-		{"А", 9, 1},
+		{"А", 10, 1},
 		{"О", 9, 1},
 		{"Е", 8, 1},
 		{"И", 8, 1},
 		{"Т", 5, 1},
 		{"Н", 4, 1},
 		{"П", 4, 1},
-		{"Р", 4, 1},
+		{"Р", 5, 1},
 		{"С", 4, 1},
 		{"В", 4, 2},
 		{"Д", 4, 2},
@@ -134,8 +134,8 @@ func TestBulgarianBagHasCorrectDistribution(t *testing.T) {
 }
 
 func TestBagsHaveCorrectCount(t *testing.T) {
-	bagTestCount(102, NewBulgarianBag(), t)
-	bagTestCount(100, NewEnglishBag(), t)
+	bagTestCount(104, NewBulgarianBag(), t)
+	bagTestCount(102, NewEnglishBag(), t)
 }
 
 func TestBagsTilesHaveUniqueIDs(t *testing.T) {
@@ -147,10 +147,10 @@ func TestEnglishBagHasCorrectDistribution(t *testing.T) {
 	b := NewEnglishBag()
 	tests := []*dTile{
 		&dTile{"", 2, 0},
-		&dTile{"A", 9, 1},
+		&dTile{"A", 10, 1},
 		&dTile{"B", 2, 3},
 		&dTile{"C", 2, 3},
-		&dTile{"D", 4, 2},
+		&dTile{"D", 5, 2},
 		&dTile{"E", 12, 1},
 		&dTile{"F", 2, 4},
 		&dTile{"G", 3, 2},
