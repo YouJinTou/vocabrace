@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,7 +18,7 @@ func main() {
 }
 
 func wordlines(language string, startAt *string) {
-	f, err := os.Open(fmt.Sprintf("%s.txt", language))
+	f, err := os.Open(fmt.Sprintf("resources/wordlines_%s.txt", language))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +31,7 @@ func wordlines(language string, startAt *string) {
 	s := bufio.NewScanner(f)
 
 	for s.Scan() {
-		word := s.Text()
+		word := strings.ToLower(s.Text())
 
 		if !start && startAt != nil && word != *startAt {
 			totalCount++
@@ -51,6 +52,10 @@ func wordlines(language string, startAt *string) {
 
 			wordlinesSleep(startTime)
 		}
+	}
+
+	if len(batch) > 0 {
+		wordlinesToDynamo(batch, totalCount, language)
 	}
 
 	if err := s.Err(); err != nil {
