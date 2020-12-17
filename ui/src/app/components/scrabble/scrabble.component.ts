@@ -274,9 +274,5 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
 
     const dialogRef = this.gameOverDialog.open(GameOverDialog, { data: this.payload });
-
-    dialogRef.afterClosed().subscribe(r => {
-
-    });
   }
 }
