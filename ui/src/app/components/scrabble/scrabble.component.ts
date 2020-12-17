@@ -3,7 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
+import { GameOverService } from 'src/services/game-over.service';
 import { UsernameService } from 'src/services/username.service';
 import { WebsocketService } from 'src/services/websocket.service';
 import { BlanksDialog } from './blanks/blanks.component';
@@ -37,6 +37,7 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     public gameOverDialog: MatDialog,
     private wsService: WebsocketService,
     private route: ActivatedRoute,
+    private gameOverService: GameOverService,
     private usernameService: UsernameService) { }
 
   ngOnInit(): void {
@@ -274,5 +275,6 @@ export class ScrabbleComponent implements OnInit, OnDestroy {
     }
 
     this.gameOverDialog.open(GameOverDialog, { data: this.payload });
+    this.gameOverService.onGameOver(this.payload);
   }
 }
