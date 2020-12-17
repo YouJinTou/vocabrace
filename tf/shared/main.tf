@@ -22,3 +22,14 @@ resource "aws_dynamodb_table" "wordlines_bulgarian" {
     type = "S"
   }
 }
+
+resource "aws_dynamodb_table" "wordlines_english" {
+  name           = "wordlines_english"
+  read_capacity  = 5
+  write_capacity = 1
+  hash_key       = "Word"
+  attribute {
+    name = "Word"
+    type = "S"
+  }
+}
