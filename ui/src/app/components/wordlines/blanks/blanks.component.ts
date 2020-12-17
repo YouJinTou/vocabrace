@@ -3,9 +3,9 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Tile } from '../tile';
 
 @Component({
-  selector: 'scrabble-blanks',
+  selector: 'wordlines-blanks',
   templateUrl: 'blanks.component.html',
-  styleUrls: ['../scrabble.component.css']
+  styleUrls: ['../wordlines.component.css']
 })
 export class BlanksDialog {
   blanks: Tile[];

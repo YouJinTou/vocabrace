@@ -1,4 +1,4 @@
-package scrabble
+package wordlines
 
 import "github.com/YouJinTou/vocabrace/tools"
 

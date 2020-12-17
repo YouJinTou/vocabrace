@@ -1,4 +1,4 @@
-package scrabble
+package wordlines
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func NewDynamoChecker() WordChecker {
 
 // ValidateWords checks if the given words are valid for the target language.
 func (dc DynamoChecker) ValidateWords(language string, words []string) ([]string, error) {
-	table := fmt.Sprintf("scrabble_%s", strings.ToLower(language))
+	table := fmt.Sprintf("wordlines_%s", strings.ToLower(language))
 	o, err := tools.BatchGetItem(&table, "Word", words)
 	notFound := []string{}
 	for _, w := range words {

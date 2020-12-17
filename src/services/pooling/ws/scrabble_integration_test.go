@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/YouJinTou/vocabrace/games/scrabble"
+	"github.com/YouJinTou/vocabrace/games/wordlines"
 )
 
 func TestDoublesPointsOnFirstMove(t *testing.T) {
@@ -13,12 +13,12 @@ func TestDoublesPointsOnFirstMove(t *testing.T) {
 	os.Setenv("AWS_PROFILE", "vocabrace")
 
 	pid := "testing_pid"
-	sws := scrabblews{}
+	sws := wordlinesws{}
 	cons := []*Connection{&Connection{}, &Connection{}}
 	players := sws.loadPlayers(NewConnections(cons))
-	g := scrabble.NewGame("bulgarian", players, scrabble.NewDynamoValidator())
-	w := scrabble.NewWordFromString(
-		"ТИ", []int{2, 3}, []int{scrabble.BoardOrigin, scrabble.BoardOrigin + 1})
+	g := wordlines.NewGame("bulgarian", players, wordlines.NewDynamoValidator())
+	w := wordlines.NewWordFromString(
+		"ТИ", []int{2, 3}, []int{wordlines.BoardOrigin, wordlines.BoardOrigin + 1})
 	g.ToMove().Tiles.RemoveAt(0)
 	g.ToMove().Tiles.RemoveAt(0)
 	g.ToMove().Tiles.Append(&w.Cells[0].Tile, &w.Cells[1].Tile)
@@ -35,7 +35,7 @@ func TestDoublesPointsOnFirstMove(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	game := &scrabble.Game{}
+	game := &wordlines.Game{}
 	loadState(pid, game)
 
 	if game.GetPlayerByID(g.GetLastMovedID()).Points != 10 {

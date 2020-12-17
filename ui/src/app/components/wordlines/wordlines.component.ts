@@ -13,14 +13,14 @@ import { Payload } from './payload';
 import { Player } from './player';
 import { Tile } from './tile';
 
-const GAME = 'scrabble';
+const GAME = 'wordlines';
 
 @Component({
-  selector: 'scrabble',
-  templateUrl: './scrabble.component.html',
-  styleUrls: ['./scrabble.component.css']
+  selector: 'wordlines',
+  templateUrl: './wordlines.component.html',
+  styleUrls: ['./wordlines.component.css']
 })
-export class ScrabbleComponent implements OnInit, OnDestroy {
+export class WordlinesComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject();
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];

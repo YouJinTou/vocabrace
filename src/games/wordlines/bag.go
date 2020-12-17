@@ -1,4 +1,4 @@
-package scrabble
+package wordlines
 
 import (
 	"math/rand"

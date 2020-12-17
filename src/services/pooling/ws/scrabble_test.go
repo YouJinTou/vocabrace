@@ -3,19 +3,19 @@ package ws
 import (
 	"testing"
 
-	"github.com/YouJinTou/vocabrace/games/scrabble"
+	"github.com/YouJinTou/vocabrace/games/wordlines"
 )
 
 type canValidateMock struct{}
 
-func (m canValidateMock) ValidatePlace(g scrabble.Game, w *scrabble.Word) error {
+func (m canValidateMock) ValidatePlace(g wordlines.Game, w *wordlines.Word) error {
 	return nil
 }
 
 func TestPlace(t *testing.T) {
-	s := scrabblews{}
-	players := []*scrabble.Player{&scrabble.Player{}}
-	g := scrabble.NewGame("english", players, canValidateMock{})
+	s := wordlinesws{}
+	players := []*wordlines.Player{&wordlines.Player{}}
+	g := wordlines.NewGame("english", players, canValidateMock{})
 	tu := &turn{
 		IsPlace: true,
 		Word: []*cell{

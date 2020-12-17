@@ -17,8 +17,8 @@ type state interface {
 
 func load(game string) (state, error) {
 	switch game {
-	case "scrabble":
-		return scrabblews{
+	case "wordlines":
+		return wordlinesws{
 			saveState:      saveState,
 			loadState:      loadState,
 			send:           Send,

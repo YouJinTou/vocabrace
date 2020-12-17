@@ -13,10 +13,10 @@ import (
 )
 
 func main() {
-	scrabble("bulgarian", aws.String("благоевградчаните"))
+	wordlines("bulgarian", nil)
 }
 
-func scrabble(language string, startAt *string) {
+func wordlines(language string, startAt *string) {
 	f, err := os.Open(fmt.Sprintf("%s.txt", language))
 	if err != nil {
 		log.Fatal(err)
@@ -45,11 +45,11 @@ func scrabble(language string, startAt *string) {
 			totalCount++
 		} else {
 			startTime := time.Now()
-			scrabbleToDynamo(batch, totalCount, language)
+			wordlinesToDynamo(batch, totalCount, language)
 			count = 0
 			batch = []string{}
 
-			scrabbleSleep(startTime)
+			wordlinesSleep(startTime)
 		}
 	}
 
@@ -58,7 +58,7 @@ func scrabble(language string, startAt *string) {
 	}
 }
 
-func scrabbleToDynamo(batch []string, totalCount int, language string) {
+func wordlinesToDynamo(batch []string, totalCount int, language string) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 
@@ -74,7 +74,7 @@ func scrabbleToDynamo(batch []string, totalCount int, language string) {
 	}
 
 	var unprocessed map[string][]*dynamodb.WriteRequest = map[string][]*dynamodb.WriteRequest{
-		fmt.Sprintf("scrabble_%s", language): requests,
+		fmt.Sprintf("wordlines_%s", language): requests,
 	}
 	for i := 0; i < 10; i++ {
 		o, err := dynamo.BatchWriteItem(&dynamodb.BatchWriteItemInput{
@@ -96,7 +96,7 @@ func scrabbleToDynamo(batch []string, totalCount int, language string) {
 	}
 }
 
-func scrabbleSleep(startTime time.Time) {
+func wordlinesSleep(startTime time.Time) {
 	endTime := time.Now()
 	elapsed := endTime.Sub(startTime)
 

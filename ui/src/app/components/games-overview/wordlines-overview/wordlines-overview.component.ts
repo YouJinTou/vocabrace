@@ -6,11 +6,11 @@ import { ContextService } from 'src/services/context.service';
 import { WebsocketService } from 'src/services/websocket.service';
 
 @Component({
-  selector: 'app-scrabble-overview',
-  templateUrl: './scrabble-overview.component.html',
-  styleUrls: ['./scrabble-overview.component.css']
+  selector: 'app-wordlines-overview',
+  templateUrl: './wordlines-overview.component.html',
+  styleUrls: ['./wordlines-overview.component.css']
 })
-export class ScrabbleOverviewComponent implements OnInit {
+export class WordlinesOverviewComponent implements OnInit {
   selectedPlayers: string;
   selectedLanguage: string;
 
@@ -31,7 +31,7 @@ export class ScrabbleOverviewComponent implements OnInit {
       return;
     }
     this.wsService.connect(environment.wsEndpoint, {
-      'game': 'scrabble',
+      'game': 'wordlines',
       'players': parseInt(this.selectedPlayers),
       'language': this.selectedLanguage,
       'userID': this.contextService.user.id,
@@ -40,7 +40,7 @@ export class ScrabbleOverviewComponent implements OnInit {
       next: m => {
         if ('pid' in m) {
           this.contextService.setIsPlaying(true);
-          this.router.navigate(['scrabble', m['pid']]);
+          this.router.navigate(['wordlines', m['pid']]);
         }
       },
       error: e => console.log(e)

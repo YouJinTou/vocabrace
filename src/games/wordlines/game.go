@@ -1,4 +1,4 @@
-package scrabble
+package wordlines
 
 import (
 	"encoding/json"

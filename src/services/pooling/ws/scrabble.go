@@ -5,11 +5,11 @@ import (
 	"errors"
 	"log"
 
-	"github.com/YouJinTou/vocabrace/games/scrabble"
+	"github.com/YouJinTou/vocabrace/games/wordlines"
 	"github.com/google/uuid"
 )
 
-type scrabblews struct {
+type wordlinesws struct {
 	loadState      func(string, interface{})
 	saveState      func(*saveStateInput) error
 	send           func(*Message) error
@@ -34,18 +34,18 @@ type turn struct {
 	ExchangeTiles []string `json:"t"`
 }
 type result struct {
-	g   *scrabble.Game
-	d   scrabble.DeltaState
+	g   *wordlines.Game
+	d   wordlines.DeltaState
 	err error
 }
 
-func (s scrabblews) OnStart(c *Connections) {
+func (s wordlinesws) OnStart(c *Connections) {
 	players := s.loadPlayers(c)
-	game := scrabble.NewGame(c.Language(), players, scrabble.NewDynamoValidator())
+	game := wordlines.NewGame(c.Language(), players, wordlines.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
 	startState := struct {
-		Tiles          *scrabble.Tiles `json:"t"`
+		Tiles          *wordlines.Tiles `json:"t"`
 		ToMoveID       string          `json:"m"`
 		Players        []*player       `json:"p"`
 		YourMove       bool            `json:"y"`
@@ -75,7 +75,7 @@ func (s scrabblews) OnStart(c *Connections) {
 	s.sendManyUnique(messages)
 }
 
-func (s scrabblews) OnAction(data *OnActionInput) {
+func (s wordlinesws) OnAction(data *OnActionInput) {
 	turn := turn{}
 	bErr := json.Unmarshal([]byte(data.Body), &turn)
 
@@ -84,9 +84,9 @@ func (s scrabblews) OnAction(data *OnActionInput) {
 		return
 	}
 
-	game := &scrabble.Game{}
+	game := &wordlines.Game{}
 	s.loadState(data.PoolID, game)
-	game.SetValidator(scrabble.NewDynamoValidator())
+	game.SetValidator(wordlines.NewDynamoValidator())
 
 	if vErr := s.validateTurn(data, game); vErr != nil {
 		s.returnClientError(data, "Invalid turn.", vErr)
@@ -101,7 +101,7 @@ func (s scrabblews) OnAction(data *OnActionInput) {
 	} else if turn.IsPlace {
 		r = s.place(&turn, game)
 	} else {
-		r = &result{nil, scrabble.DeltaState{}, errors.New("invalid action")}
+		r = &result{nil, wordlines.DeltaState{}, errors.New("invalid action")}
 	}
 
 	if r.err != nil {
@@ -135,38 +135,38 @@ func (s scrabblews) OnAction(data *OnActionInput) {
 	s.sendManyUnique(messages)
 }
 
-func (s *scrabblews) exchange(turn *turn, g *scrabble.Game) *result {
+func (s *wordlinesws) exchange(turn *turn, g *wordlines.Game) *result {
 	game, err := g.Exchange(turn.ExchangeTiles)
 	if err != nil {
-		return &result{&game, scrabble.DeltaState{}, err}
+		return &result{&game, wordlines.DeltaState{}, err}
 	}
 	return &result{&game, game.GetDelta(), err}
 }
 
-func (s *scrabblews) pass(g *scrabble.Game) *result {
+func (s *wordlinesws) pass(g *wordlines.Game) *result {
 	game := g.Pass()
 	return &result{&game, game.GetDelta(), nil}
 }
 
-func (s *scrabblews) place(turn *turn, g *scrabble.Game) *result {
-	cells := []*scrabble.Cell{}
+func (s *wordlinesws) place(turn *turn, g *wordlines.Game) *result {
+	cells := []*wordlines.Cell{}
 	for _, c := range turn.Word {
-		cells = append(cells, scrabble.NewCell(
-			scrabble.NewTileWithID(c.TileID, c.Blank, 0),
+		cells = append(cells, wordlines.NewCell(
+			wordlines.NewTileWithID(c.TileID, c.Blank, 0),
 			c.CellIndex,
 		))
 	}
-	game, err := g.Place(scrabble.NewWord(cells))
+	game, err := g.Place(wordlines.NewWord(cells))
 	if err != nil {
-		return &result{&game, scrabble.DeltaState{}, err}
+		return &result{&game, wordlines.DeltaState{}, err}
 	}
 	return &result{&game, game.GetDelta(), err}
 }
 
-func (s *scrabblews) loadPlayers(c *Connections) []*scrabble.Player {
-	result := []*scrabble.Player{}
+func (s *wordlinesws) loadPlayers(c *Connections) []*wordlines.Player {
+	result := []*wordlines.Player{}
 	for _, u := range c.UserIDs() {
-		result = append(result, &scrabble.Player{
+		result = append(result, &wordlines.Player{
 			ID:     u,
 			Name:   u,
 			Points: 0,
@@ -175,7 +175,7 @@ func (s *scrabblews) loadPlayers(c *Connections) []*scrabble.Player {
 	return result
 }
 
-func (s *scrabblews) setPlayerData(players []*scrabble.Player) []*player {
+func (s *wordlinesws) setPlayerData(players []*wordlines.Player) []*player {
 	result := []*player{}
 	for _, p := range players {
 		result = append(result, &player{
@@ -188,7 +188,7 @@ func (s *scrabblews) setPlayerData(players []*scrabble.Player) []*player {
 	return result
 }
 
-func (s *scrabblews) validateTurn(data *OnActionInput, g *scrabble.Game) error {
+func (s *wordlinesws) validateTurn(data *OnActionInput, g *wordlines.Game) error {
 	if data.InitiatorUserID != g.ToMoveID {
 		return errors.New("invalid player turn")
 	}
@@ -196,7 +196,7 @@ func (s *scrabblews) validateTurn(data *OnActionInput, g *scrabble.Game) error {
 	return nil
 }
 
-func (s *scrabblews) returnClientError(data *OnActionInput, message string, err error) {
+func (s *wordlinesws) returnClientError(data *OnActionInput, message string, err error) {
 	log.Printf("ERROR Data: %+v Dump: %s", data, err.Error())
 	msg := struct {
 		Body string

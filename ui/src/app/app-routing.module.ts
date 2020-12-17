@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { GamesOverviewComponent } from './components/games-overview/games-overview.component';
-import { ScrabbleComponent } from './components/scrabble/scrabble.component';
+import { WordlinesComponent } from './components/wordlines/wordlines.component';
 
 const routes: Routes = [
   { path: '', component: GamesOverviewComponent },
   { path: '**', component: GamesOverviewComponent },
-  { path: 'scrabble/:poolId', component: ScrabbleComponent }
+  { path: 'wordlines/:poolId', component: WordlinesComponent }
 ];
 
 @NgModule({

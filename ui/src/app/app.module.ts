@@ -8,25 +8,25 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ScrabbleComponent } from './components/scrabble/scrabble.component';
+import { WordlinesComponent } from './components/wordlines/wordlines.component';
 import { WebsocketService } from 'src/services/websocket.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GamesOverviewComponent } from './components/games-overview/games-overview.component';
-import { ScrabbleOverviewComponent } from './components/games-overview/scrabble-overview/scrabble-overview.component';
+import { WordlinesOverviewComponent } from './components/games-overview/wordlines-overview/wordlines-overview.component';
 import { FacebookComponent } from './components/external-login/facebook/facebook.component';
 import { ContextService } from 'src/services/context.service';
 import { HeaderComponent } from './components/header/header.component';
 import { ExternalLoginComponent } from './components/external-login/external-login.component';
-import { BlanksDialog } from './components/scrabble/blanks/blanks.component';
-import { GameOverDialog } from './components/scrabble/game-over/game-over.component';
+import { BlanksDialog } from './components/wordlines/blanks/blanks.component';
+import { GameOverDialog } from './components/wordlines/game-over/game-over.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ScrabbleComponent,
+    WordlinesComponent,
     BlanksDialog,
     GamesOverviewComponent,
-    ScrabbleOverviewComponent,
+    WordlinesOverviewComponent,
     FacebookComponent,
     HeaderComponent,
     ExternalLoginComponent,
