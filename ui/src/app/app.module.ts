@@ -19,6 +19,7 @@ import { HeaderComponent } from './components/header/header.component';
 import { ExternalLoginComponent } from './components/external-login/external-login.component';
 import { BlanksDialog } from './components/wordlines/blanks/blanks.component';
 import { GameOverDialog } from './components/wordlines/game-over/game-over.component';
+import { TimerComponent } from './components/timer/timer.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import { GameOverDialog } from './components/wordlines/game-over/game-over.compo
     HeaderComponent,
     ExternalLoginComponent,
     GameOverDialog,
+    TimerComponent,
   ],
   imports: [
     BrowserModule,
