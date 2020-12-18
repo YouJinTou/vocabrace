@@ -132,6 +132,15 @@ resource "aws_sns_topic_subscription" "subscription" {
   endpoint  = aws_lambda_function.function.arn
 }
 
+resource "aws_lambda_permission" "sns" {
+  count = var.enable_sns ? 1 : 0
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.function.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = var.sns_arn
+}
+
 module "rest" {
   source = "./agw_integration"
   rest_api_id = var.rest_api_integration.rest_api_id
