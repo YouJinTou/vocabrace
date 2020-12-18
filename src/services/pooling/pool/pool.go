@@ -19,9 +19,9 @@ func main() {
 	lambda.Start(handle)
 }
 
-func handle(ctx context.Context, e events.SQSEvent) error {
+func handle(ctx context.Context, e events.SNSEvent) error {
 	for _, r := range e.Records {
-		if c, err := getInput(r.Body, ws.GetConnections); err == nil {
+		if c, err := getInput(r.SNS.Message, ws.GetConnections); err == nil {
 			if sErr := ws.OnStart(c); sErr != nil {
 				log.Printf(sErr.Error())
 			}

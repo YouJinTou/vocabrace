@@ -17,6 +17,12 @@ func BuildSqsURL(region, accountID, name string) string {
 	return url
 }
 
+// BuildSnsArn builds an SNS topic arn.
+func BuildSnsArn(region, accountID, name string) string {
+	url := fmt.Sprintf("arn:aws:sns:%s:%s:%s", region, accountID, name)
+	return url
+}
+
 // GetItem gets an item from AWS DynamoDB.
 func GetItem(table *string, pkName, pkValue string, skName, skValue *string, projection *string) (
 	*dynamodb.GetItemOutput, error) {

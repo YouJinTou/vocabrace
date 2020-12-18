@@ -97,3 +97,13 @@ variable stream_arn {
     type = string
     default = ""
 }
+
+variable enable_sns {
+    type = bool
+    default = false
+}
+
+variable sns_arn {
+    type = string
+    default = ""
+}

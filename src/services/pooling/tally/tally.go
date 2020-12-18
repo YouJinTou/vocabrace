@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/service/sns"
 
 	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-lambda-go/events"
@@ -59,7 +59,7 @@ func handle(ctx context.Context, e events.DynamoDBEvent) error {
 
 func send(connectionID string, connectionIDs []*string, division div) error {
 	sess := session.Must(session.NewSession())
-	svc := sqs.New(sess)
+	svc := sns.New(sess)
 	cids := []*string{&connectionID}
 	cids = append(cids, connectionIDs...)
 	payload := struct {
@@ -75,11 +75,11 @@ func send(connectionID string, connectionIDs []*string, division div) error {
 	}
 	payloadBytes, _ := json.Marshal(payload)
 	payloadString := string(payloadBytes)
-	url := tools.BuildSqsURL(
+	arn := tools.BuildSnsArn(
 		os.Getenv("REGION"), os.Getenv("ACCOUNT_ID"), fmt.Sprintf("%s_pools", os.Getenv("STAGE")))
-	_, err := svc.SendMessage(&sqs.SendMessageInput{
-		MessageBody: aws.String(payloadString),
-		QueueUrl:    aws.String(url),
+	_, err := svc.Publish(&sns.PublishInput{
+		Message:  aws.String(payloadString),
+		TopicArn: aws.String(arn),
 	})
 	return err
 }

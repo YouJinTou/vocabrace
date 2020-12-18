@@ -9,9 +9,8 @@ module "pool" {
     STAGE: var.stage
     REGION: var.aws_region
   }
-  sqs_sources = [
-    {arn: aws_sqs_queue.pools.arn, batch_size: 1}
-  ]
+  enable_sns = true
+  sns_arn = aws_sns_topic.pools.arn
 }
 
 resource "aws_dynamodb_table" "pools" {
@@ -29,6 +28,6 @@ resource "aws_dynamodb_table" "pools" {
   }
 }
 
-resource "aws_sqs_queue" "pools" {
+resource "aws_sns_topic" "pools" {
   name           = "${var.stage}_pools"
 }

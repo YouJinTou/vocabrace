@@ -125,6 +125,13 @@ resource "aws_lambda_permission" "rule_permission" {
   source_arn    = aws_cloudwatch_event_rule.rule[0].arn
 }
 
+resource "aws_sns_topic_subscription" "subscription" {
+  count = var.enable_sns ? 1 : 0
+  topic_arn = var.sns_arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.function.arn
+}
+
 module "rest" {
   source = "./agw_integration"
   rest_api_id = var.rest_api_integration.rest_api_id
