@@ -10,7 +10,7 @@ const English = "english"
 
 func TestExchange(t *testing.T) {
 	players := []*Player{testPlayer(), testPlayer()}
-	g := NewGame(English, players, v())
+	g := NewClassicGame(English, players, v())
 	toExchange := []string{g.ToMove().Tiles.GetAt(0).ID, g.ToMove().Tiles.GetAt(1).ID}
 
 	if _, err := g.Exchange(toExchange); err != nil {
@@ -140,7 +140,7 @@ func TestOrderPlayers(t *testing.T) {
 		}
 
 		for x := 0; x < 50; x++ {
-			g := NewGame(English, players, v())
+			g := NewClassicGame(English, players, v())
 			io, _ := strconv.Atoi(g.Order[0])
 			expected := getExpectedOrder(io, total)
 
@@ -164,7 +164,7 @@ func TestSetNext(t *testing.T) {
 	players := []*Player{p1, p2, p3}
 
 	for j := 0; j < 10; j++ {
-		g := NewGame(English, players, v())
+		g := NewClassicGame(English, players, v())
 
 		for i := 0; i < 50; i++ {
 			toMoveID := g.ToMoveID
@@ -230,7 +230,7 @@ func Test_BagEmpty_PlayerExhaustsTiles_AddsOtherPlayersTilesSumToLastPlaced(t *t
 		g.Bag.Draw(100)
 		w := testCreateWord(BoardOrigin, true, g.ToMove().Tiles.Value...)
 		toMovePointsBeforePlace := g.ToMove().Points
-		finalWordPoints := CalculatePoints(w, []*Word{w})
+		finalWordPoints := CalculatePoints(w, []*Word{w}, classic{})
 		sumOfAllOpponentTiles := 0
 		for _, p := range g.Players {
 			if p.ID != g.ToMoveID {
@@ -361,7 +361,7 @@ func setupGame(playerCount int) (Game, []*Player, *Word) {
 	for i := 0; i < playerCount; i++ {
 		players = append(players, testPlayer())
 	}
-	g := NewGame(English, players, v())
+	g := NewClassicGame(English, players, v())
 	w := testCreateWord(
 		BoardOrigin,
 		true,

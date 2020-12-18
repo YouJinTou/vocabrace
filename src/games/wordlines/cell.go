@@ -2,8 +2,6 @@ package wordlines
 
 import "github.com/YouJinTou/vocabrace/tools"
 
-var l = spiral{}
-
 // Cell composes a board.
 type Cell struct {
 	Tile             Tile `json:"t"`
@@ -21,15 +19,15 @@ func NewCell(t *Tile, index int) *Cell {
 }
 
 // Value calculates the cell's value given its tile value and any letter multipliers.
-func (c *Cell) Value() int {
+func (c *Cell) Value(l layout) int {
 	if !c.enableMultiplier {
 		return c.Tile.Value
 	}
-	return c.Tile.Value * c.LetterMultiplier()
+	return c.Tile.Value * c.LetterMultiplier(l)
 }
 
 // WordMultiplier returns the word multiplier of the cell.
-func (c *Cell) WordMultiplier() int {
+func (c *Cell) WordMultiplier(l layout) int {
 	if !c.enableMultiplier {
 		return 1
 	}
@@ -43,7 +41,7 @@ func (c *Cell) WordMultiplier() int {
 }
 
 // LetterMultiplier returns the letter multiplier of the cell.
-func (c *Cell) LetterMultiplier() int {
+func (c *Cell) LetterMultiplier(l layout) int {
 	if tools.ContainsInt(l.DoubleLetterIndices(), c.Index) {
 		return 2
 	}

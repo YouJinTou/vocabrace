@@ -70,8 +70,21 @@ func (d *DeltaState) JSONWithoutPersonal() string {
 	return result
 }
 
-// NewGame creates a new game.
-func NewGame(language string, players []*Player, validator CanValidate) *Game {
+// NewClassicGame creates a new classic game.
+func NewClassicGame(language string, players []*Player, validator CanValidate) *Game {
+	g := newGame(language, players, validator)
+	g.Board = *NewBoard(classic{})
+	return g
+}
+
+// NewSpiralGame creates a new spiral game.
+func NewSpiralGame(language string, players []*Player, validator CanValidate) *Game {
+	g := newGame(language, players, validator)
+	g.Board = *NewBoard(spiral{})
+	return g
+}
+
+func newGame(language string, players []*Player, validator CanValidate) *Game {
 	if len(players) < 1 {
 		panic("at least one player required")
 	}
@@ -82,7 +95,6 @@ func NewGame(language string, players []*Player, validator CanValidate) *Game {
 	}
 	toMove, orderedIDs := orderPlayers(players)
 	return &Game{
-		Board:    *NewBoard(),
 		Bag:      *bag,
 		Players:  players,
 		ToMoveID: toMove,
@@ -149,7 +161,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 	g.Board.SetCells(w.Cells)
 
 	words := Extract(&g.Board, w)
-	points := CalculatePoints(w, words)
+	points := CalculatePoints(w, words, g.Board.l)
 	g.ToMove().AwardPoints(points)
 
 	toReceive := g.Bag.Draw(w.Length())

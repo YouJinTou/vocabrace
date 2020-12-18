@@ -5,9 +5,9 @@ import (
 )
 
 // CalculatePoints calculates points given some words.
-func CalculatePoints(primary *Word, words []*Word) int {
+func CalculatePoints(primary *Word, words []*Word, l layout) int {
 	disableMultipliers(primary, words)
-	sum := sumTiles(words)
+	sum := sumTiles(words, l)
 	sum = tryAward50PointsBonus(sum, primary)
 	return sum
 }
@@ -23,10 +23,10 @@ func disableMultipliers(primary *Word, words []*Word) {
 	}
 }
 
-func sumTiles(words []*Word) int {
+func sumTiles(words []*Word, l layout) int {
 	sum := 0
 	for _, w := range words {
-		sum += w.Value()
+		sum += w.Value(l)
 	}
 	return sum
 }

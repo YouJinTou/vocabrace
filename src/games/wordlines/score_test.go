@@ -133,11 +133,11 @@ func TestCalculatePoints_Bingo_DoubleWord_TripleWord_DoubleLetter(t *testing.T) 
 }
 
 func testScoreGame() *Game {
-	return NewGame(English, []*Player{testPlayer(), testPlayer()}, v())
+	return NewClassicGame(English, []*Player{testPlayer(), testPlayer()}, v())
 }
 
 func scoreRunnable(g *Game, w *Word, words []*Word, expected int, t *testing.T) {
-	p := CalculatePoints(w, words)
+	p := CalculatePoints(w, words, classic{})
 
 	if p != expected {
 		t.Errorf("expected %d, got %d", expected, p)

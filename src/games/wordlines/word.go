@@ -78,13 +78,13 @@ func (w *Word) ExistsIn(words []*Word) bool {
 }
 
 // Value returns the sum of its tiles.
-func (w *Word) Value() int {
+func (w *Word) Value(l layout) int {
 	sum := 0
 	for _, c := range w.Cells {
-		sum += c.Value()
+		sum += c.Value(l)
 	}
 	for _, c := range w.Cells {
-		sum *= c.WordMultiplier()
+		sum *= c.WordMultiplier(l)
 	}
 	return sum
 }

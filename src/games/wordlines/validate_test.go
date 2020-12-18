@@ -342,7 +342,7 @@ func v() CanValidate {
 
 func testValidatorGame() Game {
 	players := []*Player{testPlayer(), testPlayer()}
-	g := *NewGame(English, players, v())
+	g := *NewClassicGame(English, players, v())
 	return g
 }
 

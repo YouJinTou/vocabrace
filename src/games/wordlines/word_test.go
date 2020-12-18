@@ -21,7 +21,7 @@ func TestEmptyWordPanics(t *testing.T) {
 // _ h o r n _
 // _ _ _ _ _ _
 func TestExtractOneLoneWord(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	expected := []string{"horn"}
 	w := word(expected[0], 46, true, []int{}, []int{}, []int{})
@@ -36,7 +36,7 @@ func TestExtractOneLoneWord(t *testing.T) {
 // _ h o r n s
 // _ _ _ _ _ _
 func TestExtractOneExtendingAcross(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
@@ -56,7 +56,7 @@ func TestExtractOneExtendingAcross(t *testing.T) {
 // _ h o r n _
 // _ _ _ m _ _
 func TestExtractOneCrossWord(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
@@ -77,7 +77,7 @@ func TestExtractOneCrossWord(t *testing.T) {
 // _ _ _ m _ _
 // _ p a s t e
 func TestExtractTwoWordsInverseT(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
@@ -100,7 +100,7 @@ func TestExtractTwoWordsInverseT(t *testing.T) {
 // _ _ _ m o b
 // _ p a s t e
 func TestExtractThreeWordsSandwich(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
@@ -126,7 +126,7 @@ func TestExtractThreeWordsSandwich(t *testing.T) {
 // _ p a s t e
 // b i t _ _ _
 func TestExtractThreeWordsSandwich2(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
@@ -153,7 +153,7 @@ func TestExtractThreeWordsSandwich2(t *testing.T) {
 // _ _ k m o b
 // _ p a s t e
 func TestExtractFourWordsSandwich(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w1 := word("horn", 46, true, []int{}, []int{}, []int{})
 	b.SetCells(w1.Cells)
@@ -177,7 +177,7 @@ func TestExtractFourWordsSandwich(t *testing.T) {
 // _ s _ _ _
 // _ t _ _ _
 func TestExtractOneLoneWordDown(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	expected := []string{"test"}
 	w := word(expected[0], 16, false, []int{}, []int{}, []int{})
@@ -193,7 +193,7 @@ func TestExtractOneLoneWordDown(t *testing.T) {
 // _ s _ _ _
 // _ t _ _ _
 func TestExtractOneCrosswordAcross(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w := word("test", 16, false, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
@@ -214,7 +214,7 @@ func TestExtractOneCrosswordAcross(t *testing.T) {
 // _ t _ _ _
 // _ s _ _ _
 func TestExtractOneExtendingDown(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w := word("test", 16, false, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
@@ -233,7 +233,7 @@ func TestExtractOneExtendingDown(t *testing.T) {
 // l _ _ _ _
 // e _ _ _ _
 func TestExtractTwoWordsInverseTDown(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w := word("as", 16, true, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
@@ -251,7 +251,7 @@ func TestExtractTwoWordsInverseTDown(t *testing.T) {
 // p a s s a g e
 // _ t o o t _ _
 func TestExtractSandwichAcross(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w := word("passage", 15, true, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
@@ -272,7 +272,7 @@ func TestExtractSandwichAcross(t *testing.T) {
 // _ l e e
 // b e s t
 func TestExtractMassiveSandwichDown(t *testing.T) {
-	b := NewBoard()
+	b := testBoard()
 
 	w := word("doodle", 1, false, []int{}, []int{}, []int{})
 	b.SetCells(w.Cells)
@@ -382,4 +382,8 @@ func validateExpected(words []*Word, expected []string, b *Board, t *testing.T) 
 			t.Errorf("expected to find %s", e)
 		}
 	}
+}
+
+func testBoard() *Board {
+	return NewBoard(classic{})
 }

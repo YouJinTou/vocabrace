@@ -15,7 +15,7 @@ func (m canValidateMock) ValidatePlace(g wordlines.Game, w *wordlines.Word) erro
 func TestPlace(t *testing.T) {
 	s := wordlinesws{}
 	players := []*wordlines.Player{&wordlines.Player{}}
-	g := wordlines.NewGame("english", players, canValidateMock{})
+	g := wordlines.NewClassicGame("english", players, canValidateMock{})
 	tu := &turn{
 		IsPlace: true,
 		Word: []*cell{

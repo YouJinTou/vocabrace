@@ -41,7 +41,7 @@ type result struct {
 
 func (s wordlinesws) OnStart(c *Connections) {
 	players := s.loadPlayers(c)
-	game := wordlines.NewGame(c.Language(), players, wordlines.NewDynamoValidator())
+	game := wordlines.NewSpiralGame(c.Language(), players, wordlines.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
 	messages := []*Message{}
 	startState := struct {

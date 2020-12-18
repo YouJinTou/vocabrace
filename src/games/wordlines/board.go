@@ -24,12 +24,14 @@ const BoardOrigin = BoardMaxIndex / 2
 // Board is a 15x15 field of cells.
 type Board struct {
 	Cells []Cell `json:"c"`
+	l     layout
 }
 
 // NewBoard creates a board.
-func NewBoard() *Board {
+func NewBoard(l layout) *Board {
 	board := Board{
 		Cells: []Cell{},
+		l:     l,
 	}
 
 	return &board
@@ -106,7 +108,7 @@ func (c Cell) MarshalJSON() ([]byte, error) {
 
 // Print prints the board.
 func (b *Board) Print() {
-	dummy := NewBoard()
+	dummy := NewBoard(classic{})
 	dummyCells := []*Cell{}
 	idx := 0
 	for r := 0; r < BoardHeight; r++ {
