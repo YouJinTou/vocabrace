@@ -45,6 +45,7 @@ func (d *DeltaState) JSONWithPersonal() string {
 		LastActionPlayerData: d.LastActionPlayerData,
 		YourMove:             d.YourMove,
 		Points:               d.Points,
+		WinnerID:             d.WinnerID,
 		TilesRemaining:       d.TilesRemaining,
 		Language:             d.Language,
 	}
@@ -62,6 +63,7 @@ func (d *DeltaState) JSONWithoutPersonal() string {
 		OtherPlayersData:   d.OtherPlayersData,
 		YourMove:           d.YourMove,
 		Points:             d.Points,
+		WinnerID:           d.WinnerID,
 		TilesRemaining:     d.TilesRemaining,
 		Language:           d.Language,
 	}
