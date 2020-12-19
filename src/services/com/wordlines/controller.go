@@ -1,20 +1,19 @@
-package ws
+package controller
 
 import (
 	"encoding/json"
 	"errors"
-	"log"
+
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 
 	"github.com/YouJinTou/vocabrace/games/wordlines"
+	sd "github.com/YouJinTou/vocabrace/services/com/state/data"
+	"github.com/YouJinTou/vocabrace/services/com/state/ws"
 	"github.com/google/uuid"
 )
 
-type wordlinesws struct {
-	loadState      func(string, interface{})
-	saveState      func(*saveStateInput) error
-	send           func(*Message) error
-	sendManyUnique func([]*Message)
-}
+// Controller communicaes data between the game logic object and the communication layer.
+type Controller struct{}
 type cell struct {
 	CellIndex int    `json:"c"`
 	TileID    string `json:"t"`
@@ -39,11 +38,13 @@ type result struct {
 	err error
 }
 
-func (s wordlinesws) OnStart(c *Connections) {
+// OnStart executes logic at the start of the game.
+func (s Controller) OnStart(i sd.OnStartInput) (sd.OnStartOutput, error) {
+	c := i.Connections
 	players := s.loadPlayers(c)
 	game := wordlines.NewSpiralGame(c.Language(), players, wordlines.NewDynamoValidator())
 	projected := s.setPlayerData(game.Players)
-	messages := []*Message{}
+	messages := []*ws.Message{}
 	startState := struct {
 		Tiles          *wordlines.Tiles `json:"t"`
 		ToMoveID       string           `json:"m"`
@@ -58,41 +59,41 @@ func (s wordlinesws) OnStart(c *Connections) {
 		startState.Tiles = p.Tiles
 		startState.YourMove = game.ToMoveID == p.ID
 		b, _ := json.Marshal(startState)
-		messages = append(messages, &Message{
+		messages = append(messages, &ws.Message{
 			Domain:       c.Domain(),
 			ConnectionID: *c.IDByUserID(p.ID),
 			Message:      string(b),
 		})
 	}
 
-	if sErr := s.saveState(&saveStateInput{
-		PoolID:        startState.PoolID,
-		ConnectionIDs: c.IDs(),
-		V:             game,
-	}); sErr != nil {
-		panic(sErr.Error())
+	o := sd.OnStartOutput{
+		PoolID:   startState.PoolID,
+		Messages: messages,
+		Game:     game,
 	}
-
-	s.sendManyUnique(messages)
+	return o, nil
 }
 
-func (s wordlinesws) OnAction(data *OnActionInput) {
+// OnAction executes logic at each turn.
+func (s Controller) OnAction(data sd.OnActionInput) (sd.OnActionOutput, error) {
 	turn := turn{}
 	bErr := json.Unmarshal([]byte(data.Body), &turn)
 
 	if bErr != nil {
-		s.returnClientError(data, "Invalid payload.", bErr)
-		return
+		return sd.OnActionOutput{
+			Error: s.Error(data, "Invalid payload.", bErr),
+		}, bErr
 	}
 
 	game := &wordlines.Game{}
-	s.loadState(data.PoolID, game)
+	dynamodbattribute.UnmarshalMap(data.State, game)
 	game.SetValidator(wordlines.NewDynamoValidator())
 	game.SetLayout("spiral")
 
 	if vErr := s.validateTurn(data, game); vErr != nil {
-		s.returnClientError(data, "Invalid turn.", vErr)
-		return
+		return sd.OnActionOutput{
+			Error: s.Error(data, "Invalid turn.", vErr),
+		}, vErr
 	}
 
 	var r *result
@@ -107,37 +108,32 @@ func (s wordlinesws) OnAction(data *OnActionInput) {
 	}
 
 	if r.err != nil {
-		s.returnClientError(data, "Bad request.", r.err)
-		return
+		return sd.OnActionOutput{
+			Error: s.Error(data, "Bad request.", r.err),
+		}, r.err
 	}
 
-	if sErr := s.saveState(&saveStateInput{
-		PoolID:        data.PoolID,
-		ConnectionIDs: data.Connections.IDs(),
-		V:             game,
-	}); sErr != nil {
-		panic(sErr.Error())
-	}
-
-	s.send(&Message{
+	messages := []*ws.Message{&ws.Message{
 		ConnectionID: data.Initiator,
 		Domain:       data.Connections.Domain(),
 		Message:      r.d.JSONWithPersonal(),
-	})
-
-	messages := []*Message{}
+	}}
 	for _, cid := range data.Connections.OtherIDs(data.Initiator) {
 		r.d.YourMove = game.ToMoveID == *data.Connections.UserIDByID(cid)
-		messages = append(messages, &Message{
+		messages = append(messages, &ws.Message{
 			ConnectionID: cid,
 			Domain:       data.Connections.Domain(),
 			Message:      r.d.JSONWithoutPersonal(),
 		})
 	}
-	s.sendManyUnique(messages)
+
+	return sd.OnActionOutput{
+		Messages: messages,
+		Game:     game,
+	}, nil
 }
 
-func (s *wordlinesws) exchange(turn *turn, g *wordlines.Game) *result {
+func (s Controller) exchange(turn *turn, g *wordlines.Game) *result {
 	game, err := g.Exchange(turn.ExchangeTiles)
 	if err != nil {
 		return &result{&game, wordlines.DeltaState{}, err}
@@ -145,12 +141,12 @@ func (s *wordlinesws) exchange(turn *turn, g *wordlines.Game) *result {
 	return &result{&game, game.GetDelta(), err}
 }
 
-func (s *wordlinesws) pass(g *wordlines.Game) *result {
+func (s Controller) pass(g *wordlines.Game) *result {
 	game := g.Pass()
 	return &result{&game, game.GetDelta(), nil}
 }
 
-func (s *wordlinesws) place(turn *turn, g *wordlines.Game) *result {
+func (s Controller) place(turn *turn, g *wordlines.Game) *result {
 	cells := []*wordlines.Cell{}
 	for _, c := range turn.Word {
 		cells = append(cells, wordlines.NewCell(
@@ -165,7 +161,7 @@ func (s *wordlinesws) place(turn *turn, g *wordlines.Game) *result {
 	return &result{&game, game.GetDelta(), err}
 }
 
-func (s *wordlinesws) loadPlayers(c *Connections) []*wordlines.Player {
+func (s Controller) loadPlayers(c *sd.Connections) []*wordlines.Player {
 	result := []*wordlines.Player{}
 	for _, u := range c.UserIDs() {
 		result = append(result, &wordlines.Player{
@@ -177,7 +173,7 @@ func (s *wordlinesws) loadPlayers(c *Connections) []*wordlines.Player {
 	return result
 }
 
-func (s *wordlinesws) setPlayerData(players []*wordlines.Player) []*player {
+func (s Controller) setPlayerData(players []*wordlines.Player) []*player {
 	result := []*player{}
 	for _, p := range players {
 		result = append(result, &player{
@@ -190,7 +186,7 @@ func (s *wordlinesws) setPlayerData(players []*wordlines.Player) []*player {
 	return result
 }
 
-func (s *wordlinesws) validateTurn(data *OnActionInput, g *wordlines.Game) error {
+func (s Controller) validateTurn(data sd.OnActionInput, g *wordlines.Game) error {
 	if data.InitiatorUserID != g.ToMoveID {
 		return errors.New("invalid player turn")
 	}
@@ -198,16 +194,15 @@ func (s *wordlinesws) validateTurn(data *OnActionInput, g *wordlines.Game) error
 	return nil
 }
 
-func (s *wordlinesws) returnClientError(data *OnActionInput, message string, err error) {
-	log.Printf("ERROR Data: %+v Dump: %s", data, err.Error())
+func (s Controller) Error(data sd.OnActionInput, message string, err error) *ws.Message {
 	msg := struct {
 		Body string
 		Type string
 	}{message, "ERROR"}
 	b, _ := json.Marshal(msg)
-	s.send(&Message{
+	return &ws.Message{
 		ConnectionID: data.Initiator,
 		Domain:       data.Connections.Domain(),
 		Message:      string(b),
-	})
+	}
 }

@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 
+	"github.com/YouJinTou/vocabrace/services/com/state"
+	sd "github.com/YouJinTou/vocabrace/services/com/state/data"
 	"github.com/YouJinTou/vocabrace/tools"
-
-	"github.com/YouJinTou/vocabrace/services/pooling/ws"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -41,12 +41,12 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
-	cons, gErr := ws.GetConnections(pool.ConnectionIDs)
+	cons, gErr := sd.GetConnections(pool.ConnectionIDs)
 	if gErr != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, gErr
 	}
 
-	aErr := ws.OnAction(&ws.OnActionInput{
+	aErr := state.OnAction(sd.OnActionInput{
 		PoolID:          pool.ID,
 		Body:            data.Body,
 		Connections:     cons,

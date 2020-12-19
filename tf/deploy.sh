@@ -29,7 +29,7 @@ build-lambda-zip -output pool.zip pool
 rm pool
 mv pool.zip $tf_root/payloads
 
-cd $services_root/pooling/publish
+cd $services_root/publish
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o publish .
 build-lambda-zip -output publish.zip publish
 rm publish

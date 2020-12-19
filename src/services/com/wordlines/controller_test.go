@@ -1,4 +1,4 @@
-package ws
+package controller
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ func (m canValidateMock) ValidatePlace(g wordlines.Game, w *wordlines.Word) erro
 }
 
 func TestPlace(t *testing.T) {
-	s := wordlinesws{}
+	s := Controller{}
 	players := []*wordlines.Player{&wordlines.Player{}}
 	g := wordlines.NewClassicGame("english", players, canValidateMock{})
 	tu := &turn{

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/YouJinTou/vocabrace/services/pooling/ws"
+	sd "github.com/YouJinTou/vocabrace/services/com/state/data"
+
+	"github.com/YouJinTou/vocabrace/services/com/state"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -21,8 +23,8 @@ func main() {
 
 func handle(ctx context.Context, e events.SNSEvent) error {
 	for _, r := range e.Records {
-		if c, err := getInput(r.SNS.Message, ws.GetConnections); err == nil {
-			if sErr := ws.OnStart(c); sErr != nil {
+		if c, err := getInput(r.SNS.Message, sd.GetConnections); err == nil {
+			if sErr := state.OnStart(c); sErr != nil {
 				log.Printf(sErr.Error())
 			}
 		} else {
@@ -32,9 +34,9 @@ func handle(ctx context.Context, e events.SNSEvent) error {
 	return nil
 }
 
-func getInput(body string, get func([]string) (*ws.Connections, error)) (*ws.Connections, error) {
+func getInput(body string, get func([]string) (*sd.Connections, error)) (sd.OnStartInput, error) {
 	p := &payload{}
 	json.Unmarshal([]byte(body), p)
 	connections, err := get(p.ConnectionIDs)
-	return connections, err
+	return sd.OnStartInput{Connections: connections}, err
 }
