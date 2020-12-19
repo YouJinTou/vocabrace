@@ -33,7 +33,7 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 	events.APIGatewayProxyResponse, error) {
 	data, dErr := getData(req.Body)
 	if dErr != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 500}, dErr
+		return events.APIGatewayProxyResponse{StatusCode: 400}, dErr
 	}
 
 	pool, err := getPool(data.PoolID)
@@ -54,7 +54,7 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 		InitiatorUserID: *cons.UserIDByID(req.RequestContext.ConnectionID),
 	})
 	if aErr != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 500}, aErr
+		return events.APIGatewayProxyResponse{StatusCode: 400}, aErr
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
