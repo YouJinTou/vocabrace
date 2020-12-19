@@ -10,7 +10,7 @@ module "reconnect" {
     REGION: var.aws_region
   }
   enable_sns = true
-  sns_arn = aws_sns_topic.pools.arn
+  sns_arn = aws_sns_topic.reconnect.arn
 }
 
 resource "aws_sns_topic" "reconnect" {
