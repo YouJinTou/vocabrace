@@ -7,9 +7,13 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 })
 export class TimerComponent implements OnInit {
   private intervalId;
+  showWarning = false;
   remaining: number;
   @Input() timeout: number;
-  @Output() onExpire = new EventEmitter<any>();
+  @Input() warning = 10;
+  @Input() warningClass = 'warning'
+  @Input() warningEnabled = true;
+  @Output() onTimeout = new EventEmitter();
 
   constructor() { }
 
@@ -24,10 +28,21 @@ export class TimerComponent implements OnInit {
     clearTimeout(this.intervalId);
   }
 
+  restart() {
+    this.reset();
+    this.start();
+  }
+
   private countdown() {
-    this.remaining = this.timeout + 1;
+    this.remaining = this.timeout;
     this.intervalId = setInterval(() => {
       this.remaining -= 1;
+      if (this.remaining <= 0) {
+        this.onTimeout.emit();
+        this.reset();
+      } else if (this.warningEnabled && this.remaining <= this.warning) {
+        this.showWarning = true;
+      }
     }, 1000);
   }
 }

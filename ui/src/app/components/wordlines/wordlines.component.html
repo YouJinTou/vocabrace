@@ -3,11 +3,15 @@
     <div class="players">
         <div class="player" *ngFor="let p of players">
             <div [ngClass]="{'player-data': true, 'player-highlight': payload.toMoveId === p.id}">
-                {{p.name}} {{p.points}}
+                <div>
+                    {{p.name}} {{p.points}}
+                </div>
+                <app-timer class="timer" *ngIf="payload.toMoveId === p.id" [timeout]="60" (onTimeout)="onTimeout()">
+                </app-timer>
             </div>
         </div>
     </div>
-    
+
     <div class="board">
         <div class="cell {{c.cssClass}}" (click)="onCellTileClicked(c)" *ngFor="let c of cells">
             <div class="tile-letter">{{c?.tile?.letter}}</div>

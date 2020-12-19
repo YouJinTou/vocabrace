@@ -10,10 +10,13 @@
 }
 
 .player-data {
-    padding: 1px;
+    padding: 3px;
     border-top: 2px solid lightgreen;
     background-color: rgb(197, 197, 197);
     color: black;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 2px;
 }
 
 .player-highlight {
@@ -95,4 +98,8 @@
 .actions {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+}
+
+.timer {
+    text-align: right;
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { GameOverService } from 'src/services/game-over.service';
 import { UsernameService } from 'src/services/username.service';
 import { WebsocketService } from 'src/services/websocket.service';
+import { TimerComponent } from '../timer/timer.component';
 import { BlanksDialog } from './blanks/blanks.component';
 import { Cell, getCellClass } from './cell';
 import { GameOverDialog } from './game-over/game-over.component';
@@ -25,12 +26,14 @@ export class WordlinesComponent implements OnInit, OnDestroy {
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];
   private poolID: string;
+  @ViewChild(TimerComponent)
+  private timer: TimerComponent;
+  private blanks: Tile[] = [];
+  private blankClicked: boolean;
   payload: Payload;
   players: Player[] = [];
   tiles: Tile[] = [];
   cells: Cell[] = [];
-  blanks: Tile[] = [];
-  blankClicked: boolean;
 
   constructor(
     public blanksDialog: MatDialog,
@@ -64,6 +67,12 @@ export class WordlinesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed$.next();
+  }
+
+  onTimeout() {
+    if (this.payload.yourMove) {
+      this.onPassClicked();
+    }
   }
 
   onPlayerTileClicked(t: Tile) {
@@ -138,6 +147,7 @@ export class WordlinesComponent implements OnInit, OnDestroy {
   }
 
   private pipeline(m: any) {
+    console.log(m);
     this.payload = new Payload(m, this.usernameService);
 
     if (this.payload.isError) {
@@ -155,6 +165,19 @@ export class WordlinesComponent implements OnInit, OnDestroy {
     this.blanks = this.payload.blanks;
     this.blankClicked = false;
     this.poolID = this.poolID ? this.poolID : this.payload.poolId;
+    this.startTimer();
+  }
+
+  private startTimer() {
+    if (this.payload.isGameOver) {
+      return;
+    }
+
+    setTimeout(() => {
+      if (this.timer) {
+        this.timer.restart();
+      }
+    }, 0.5);
   }
 
   private cancel() {
