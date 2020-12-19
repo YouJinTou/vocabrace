@@ -6,7 +6,7 @@
                 <div>
                     {{p.name}} {{p.points}}
                 </div>
-                <app-timer class="timer" *ngIf="payload.toMoveId === p.id" [timeout]="60" (onTimeout)="onTimeout()">
+                <app-timer class="timer" *ngIf="payload.toMoveId === p.id" [timeout]="5" (timedOut)="onTimeout()">
                 </app-timer>
             </div>
         </div>

@@ -13,7 +13,7 @@ export class TimerComponent implements OnInit {
   @Input() warning = 10;
   @Input() warningClass = 'warning'
   @Input() warningEnabled = true;
-  @Output() onTimeout = new EventEmitter();
+  @Output() timedOut = new EventEmitter();
 
   constructor() { }
 
@@ -38,7 +38,7 @@ export class TimerComponent implements OnInit {
     this.intervalId = setInterval(() => {
       this.remaining -= 1;
       if (this.remaining <= 0) {
-        this.onTimeout.emit();
+        this.timedOut.emit();
         this.reset();
       } else if (this.warningEnabled && this.remaining <= this.warning) {
         this.showWarning = true;
