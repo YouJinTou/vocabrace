@@ -72,6 +72,7 @@ export class WordlinesComponent implements OnInit, OnDestroy {
   onTimeout() {
     if (this.payload.yourMove) {
       this.onPassClicked();
+      this.cancel();
     }
   }
 
