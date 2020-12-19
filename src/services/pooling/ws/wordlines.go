@@ -88,6 +88,7 @@ func (s wordlinesws) OnAction(data *OnActionInput) {
 	game := &wordlines.Game{}
 	s.loadState(data.PoolID, game)
 	game.SetValidator(wordlines.NewDynamoValidator())
+	game.SetLayout("spiral")
 
 	if vErr := s.validateTurn(data, game); vErr != nil {
 		s.returnClientError(data, "Invalid turn.", vErr)

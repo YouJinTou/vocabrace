@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/YouJinTou/vocabrace/tools"
 )
@@ -109,6 +110,16 @@ func newGame(language string, players []*Player, validator CanValidate) *Game {
 // SetValidator sets the validator.
 func (g *Game) SetValidator(v CanValidate) {
 	g.v = v
+}
+
+// SetLayout sets the layout. Supports 'spiral'.
+func (g *Game) SetLayout(s string) {
+	switch strings.ToLower(s) {
+	case "spiral":
+		g.Board.l = spiral{}
+	default:
+		g.Board.l = spiral{}
+	}
 }
 
 // GetDelta shows the changes since the last move.
