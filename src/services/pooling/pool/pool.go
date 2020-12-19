@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
-	sd "github.com/YouJinTou/vocabrace/services/com/state/data"
+	"github.com/YouJinTou/vocabrace/services/com/state/data"
 
 	"github.com/YouJinTou/vocabrace/services/com/state"
 
@@ -21,9 +21,9 @@ func main() {
 	lambda.Start(handle)
 }
 
-func handle(ctx context.Context, e events.SNSEvent) error {
+func handle(ctx context.Context, e events.SNSEvent) {
 	for _, r := range e.Records {
-		if c, err := getInput(r.SNS.Message, sd.GetConnections); err == nil {
+		if c, err := getInput(r.SNS.Message, data.GetConnections); err == nil {
 			if sErr := state.OnStart(c); sErr != nil {
 				log.Printf(sErr.Error())
 			}
@@ -31,12 +31,11 @@ func handle(ctx context.Context, e events.SNSEvent) error {
 			log.Printf(err.Error())
 		}
 	}
-	return nil
 }
 
-func getInput(body string, get func([]string) (*sd.Connections, error)) (sd.OnStartInput, error) {
+func getInput(body string, get func([]string) (*data.Connections, error)) (data.OnStartInput, error) {
 	p := &payload{}
 	json.Unmarshal([]byte(body), p)
 	connections, err := get(p.ConnectionIDs)
-	return sd.OnStartInput{Connections: connections}, err
+	return data.OnStartInput{Connections: connections}, err
 }

@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 
 	"github.com/YouJinTou/vocabrace/games/wordlines"
-	sd "github.com/YouJinTou/vocabrace/services/com/state/data"
-	"github.com/YouJinTou/vocabrace/services/com/state/ws"
+	"github.com/YouJinTou/vocabrace/services/com/state/data"
+	"github.com/YouJinTou/vocabrace/services/com/ws"
 	"github.com/google/uuid"
 )
 
@@ -39,7 +39,7 @@ type result struct {
 }
 
 // OnStart executes logic at the start of the game.
-func (s Controller) OnStart(i sd.OnStartInput) (sd.OnStartOutput, error) {
+func (s Controller) OnStart(i data.OnStartInput) (data.OnStartOutput, error) {
 	c := i.Connections
 	players := s.loadPlayers(c)
 	game := wordlines.NewSpiralGame(c.Language(), players, wordlines.NewDynamoValidator())
@@ -66,7 +66,7 @@ func (s Controller) OnStart(i sd.OnStartInput) (sd.OnStartOutput, error) {
 		})
 	}
 
-	o := sd.OnStartOutput{
+	o := data.OnStartOutput{
 		PoolID:   startState.PoolID,
 		Messages: messages,
 		Game:     game,
@@ -75,24 +75,24 @@ func (s Controller) OnStart(i sd.OnStartInput) (sd.OnStartOutput, error) {
 }
 
 // OnAction executes logic at each turn.
-func (s Controller) OnAction(data sd.OnActionInput) (sd.OnActionOutput, error) {
+func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) {
 	turn := turn{}
-	bErr := json.Unmarshal([]byte(data.Body), &turn)
+	bErr := json.Unmarshal([]byte(i.Body), &turn)
 
 	if bErr != nil {
-		return sd.OnActionOutput{
-			Error: s.Error(data, "Invalid payload.", bErr),
+		return data.OnActionOutput{
+			Error: s.Error(i, "Invalid payload.", bErr),
 		}, bErr
 	}
 
 	game := &wordlines.Game{}
-	dynamodbattribute.UnmarshalMap(data.State, game)
+	dynamodbattribute.UnmarshalMap(i.State, game)
 	game.SetValidator(wordlines.NewDynamoValidator())
 	game.SetLayout("spiral")
 
-	if vErr := s.validateTurn(data, game); vErr != nil {
-		return sd.OnActionOutput{
-			Error: s.Error(data, "Invalid turn.", vErr),
+	if vErr := s.validateTurn(i, game); vErr != nil {
+		return data.OnActionOutput{
+			Error: s.Error(i, "Invalid turn.", vErr),
 		}, vErr
 	}
 
@@ -108,29 +108,42 @@ func (s Controller) OnAction(data sd.OnActionInput) (sd.OnActionOutput, error) {
 	}
 
 	if r.err != nil {
-		return sd.OnActionOutput{
-			Error: s.Error(data, "Bad request.", r.err),
+		return data.OnActionOutput{
+			Error: s.Error(i, "Bad request.", r.err),
 		}, r.err
 	}
 
 	messages := []*ws.Message{&ws.Message{
-		ConnectionID: data.Initiator,
-		Domain:       data.Connections.Domain(),
+		ConnectionID: i.Initiator,
+		Domain:       i.Connections.Domain(),
 		Message:      r.d.JSONWithPersonal(),
 	}}
-	for _, cid := range data.Connections.OtherIDs(data.Initiator) {
-		r.d.YourMove = game.ToMoveID == *data.Connections.UserIDByID(cid)
+	for _, cid := range i.Connections.OtherIDs(i.Initiator) {
+		r.d.YourMove = game.ToMoveID == *i.Connections.UserIDByID(cid)
 		messages = append(messages, &ws.Message{
 			ConnectionID: cid,
-			Domain:       data.Connections.Domain(),
+			Domain:       i.Connections.Domain(),
 			Message:      r.d.JSONWithoutPersonal(),
 		})
 	}
 
-	return sd.OnActionOutput{
+	return data.OnActionOutput{
 		Messages: messages,
 		Game:     game,
 	}, nil
+}
+
+// OnReconnect executes logic for a reconnection.
+func (s Controller) OnReconnect(i data.OnReconnectInput) (data.OnReconnectOutput, error) {
+	game := &wordlines.Game{}
+	err := dynamodbattribute.UnmarshalMap(i.State, game)
+	b, _ := json.Marshal(game)
+	m := &ws.Message{
+		ConnectionID: i.Connection.ID,
+		Domain:       i.Connection.Domain,
+		Message:      string(b),
+	}
+	return data.OnReconnectOutput{Message: m}, err
 }
 
 func (s Controller) exchange(turn *turn, g *wordlines.Game) *result {
@@ -161,7 +174,7 @@ func (s Controller) place(turn *turn, g *wordlines.Game) *result {
 	return &result{&game, game.GetDelta(), err}
 }
 
-func (s Controller) loadPlayers(c *sd.Connections) []*wordlines.Player {
+func (s Controller) loadPlayers(c *data.Connections) []*wordlines.Player {
 	result := []*wordlines.Player{}
 	for _, u := range c.UserIDs() {
 		result = append(result, &wordlines.Player{
@@ -186,7 +199,7 @@ func (s Controller) setPlayerData(players []*wordlines.Player) []*player {
 	return result
 }
 
-func (s Controller) validateTurn(data sd.OnActionInput, g *wordlines.Game) error {
+func (s Controller) validateTurn(data data.OnActionInput, g *wordlines.Game) error {
 	if data.InitiatorUserID != g.ToMoveID {
 		return errors.New("invalid player turn")
 	}
@@ -194,7 +207,7 @@ func (s Controller) validateTurn(data sd.OnActionInput, g *wordlines.Game) error
 	return nil
 }
 
-func (s Controller) Error(data sd.OnActionInput, message string, err error) *ws.Message {
+func (s Controller) Error(data data.OnActionInput, message string, err error) *ws.Message {
 	msg := struct {
 		Body string
 		Type string

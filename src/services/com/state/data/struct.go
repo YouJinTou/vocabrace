@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/YouJinTou/vocabrace/services/com/state/ws"
+	"github.com/YouJinTou/vocabrace/services/com/ws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
@@ -9,6 +9,7 @@ import (
 type State interface {
 	OnStart(OnStartInput) (OnStartOutput, error)
 	OnAction(OnActionInput) (OnActionOutput, error)
+	OnReconnect(OnReconnectInput) (OnReconnectOutput, error)
 }
 
 // OnStartInput encapsulates data to be processed during the start of the game.
@@ -38,4 +39,15 @@ type OnActionOutput struct {
 	Messages []*ws.Message
 	Game     interface{}
 	Error    *ws.Message
+}
+
+// OnReconnectInput encapsulates data required to perform a reconnection.
+type OnReconnectInput struct {
+	Connection Connection
+	State      map[string]*dynamodb.AttributeValue
+}
+
+// OnReconnectOutput encapsulates data required by the client to visualize the current state.
+type OnReconnectOutput struct {
+	Message *ws.Message
 }

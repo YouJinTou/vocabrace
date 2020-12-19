@@ -1,10 +1,13 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/sns"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -21,6 +24,23 @@ func BuildSqsURL(region, accountID, name string) string {
 func BuildSnsArn(region, accountID, name string) string {
 	url := fmt.Sprintf("arn:aws:sns:%s:%s:%s", region, accountID, name)
 	return url
+}
+
+// SnsPublish publishes to an SNS topic.
+func SnsPublish(topic string, payload interface{}) error {
+	sess := session.Must(session.NewSession())
+	svc := sns.New(sess)
+	b, _ := json.Marshal(payload)
+	s := string(b)
+	arn := BuildSnsArn(os.Getenv("REGION"), os.Getenv("ACCOUNT_ID"), topic)
+	_, err := svc.Publish(&sns.PublishInput{
+		Message:  aws.String(s),
+		TopicArn: aws.String(arn),
+	})
+	if err != nil {
+		log.Print(err)
+	}
+	return err
 }
 
 // GetItem gets an item from AWS DynamoDB.

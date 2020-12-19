@@ -17,6 +17,12 @@ build-lambda-zip -output disconnect.zip disconnect
 rm disconnect
 mv disconnect.zip $tf_root/payloads
 
+cd $services_root/pooling/reconnect
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o reconnect .
+build-lambda-zip -output reconnect.zip reconnect
+rm reconnect
+mv reconnect.zip $tf_root/payloads
+
 cd $services_root/pooling/tally
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o tally .
 build-lambda-zip -output tally.zip tally
@@ -29,7 +35,7 @@ build-lambda-zip -output pool.zip pool
 rm pool
 mv pool.zip $tf_root/payloads
 
-cd $services_root/publish
+cd $services_root/pooling/publish
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o publish .
 build-lambda-zip -output publish.zip publish
 rm publish

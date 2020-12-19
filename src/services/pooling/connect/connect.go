@@ -34,6 +34,7 @@ func connect(
 		Bucket    string
 		Domain    string
 		LiveUntil int
+		PoolID    *string
 	}{
 		r.RequestContext.ConnectionID,
 		r.QueryStringParameters["game"],
@@ -43,6 +44,7 @@ func connect(
 		"novice",
 		r.RequestContext.DomainName,
 		tools.FutureTimestamp(7200),
+		poolID(r.QueryStringParameters),
 	}
 	putItem(tools.Table("connections"), connection)
 }
@@ -57,4 +59,11 @@ func userID(params map[string]string) string {
 		return ID
 	}
 	return uuid.New().String()
+}
+
+func poolID(params map[string]string) *string {
+	if ID, ok := params["pid"]; ok {
+		return &ID
+	}
+	return nil
 }

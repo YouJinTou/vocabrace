@@ -3,10 +3,10 @@ package state
 import (
 	"fmt"
 
-	sd "github.com/YouJinTou/vocabrace/services/com/state/data"
+	"github.com/YouJinTou/vocabrace/services/com/state/data"
 
-	"github.com/YouJinTou/vocabrace/services/com/state/ws"
 	wordlines "github.com/YouJinTou/vocabrace/services/com/wordlines"
+	"github.com/YouJinTou/vocabrace/services/com/ws"
 	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -20,7 +20,7 @@ type saveStateInput struct {
 	Game          interface{}
 }
 
-func load(game string) (sd.State, error) {
+func load(game string) (data.State, error) {
 	switch game {
 	case "wordlines":
 		return wordlines.Controller{}, nil
@@ -30,7 +30,7 @@ func load(game string) (sd.State, error) {
 }
 
 // OnStart executes communication logic at the start of a game.
-func OnStart(i sd.OnStartInput) error {
+func OnStart(i data.OnStartInput) error {
 	handler, err := load(i.Connections.Game())
 	if err != nil {
 		return err
@@ -55,28 +55,44 @@ func OnStart(i sd.OnStartInput) error {
 }
 
 // OnAction executes communication logic when a player takes an action.
-func OnAction(data sd.OnActionInput) error {
-	handler, err := load(data.Connections.Game())
+func OnAction(i data.OnActionInput) error {
+	handler, err := load(i.Connections.Game())
 	if err != nil {
 		return err
 	}
 
-	data.State = loadState(data.PoolID)
-	o, aErr := handler.OnAction(data)
+	i.State = loadState(i.PoolID)
+	o, aErr := handler.OnAction(i)
 	if aErr != nil {
 		return aErr
 	}
 
-	i := &saveStateInput{
-		PoolID:        data.PoolID,
-		ConnectionIDs: data.Connections.IDs(),
+	si := &saveStateInput{
+		PoolID:        i.PoolID,
+		ConnectionIDs: i.Connections.IDs(),
 		Game:          o.Game,
 	}
-	if err := saveState(i); err != nil {
+	if err := saveState(si); err != nil {
 		return err
 	}
 
 	ws.SendManyUnique(o.Messages)
+	return nil
+}
+
+// OnReconnect executes communication logic during a reconnect.
+func OnReconnect(i data.OnReconnectInput) error {
+	handler, err := load(i.Connection.Game)
+	if err != nil {
+		return err
+	}
+
+	o, rErr := handler.OnReconnect(i)
+	if rErr != nil {
+		return err
+	}
+
+	ws.Send(o.Message)
 	return nil
 }
 

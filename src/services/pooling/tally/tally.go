@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/YouJinTou/vocabrace/services/com/state/data"
 
 	"github.com/YouJinTou/vocabrace/tools"
 	"github.com/aws/aws-lambda-go/events"
@@ -31,35 +30,38 @@ func main() {
 	lambda.Start(handle)
 }
 
-func handle(ctx context.Context, e events.DynamoDBEvent) error {
+func handle(ctx context.Context, e events.DynamoDBEvent) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	for _, r := range e.Records {
+		if reconnect(r.Change.NewImage) {
+			continue
+		}
+
 		div := division(r.Change)
 		d, _ := tools.GetItem(tools.Table("tallies"), "ID", div.Name, nil, nil, nil)
+		shouldPool := willReachCapacity(d, div.Joined)
 		var i *dynamodb.UpdateItemInput
 
-		if willReachCapacity(d, div.Joined) {
+		if shouldPool {
 			i = poolInput(div.Name, r.Change.NewImage["ID"].String())
-			if err := send(
-				r.Change.NewImage["ID"].String(), d.Item["ConnectionIDs"].SS, div); err != nil {
-				log.Print(err)
-			}
 		} else if div.Joined {
 			i = connectInput(div, r.Change.NewImage["ID"].String())
 		} else {
 			i = disconnectInput(div.Name, r.Change.OldImage["ID"].String())
 		}
-		if _, err := dynamo.UpdateItem(i); err != nil {
+
+		if _, err := dynamo.UpdateItem(i); err == nil {
+			if shouldPool {
+				pool(r.Change.NewImage["ID"].String(), d.Item["ConnectionIDs"].SS, div)
+			}
+		} else {
 			log.Print(err)
 		}
 	}
-	return nil
 }
 
-func send(connectionID string, connectionIDs []*string, division div) error {
-	sess := session.Must(session.NewSession())
-	svc := sns.New(sess)
+func pool(connectionID string, connectionIDs []*string, division div) {
 	cids := []*string{&connectionID}
 	cids = append(cids, connectionIDs...)
 	payload := struct {
@@ -73,15 +75,7 @@ func send(connectionID string, connectionIDs []*string, division div) error {
 		division.Bucket,
 		division.Language,
 	}
-	payloadBytes, _ := json.Marshal(payload)
-	payloadString := string(payloadBytes)
-	arn := tools.BuildSnsArn(
-		os.Getenv("REGION"), os.Getenv("ACCOUNT_ID"), fmt.Sprintf("%s_pools", os.Getenv("STAGE")))
-	_, err := svc.Publish(&sns.PublishInput{
-		Message:  aws.String(payloadString),
-		TopicArn: aws.String(arn),
-	})
-	return err
+	tools.SnsPublish(fmt.Sprintf("%s_pools", os.Getenv("STAGE")), payload)
 }
 
 func poolInput(division, connectionID string) *dynamodb.UpdateItemInput {
@@ -159,4 +153,31 @@ func willReachCapacity(d *dynamodb.GetItemOutput, joined bool) bool {
 	}
 	capacity, _ := strconv.Atoi(*d.Item["Capacity"].N)
 	return waiting+1 >= capacity
+}
+
+func reconnect(m map[string]events.DynamoDBAttributeValue) bool {
+	pid, _ := m["PoolID"]
+	if pid.String() == "" {
+		return false
+	}
+
+	ID, _ := m["ID"]
+	domain, _ := m["Domain"]
+	game, _ := m["Game"]
+	language, _ := m["Language"]
+	userID, _ := m["UserID"]
+	connection := data.Connection{
+		ID:       ID.String(),
+		Domain:   domain.String(),
+		Game:     game.String(),
+		Language: language.String(),
+		UserID:   userID.String(),
+	}
+	payload := struct {
+		Connection data.Connection
+		PoolID     string
+	}{connection, pid.String()}
+
+	err := tools.SnsPublish(fmt.Sprintf("%s_reconnect", os.Getenv("STAGE")), payload)
+	return err == nil
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/YouJinTou/vocabrace/services/com/state"
-	sd "github.com/YouJinTou/vocabrace/services/com/state/data"
+	"github.com/YouJinTou/vocabrace/services/com/state/data"
 	"github.com/YouJinTou/vocabrace/tools"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -20,7 +20,7 @@ type pool struct {
 	ConnectionIDs []string
 }
 
-type data struct {
+type payload struct {
 	PoolID string `json:"pid"`
 	Body   string `json:"d"`
 }
@@ -31,24 +31,24 @@ func main() {
 
 func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 	events.APIGatewayProxyResponse, error) {
-	data, dErr := getData(req.Body)
+	p, dErr := getPayload(req.Body)
 	if dErr != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 400}, dErr
 	}
 
-	pool, err := getPool(data.PoolID)
+	pool, err := getPool(p.PoolID)
 	if err != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
-	cons, gErr := sd.GetConnections(pool.ConnectionIDs)
+	cons, gErr := data.GetConnections(pool.ConnectionIDs)
 	if gErr != nil {
 		return events.APIGatewayProxyResponse{StatusCode: 500}, gErr
 	}
 
-	aErr := state.OnAction(sd.OnActionInput{
+	aErr := state.OnAction(data.OnActionInput{
 		PoolID:          pool.ID,
-		Body:            data.Body,
+		Body:            p.Body,
 		Connections:     cons,
 		Initiator:       req.RequestContext.ConnectionID,
 		InitiatorUserID: *cons.UserIDByID(req.RequestContext.ConnectionID),
@@ -60,8 +60,8 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
 
-func getData(body string) (*data, error) {
-	d := &data{}
+func getPayload(body string) (*payload, error) {
+	d := &payload{}
 	pErr := json.Unmarshal([]byte(body), d)
 
 	if pErr != nil {
