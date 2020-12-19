@@ -70,3 +70,16 @@ func FromStringPtrs(s []*string) []string {
 	}
 	return result
 }
+
+// UniqueStrs takes a slice and returns it without the duplicates.
+func UniqueStrs(s []string) []string {
+	m := make(map[string]bool)
+	unique := []string{}
+	for _, t := range s {
+		if _, ok := m[t]; !ok {
+			m[t] = true
+			unique = append(unique, t)
+		}
+	}
+	return unique
+}

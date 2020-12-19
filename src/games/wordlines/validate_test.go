@@ -3,6 +3,7 @@ package wordlines
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -309,6 +310,26 @@ func TestValidatePlace_PassesWhenWordsValid(t *testing.T) {
 	err := v().ValidatePlace(g, w)
 	if err != nil {
 		t.Errorf("did not expect error")
+	}
+}
+
+// _ T i _
+// _ i t _
+func Test_RemovesDuplicateKeys(t *testing.T) {
+	g := testValidatorGame()
+	g.Board.SetCells([]*Cell{
+		NewCell(NewTile("i", 0), BoardOrigin+1),
+		NewCell(NewTile("t", 0), BoardOrigin+15+1),
+		NewCell(NewTile("i", 0), BoardOrigin+15),
+	})
+	g.Board.Print()
+	pt := g.ToMove().Tiles.GetAt(0)
+	w := NewWord([]*Cell{NewCell(pt, BoardOrigin)})
+	validateWordsMock = func(a string, b []string) ([]string, error) { return b, errors.New("") }
+	err := v().ValidatePlace(g, w)
+	expected := strings.ToLower(fmt.Sprintf("[\"%si\"]", pt.Letter))
+	if !strings.Contains(err.Error(), expected) {
+		t.Errorf("expected %s, got %s", expected, err.Error())
 	}
 }
 
