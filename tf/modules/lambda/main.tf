@@ -96,6 +96,7 @@ resource "aws_lambda_event_source_mapping" "dynamodb" {
   event_source_arn  = var.stream_arn
   function_name     = aws_lambda_function.function.function_name
   starting_position = "LATEST"
+  maximum_retry_attempts = var.source_maximum_retries
 }
 
 resource "aws_iam_role_policy_attachment" "sqs" {

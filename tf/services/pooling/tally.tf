@@ -13,6 +13,7 @@ module "tally" {
   reserved_concurrent_executions = 1
   enable_streaming = true
   stream_arn = aws_dynamodb_table.connections.stream_arn
+  source_maximum_retries = 3
 }
 
 resource "aws_dynamodb_table" "tallies" {

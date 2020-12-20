@@ -98,6 +98,11 @@ variable stream_arn {
     default = ""
 }
 
+variable source_maximum_retries {
+    type = number
+    default = -1
+}
+
 variable enable_sns {
     type = bool
     default = false
