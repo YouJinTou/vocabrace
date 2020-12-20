@@ -15,12 +15,16 @@ type Player struct {
 // ExchangeTiles removes a set of tiles from the player's set of tiles and replaces them.
 func (p *Player) ExchangeTiles(ids []string, toReceive *Tiles) (*Tiles, error) {
 	returnTiles := NewTiles()
+
 	for _, tr := range ids {
 		match := p.Tiles.RemoveByID(tr)
 		if match == nil {
 			return NewTiles(), fmt.Errorf("%s tile not found", tr)
 		}
-		returnTiles.Append(match.Copy(true))
+
+		if returnTiles.Count() < toReceive.Count() {
+			returnTiles.Append(match.Copy(true))
+		}
 	}
 
 	for _, tr := range toReceive.Value {

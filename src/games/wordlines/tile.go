@@ -154,6 +154,15 @@ func (t *Tiles) FindByID(ID string) *Tile {
 	return nil
 }
 
+// IDs returns all tile IDs.
+func (t *Tiles) IDs() []string {
+	result := []string{}
+	for _, t := range t.Value {
+		result = append(result, t.ID)
+	}
+	return result
+}
+
 // IsBlank returns whether a tile is blank by default.
 func (t *Tile) IsBlank() bool {
 	return t.Value == 0

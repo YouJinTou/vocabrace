@@ -30,8 +30,8 @@ type DeltaState struct {
 	LastAction         string         `json:"l"`
 	LastActionPlayerID string         `json:"i"`
 	PlacedTiles        *Word          `json:"n"`
-	ReceivedTiles      *Tiles         `json:"v"`
-	ExchangedTiles     *Tiles         `json:"e"`
+	TilesGivenToPlayer *Tiles         `json:"v"`
+	TilesReturnedToBag *Tiles         `json:"e"`
 	YourMove           bool           `json:"y"`
 	Points             map[string]int `json:"p"`
 	WinnerID           *string        `json:"w"`
@@ -52,8 +52,8 @@ func (d *DeltaState) JSONWithPersonal() string {
 func (d *DeltaState) JSONWithoutPersonal() string {
 	p := DeltaState{}
 	copier.Copy(&p, d)
-	p.ReceivedTiles = NewTiles()
-	p.ExchangedTiles = NewTiles()
+	p.TilesGivenToPlayer = NewTiles()
+	p.TilesReturnedToBag = NewTiles()
 	b, _ := json.Marshal(p)
 	result := string(b)
 	return result
@@ -130,9 +130,9 @@ func (g *Game) Exchange(ids []string) (Game, error) {
 	g.Bag.Put(toReturn)
 
 	g.delta = DeltaState{
-		LastAction:     "Exchange",
-		ReceivedTiles:  toReceive,
-		ExchangedTiles: toReturn,
+		LastAction:         "Exchange",
+		TilesGivenToPlayer: toReceive,
+		TilesReturnedToBag: toReturn,
 	}
 	g.EndCounter++
 
@@ -172,9 +172,9 @@ func (g *Game) Place(w *Word) (Game, error) {
 	g.EndCounter = 0
 
 	g.delta = DeltaState{
-		LastAction:    "Place",
-		PlacedTiles:   w,
-		ReceivedTiles: toReceive,
+		LastAction:         "Place",
+		PlacedTiles:        w,
+		TilesGivenToPlayer: toReceive,
 	}
 
 	g.handleEnd()

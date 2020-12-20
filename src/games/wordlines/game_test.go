@@ -345,6 +345,36 @@ func Test_EndCounterExceeded_SubtractsPlayerTilesSum(t *testing.T) {
 	}
 }
 
+func Test_PlayerExchangesMoreTilesThanExistInBag_DrawsCorrectlyAndReturnsCorrectly(t *testing.T) {
+	g, _, _ := setupGame(2)
+	ids := g.ToMove().Tiles.IDs()
+	expectedPlayerTiles := len(ids)
+	expectedBagTiles := 2
+	g.Bag.Draw(g.Bag.Count() - expectedBagTiles)
+	newGame, err := g.Exchange(ids)
+
+	if err != nil {
+		t.Errorf("did not expect error: %s", err.Error())
+	}
+
+	d := newGame.GetDelta()
+
+	if d.TilesGivenToPlayer.Count() != expectedPlayerTiles {
+		t.Errorf("expected %d tiles to have been received by the player, got %d",
+			expectedPlayerTiles, d.TilesGivenToPlayer.Count())
+	}
+
+	if d.TilesReturnedToBag.Count() != expectedBagTiles {
+		t.Errorf("expected %d tiles to have been put back into the bag, got %d",
+			expectedBagTiles, d.TilesReturnedToBag.Count())
+	}
+
+	if newGame.Bag.Count() != expectedBagTiles {
+		t.Errorf("expected bag to have %d tiles, but it has %d",
+			expectedBagTiles, newGame.Bag.Count())
+	}
+}
+
 func getExpectedOrder(idx, total int) []string {
 	result := []string{strconv.Itoa(idx)}
 	for i := idx + 1; i < total; i++ {
