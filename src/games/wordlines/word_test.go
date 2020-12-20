@@ -349,8 +349,6 @@ func validateExpected(words []*Word, expected []string, b *Board, t *testing.T) 
 			t.Errorf("Got: %s", w.String())
 		}
 
-		b.Print()
-
 		return
 	}
 

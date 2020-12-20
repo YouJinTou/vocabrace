@@ -322,7 +322,6 @@ func Test_RemovesDuplicateKeys(t *testing.T) {
 		NewCell(NewTile("t", 0), BoardOrigin+15+1),
 		NewCell(NewTile("i", 0), BoardOrigin+15),
 	})
-	g.Board.Print()
 	pt := g.ToMove().Tiles.GetAt(0)
 	w := NewWord([]*Cell{NewCell(pt, BoardOrigin)})
 	validateWordsMock = func(a string, b []string) ([]string, error) { return b, errors.New("") }
