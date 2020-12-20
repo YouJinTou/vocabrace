@@ -7,10 +7,10 @@ import { UsernameService } from 'src/services/username.service';
 import { WebsocketService } from 'src/services/websocket.service';
 import { TimerComponent } from '../timer/timer.component';
 import { BlanksDialog } from './blanks/blanks.component';
-import { Cell, getCellClass } from './cell';
+import { Cell } from './cell';
 import { GameOverDialog } from './game-over/game-over.component';
 import { Payload } from './payload';
-import { Player } from './player';
+import { State } from './state';
 import { Tile } from './tile';
 
 const GAME = 'wordlines';
@@ -21,18 +21,10 @@ const GAME = 'wordlines';
   styleUrls: ['./wordlines.component.css']
 })
 export class WordlinesComponent implements OnInit {
-  private placedTiles: Cell[] = [];
-  private originalTiles: Tile[] = [];
-  private poolID: string;
   @ViewChild(TimerComponent)
   private timer: TimerComponent;
-  private blanks: Tile[] = [];
-  private blankClicked: boolean;
   timeout = 900;
-  payload: Payload;
-  players: Player[] = [];
-  tiles: Tile[] = [];
-  cells: Cell[] = [];
+  state = new State();
 
   constructor(
     public blanksDialog: MatDialog,
@@ -43,112 +35,85 @@ export class WordlinesComponent implements OnInit {
     private usernameService: UsernameService) { }
 
   ngOnInit(): void {
-    this.loadCells();
     this.connect();
   }
 
   onTimeout() {
-    if (this.payload.yourMove) {
+    if (this.state.yourMove) {
       this.onPassClicked();
-      this.cancel();
+      this.state = this.state.cancel();
     }
   }
 
   onPlayerTileClicked(t: Tile) {
-    if (!this.payload.yourMove || this.payload.isGameOver) {
-      return;
-    }
-
-    t.selected = !t.selected;
-    this.blankClicked = t.selected && t.isBlank();
-
-    if (this.blankClicked) {
-      this.openBlanks(t);
+    this.state = this.state.clickPlayerTile(t);
+    if (this.state.blankClicked) {
+      this.openBlanks();
     }
   }
 
   onCellTileClicked(c: Cell) {
-    if (!this.payload.yourMove || this.payload.isGameOver) {
-      return;
-    }
-    if (this.removeCellTile(c)) {
-      return;
-    }
-    if (c.isEmpty() && this.singleTileSelected()) {
-      this.setCellTile(c);
-    }
+    this.state = this.state.clickCellTile(c);
   }
 
   onPlaceClicked() {
-    if (!this.placedTiles.length) {
+    if (!this.state.currentPlacedCells.length) {
       return
     }
-    let payload = {
+    
+    const payload = {
       g: GAME,
       p: true,
-      w: [],
-      pid: this.poolID
+      w: this.state.currentPlacedCells.map(p => ({
+        c: p.id,
+        t: p.tile.id,
+        b: p.tile.isBlank() ? p.tile.letter : null,
+      })),
+      pid: this.state.poolId
     };
-    for (var c of this.placedTiles) {
-      payload.w.push({
-        c: c.id,
-        t: c.tile.id,
-        b: c.tile.isBlank() ? c.tile.letter : null,
-      })
-    }
     this.wsService.send(payload);
   }
 
   onExchangeClicked() {
-    if (!this.selected()) {
+    if (!this.state.selected()) {
       return;
     }
-    let payload = {
+    const payload = {
       g: GAME,
       e: true,
-      t: this.selected().map(t => t.id),
-      pid: this.poolID
+      t: this.state.selected().map(t => t.id),
+      pid: this.state.poolId
     };
     this.wsService.send(payload);
   }
 
   onPassClicked() {
-    let payload = {
+    const payload = {
       g: GAME,
       q: true,
-      pid: this.poolID
+      pid: this.state.poolId
     };
     this.wsService.send(payload);
   }
 
   onCancelClicked() {
-    this.cancel();
+    this.state = this.state.cancel();
   }
 
-  private pipeline(m: any) {
-    console.log(m);
-    this.payload = new Payload(m, this.usernameService);
-
-    if (this.payload.isError) {
-      this.cancel();
+  private process(m: any) {
+    const p = new Payload(m, this.usernameService);
+    this.state = this.state.apply(p);
+    
+    if (this.state.isError) {
       return;
     }
 
-    this.placedTiles = [];
-    this.renderPlayers();
-    this.renderPlayerTiles();
-    this.handleExchange();
-    this.handlePlace();
     this.onGameOver();
-    this.originalTiles = this.tiles;
-    this.blanks = this.payload.blanks;
-    this.blankClicked = false;
-    this.poolID = this.poolID ? this.poolID : this.payload.poolId;
     this.startTimer();
   }
 
   private startTimer() {
-    if (this.payload.isGameOver) {
+    if (this.state.isGameOver) {
       return;
     }
 
@@ -159,130 +124,31 @@ export class WordlinesComponent implements OnInit {
     }, 0.5);
   }
 
-  private cancel() {
-    this.tiles = this.originalTiles.map(ot => { ot.selected = false; return ot; });
-    for (var pc of this.placedTiles)
-      for (var c of this.cells) {
-        if (pc.id == c.id) {
-          c.tile = null;
-        }
-      }
-    this.placedTiles = [];
-  }
-
-  private loadCells() {
-    this.cells = [];
-    let i = 0;
-    for (let r = 0; r < 15; r++) {
-      for (let c = 0; c < 15; c++) {
-        let cell = new Cell(i, null, getCellClass(i));
-        this.cells.push(cell);
-        i++;
-      }
-    }
-  }
-
-  private renderPlayers() {
-    if (!this.payload.players) {
-      return;
-    }
-
-    this.players = this.payload.players;
-  }
-
-  private renderPlayerTiles() {
-    if (!this.payload.tiles) {
-      return
-    }
-
-    this.tiles = [];
-    for (var t of this.payload.tiles) {
-      this.tiles.push(t);
-      this.originalTiles.push(t.copy());
-    }
-  }
-
-  private handleExchange() {
-    if (!(this.payload.wasExchange && this.payload.exchangeTiles)) {
-      return;
-    }
-    this.tiles = this.tiles.filter(t => !t.selected);
-    this.tiles.push(...this.payload.exchangeTiles);
-  }
-
-  private handlePlace() {
-    if (this.payload.yourMove && this.payload.wasPlace) {
-      for (var c of this.payload.placedCells) {
-        this.cells[c.id] = c;
-      }
-    } else if (this.payload.wasPlace && this.payload.exchangeTiles) {
-      this.tiles = this.tiles.filter(t => !t.selected);
-      this.tiles.push(...this.payload.exchangeTiles);
-    }
-  }
-
-  private selected(): Tile[] {
-    let selectedTiles = this.tiles.filter(t => t.selected);
-    return selectedTiles.length == 0 ? null : selectedTiles;
-  }
-
-  private current(): Tile {
-    if (!this.selected()) {
-      return null;
-    }
-    if (this.selected().length == 1) {
-      return this.selected()[0];
-    }
-    return null;
-  }
-
-  private singleTileSelected(): boolean {
-    return this.current() != null;
-  }
-
-  private setCellTile(c: Cell) {
-    c.tile = this.current().copy()
-    this.tiles = this.tiles.filter(t => t.id != this.current().id);
-    this.placedTiles.push(c.copy());
-  }
-
-  private removeCellTile(c: Cell): boolean {
-    let shouldReturnTile = this.placedTiles.filter(pc => pc.id == c.id).length > 0;
-
-    if (shouldReturnTile && !this.selected()) {
-      this.placedTiles = this.placedTiles.filter(t => t.id != c.id);
-      this.tiles.push(c.tile.copy());
-      c.tile = null;
-      return true;
-    }
-
-    return false;
-  }
-
-  private openBlanks(selectedBlank: Tile) {
+  private openBlanks() {
     const blanksRef = this.blanksDialog.open(BlanksDialog, {
-      data: { blanks: this.blanks }
+      data: { blanks: this.state.blanks }
     });
 
     blanksRef.afterClosed().subscribe(result => {
       if (result) {
-        selectedBlank.letter = result.letter;
+        this.state = this.state.setBlank(result);
+        console.log(this.state);
       }
     });
   }
 
   private onGameOver() {
-    if (!this.payload.isGameOver) {
+    if (!this.state.isGameOver) {
       return;
     }
 
-    this.gameOverDialog.open(GameOverDialog, { data: this.payload });
-    this.gameOverService.onGameOver(this.payload);
+    this.gameOverDialog.open(GameOverDialog, { data: this.state });
+    this.gameOverService.onGameOver(this.state);
   }
 
   private connect() {
     console.log('history', this.wsService.history);
-    this.wsService.history.map(h => this.pipeline(h));
+    this.wsService.history.map(h => this.process(h));
 
     const params = {
       'game': 'wordlines',
@@ -292,7 +158,7 @@ export class WordlinesComponent implements OnInit {
       'pid': this.contextService.wordlines.poolId
     };
     this.wsService.connect(environment.wsEndpoint, params).subscribe({
-      next: m => this.pipeline(m),
+      next: m => this.process(m),
       error: e => console.log(e)
     });
   }

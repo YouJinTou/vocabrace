@@ -6,7 +6,7 @@ import (
 
 // Word encapsulates a valid arrangement of tiles.
 type Word struct {
-	Cells []*Cell
+	Cells []*Cell `json:"c"`
 }
 
 // NewWord creates a new word.

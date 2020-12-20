@@ -15,6 +15,7 @@ export class Payload {
     language: string
     poolId: string
     exchangeTiles: Tile[]
+    returnedTiles: Tile[]
     placedCells: Cell[]
     players: Player[]
     tiles: Tile[]
@@ -34,7 +35,7 @@ export class Payload {
         }
 
         this.yourMove = m['y'];
-        this.isStart = !('d' in m);
+        this.isStart = ('s' in m) && m['s'];
         this.language = m['z'];
         this.tilesRemaining = m['r'];
         this.toMoveId = m['m'];
@@ -50,7 +51,8 @@ export class Payload {
             this.lastMovedId = m['i'];
             this.wasExchange = this.lastAction === 'Exchange';
             this.wasPlace = this.lastAction === 'Place';
-            this.exchangeTiles = this.getExchangeTiles(m);
+            this.exchangeTiles = this.getTiles(m['v']);
+            this.returnedTiles = this.getTiles(m['e']);
             this.placedCells = this.getPlacedCells(m);
             this.players = this.getUpdatedPlayers(m);
         }
@@ -64,19 +66,12 @@ export class Payload {
         return isServerError || isBadMove;
     }
 
-    private getExchangeTiles(m: any): Tile[] {
-        if (!((this.wasExchange || this.wasPlace) && Array.isArray(m['d']))) {
-            return null;
-        }
-        return this.getTiles(m['d']);
-    }
-
     private getPlacedCells(m: any): Cell[] {
-        if (!(this.wasPlace && this.yourMove)) {
+        if (!this.wasPlace) {
             return null;
         }
         let cells = [];
-        for (var c of m['o']['Cells']) {
+        for (var c of m['n']['Cells']) {
             cells.push(new Cell(c['i'], this.getTile(c['t']), getCellClass(c['i'])))
         }
         return cells;
@@ -84,6 +79,9 @@ export class Payload {
 
     private getTiles(m: any): Tile[] {
         let tiles = [];
+        if (!m) {
+            return tiles;
+        }
         for (var s of m) {
             tiles.push(this.getTile(s));
         }
@@ -123,12 +121,11 @@ export class Payload {
         let letters = load(this.language)
         let result = [];
         for (var l of letters) {
-            let tile = new Tile("to_be_replaced", l, 0);
+            let tile = new Tile(l, l, 0);
             result.push(tile);
         }
         return result;
     }
-
     
     private getWinnerName(): string {
         for (var p of this.players) {

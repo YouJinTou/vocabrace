@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/YouJinTou/vocabrace/tools"
+	"github.com/jinzhu/copier"
 )
 
 // Game holds a full game's state.
@@ -25,31 +26,23 @@ type Game struct {
 
 // DeltaState shows the changes since the previous turn.
 type DeltaState struct {
-	ToMoveID             string         `json:"m"`
-	LastAction           string         `json:"l"`
-	LastActionPlayerID   string         `json:"i"`
-	LastActionPlayerData interface{}    `json:"d"`
-	OtherPlayersData     interface{}    `json:"o"`
-	YourMove             bool           `json:"y"`
-	Points               map[string]int `json:"p"`
-	WinnerID             *string        `json:"w"`
-	TilesRemaining       int            `json:"r"`
-	Language             string         `json:"z"`
+	ToMoveID           string         `json:"m"`
+	LastAction         string         `json:"l"`
+	LastActionPlayerID string         `json:"i"`
+	PlacedTiles        *Word          `json:"n"`
+	ReceivedTiles      *Tiles         `json:"v"`
+	ExchangedTiles     *Tiles         `json:"e"`
+	YourMove           bool           `json:"y"`
+	Points             map[string]int `json:"p"`
+	WinnerID           *string        `json:"w"`
+	TilesRemaining     int            `json:"r"`
+	Language           string         `json:"z"`
 }
 
 // JSONWithPersonal jsonifies a delta state with return data for the player.
 func (d *DeltaState) JSONWithPersonal() string {
-	p := DeltaState{
-		ToMoveID:             d.ToMoveID,
-		LastAction:           d.LastAction,
-		LastActionPlayerID:   d.LastActionPlayerID,
-		LastActionPlayerData: d.LastActionPlayerData,
-		YourMove:             d.YourMove,
-		Points:               d.Points,
-		WinnerID:             d.WinnerID,
-		TilesRemaining:       d.TilesRemaining,
-		Language:             d.Language,
-	}
+	p := DeltaState{}
+	copier.Copy(&p, d)
 	b, _ := json.Marshal(p)
 	result := string(b)
 	return result
@@ -57,17 +50,10 @@ func (d *DeltaState) JSONWithPersonal() string {
 
 // JSONWithoutPersonal jsonifies a delta state without return data for the player.
 func (d *DeltaState) JSONWithoutPersonal() string {
-	p := DeltaState{
-		ToMoveID:           d.ToMoveID,
-		LastAction:         d.LastAction,
-		LastActionPlayerID: d.LastActionPlayerID,
-		OtherPlayersData:   d.OtherPlayersData,
-		YourMove:           d.YourMove,
-		Points:             d.Points,
-		WinnerID:           d.WinnerID,
-		TilesRemaining:     d.TilesRemaining,
-		Language:           d.Language,
-	}
+	p := DeltaState{}
+	copier.Copy(&p, d)
+	p.ReceivedTiles = NewTiles()
+	p.ExchangedTiles = NewTiles()
 	b, _ := json.Marshal(p)
 	result := string(b)
 	return result
@@ -144,9 +130,9 @@ func (g *Game) Exchange(ids []string) (Game, error) {
 	g.Bag.Put(toReturn)
 
 	g.delta = DeltaState{
-		LastAction:           "Exchange",
-		LastActionPlayerData: toReceive,
-		OtherPlayersData:     toReceive.Count(),
+		LastAction:     "Exchange",
+		ReceivedTiles:  toReceive,
+		ExchangedTiles: toReturn,
 	}
 	g.EndCounter++
 
@@ -186,9 +172,9 @@ func (g *Game) Place(w *Word) (Game, error) {
 	g.EndCounter = 0
 
 	g.delta = DeltaState{
-		LastAction:           "Place",
-		LastActionPlayerData: toReceive,
-		OtherPlayersData:     w,
+		LastAction:    "Place",
+		PlacedTiles:   w,
+		ReceivedTiles: toReceive,
 	}
 
 	g.handleEnd()

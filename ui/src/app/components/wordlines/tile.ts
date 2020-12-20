@@ -16,6 +16,8 @@ export class Tile {
     }
   
     copy(): Tile {
-      return new Tile(this.id, this.letter, this.value);
+      let t = new Tile(this.id, this.letter, this.value);
+      t.selected = this.selected;
+      return t;
     }
   }

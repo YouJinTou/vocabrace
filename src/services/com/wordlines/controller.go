@@ -53,7 +53,8 @@ func (s Controller) OnStart(i data.OnStartInput) (data.OnStartOutput, error) {
 		PoolID         string           `json:"pid"`
 		TilesRemaining int              `json:"r"`
 		Language       string           `json:"z"`
-	}{nil, game.ToMoveID, projected, false, uuid.New().String(), game.Bag.Count(), c.Language()}
+		IsStart        bool             `json:"s"`
+	}{nil, game.ToMoveID, projected, false, uuid.New().String(), game.Bag.Count(), c.Language(), true}
 
 	for _, p := range game.Players {
 		startState.Tiles = p.Tiles
