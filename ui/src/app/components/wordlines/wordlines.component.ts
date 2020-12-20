@@ -1,8 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import { ContextService } from 'src/services/context.service';
 import { GameOverService } from 'src/services/game-over.service';
 import { UsernameService } from 'src/services/username.service';
 import { WebsocketService } from 'src/services/websocket.service';
@@ -21,8 +20,7 @@ const GAME = 'wordlines';
   templateUrl: './wordlines.component.html',
   styleUrls: ['./wordlines.component.css']
 })
-export class WordlinesComponent implements OnInit, OnDestroy {
-  private destroyed$ = new Subject();
+export class WordlinesComponent implements OnInit {
   private placedTiles: Cell[] = [];
   private originalTiles: Tile[] = [];
   private poolID: string;
@@ -30,6 +28,7 @@ export class WordlinesComponent implements OnInit, OnDestroy {
   private timer: TimerComponent;
   private blanks: Tile[] = [];
   private blankClicked: boolean;
+  timeout = 900;
   payload: Payload;
   players: Player[] = [];
   tiles: Tile[] = [];
@@ -39,34 +38,13 @@ export class WordlinesComponent implements OnInit, OnDestroy {
     public blanksDialog: MatDialog,
     public gameOverDialog: MatDialog,
     private wsService: WebsocketService,
-    private route: ActivatedRoute,
+    private contextService: ContextService,
     private gameOverService: GameOverService,
     private usernameService: UsernameService) { }
 
   ngOnInit(): void {
     this.loadCells();
-
-    if (this.wsService.last) {
-      this.pipeline(this.wsService.last);
-    }
-
-    let connection$ = this.wsService.connection();
-
-    if (connection$) {
-      connection$.pipe(
-        takeUntil(this.destroyed$)
-      )
-        .subscribe({
-          next: m => this.pipeline(m),
-          error: e => console.log(e)
-        });
-    } else {
-      console.log('not connected.');
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.destroyed$.next();
+    this.connect();
   }
 
   onTimeout() {
@@ -300,5 +278,22 @@ export class WordlinesComponent implements OnInit, OnDestroy {
 
     this.gameOverDialog.open(GameOverDialog, { data: this.payload });
     this.gameOverService.onGameOver(this.payload);
+  }
+
+  private connect() {
+    console.log('history', this.wsService.history);
+    this.wsService.history.map(h => this.pipeline(h));
+
+    const params = {
+      'game': 'wordlines',
+      'players': this.contextService.wordlines.players,
+      'language': this.contextService.wordlines.language,
+      'userID': this.contextService.wordlines.userId,
+      'pid': this.contextService.wordlines.poolId
+    };
+    this.wsService.connect(environment.wsEndpoint, params).subscribe({
+      next: m => this.pipeline(m),
+      error: e => console.log(e)
+    });
   }
 }

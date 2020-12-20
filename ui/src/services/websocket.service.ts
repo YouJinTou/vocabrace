@@ -7,8 +7,8 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
   providedIn: 'root'
 })
 export class WebsocketService implements OnDestroy {
-  private connection$: WebSocketSubject<any>;
-  public last: any;
+  public connection$: WebSocketSubject<any>;
+  public history = [];
 
   connect(url: string, params={}): Observable<any> {
     let queryString = '?';
@@ -24,16 +24,12 @@ export class WebsocketService implements OnDestroy {
     return of(result).pipe(_ => {
       if (!this.connection$) {
         this.connection$ = webSocket(result);
-        this.connection$.subscribe(r => this.last = r);
+        this.connection$.subscribe(r => this.history.push(r));
       }
       return this.connection$;
     },
       retryWhen(errors => errors.pipe(delay(5)))
     );
-  }
-
-  connection(): WebSocketSubject<any> {
-    return this.connection$;
   }
 
   send(data: any) {

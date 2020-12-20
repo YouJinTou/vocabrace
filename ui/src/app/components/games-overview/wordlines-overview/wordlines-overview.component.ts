@@ -30,15 +30,21 @@ export class WordlinesOverviewComponent implements OnInit {
     if (!(this.selectedLanguage && this.selectedPlayers)) {
       return;
     }
+    
     this.wsService.connect(environment.wsEndpoint, {
       'game': 'wordlines',
       'players': parseInt(this.selectedPlayers),
       'language': this.selectedLanguage,
       'userID': this.contextService.user.id,
-      'isAnonymous': this.contextService.user.id ? true : false
     }).subscribe({
       next: m => {
         if ('pid' in m) {
+          this.contextService.setWordlines({
+            players: parseInt(this.selectedPlayers),
+            userId: this.contextService.user.id,
+            language: this.selectedLanguage,
+            poolId: m['pid']
+          });
           this.contextService.setIsPlaying(true);
           this.router.navigate(['wordlines', m['pid']]);
         }
