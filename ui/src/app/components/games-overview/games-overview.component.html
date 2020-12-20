@@ -2,4 +2,5 @@
     <h1>Play a quick game</h1>
     <mat-divider></mat-divider>
     <app-wordlines-overview></app-wordlines-overview>
+    <div *ngIf="ongoingGameExists" (click)="backToGame()">Back to game</div>
 </div>

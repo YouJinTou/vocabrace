@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ContextService } from 'src/services/context.service';
 
 @Component({
@@ -7,9 +8,15 @@ import { ContextService } from 'src/services/context.service';
   styleUrls: ['./games-overview.component.css']
 })
 export class GamesOverviewComponent implements OnInit {
-  constructor(private contextService: ContextService) { }
+  ongoingGameExists = false;
+
+  constructor(private contextService: ContextService, private router: Router) { }
 
   ngOnInit(): void {
-    this.contextService.setIsPlaying(false);
+    this.ongoingGameExists = this.contextService.isPlaying.value;
+  }
+
+  backToGame() {
+    this.router.navigate(['wordlines', this.contextService.isPlaying.pid]);
   }
 }

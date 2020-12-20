@@ -97,7 +97,7 @@ export class WordlinesOverviewComponent implements OnInit {
             language: 'english',
             poolId: m['pid']
           });
-          this.contextService.setIsPlaying(true);
+          this.contextService.setIsPlaying({ value: true, pid: m['pid']});
           this.router.navigate(['wordlines', m['pid']]);
         }
       },

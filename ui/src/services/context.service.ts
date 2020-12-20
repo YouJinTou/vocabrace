@@ -15,16 +15,21 @@ export class Wordlines {
   poolId: string
 }
 
+export class IsPlaying {
+  value: boolean
+  pid: string
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ContextService {
   private userSource = new BehaviorSubject(new User());
   private wordlinesSource = new BehaviorSubject(new Wordlines());
-  private isPlayingSource = new BehaviorSubject(false);
+  private isPlayingSource = new BehaviorSubject(new IsPlaying());
   user: User;
   wordlines: Wordlines;
-  isPlaying: boolean;
+  isPlaying: IsPlaying;
   user$ = this.userSource.asObservable();
   wordlines$ = this.wordlinesSource.asObservable();
   isPlaying$ = this.isPlayingSource .asObservable();
@@ -33,7 +38,7 @@ export class ContextService {
     this.user = { username: '', loggedIn: false, id: '', name: '' };
     this.user$.subscribe(u => this.user = u);
     this.wordlines = { players: 0, language: '', userId: '', poolId: ''};
-    this.isPlaying = false;
+    this.isPlaying = { value: false, pid: ''};
     this.isPlaying$.subscribe(i => this.isPlaying = i);
     this.wordlines$.subscribe(w => this.wordlines = w);
   }
@@ -51,7 +56,7 @@ export class ContextService {
     this.userSource.next(this.user);
   }
 
-  setIsPlaying(isPlaying: boolean) {
+  setIsPlaying(isPlaying: IsPlaying) {
     this.isPlaying = isPlaying;
     this.isPlayingSource.next(this.isPlaying);
   }
