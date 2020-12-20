@@ -46,6 +46,15 @@ func TestDrawRemovesTiles(t *testing.T) {
 	}
 }
 
+func Test_DrawsMoreThanExisting_ReturnsExisting(t *testing.T) {
+	b := NewBag(English)
+	expected := b.Count()
+	d := b.Draw(200)
+	if d.Count() != expected {
+		t.Errorf("expected %d, got %d", expected, d.Count())
+	}
+}
+
 func TestDrawPutCount(t *testing.T) {
 	b := NewBag(English)
 	originalCount := b.Count()
