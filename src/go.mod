@@ -10,6 +10,7 @@ require (
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.6.3
 	github.com/google/uuid v1.1.2
+	github.com/jinzhu/copier v0.1.0
 	github.com/memcachier/gomemcache v0.0.0-20170425125614-d027381f7653
 	github.com/memcachier/mc v2.0.1+incompatible
 	github.com/tkanos/gonfig v0.0.0-20181112185242-896f3d81fadf
