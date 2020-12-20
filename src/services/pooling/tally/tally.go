@@ -156,11 +156,12 @@ func willReachCapacity(d *dynamodb.GetItemOutput, joined bool) bool {
 }
 
 func reconnect(m map[string]events.DynamoDBAttributeValue) bool {
-	pid, _ := m["PoolID"]
-	if pid.String() == "" {
+	isReconnection, ok := m["IsReconnection"]
+	if !ok || !isReconnection.Boolean() {
 		return false
 	}
 
+	pid, _ := m["PoolID"]
 	ID, _ := m["ID"]
 	domain, _ := m["Domain"]
 	game, _ := m["Game"]
@@ -173,6 +174,7 @@ func reconnect(m map[string]events.DynamoDBAttributeValue) bool {
 		Language: language.String(),
 		UserID:   userID.String(),
 	}
+	fmt.Printf("Connection: %s", connection)
 	payload := struct {
 		Connection data.Connection
 		PoolID     string

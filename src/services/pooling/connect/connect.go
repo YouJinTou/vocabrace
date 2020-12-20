@@ -25,16 +25,18 @@ func handle(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 func connect(
 	putItem func(*string, interface{}) (*dynamodb.PutItemOutput, error),
 	r *events.APIGatewayWebsocketProxyRequest) {
+	pid, pidExists := r.QueryStringParameters["pid"]
 	connection := struct {
-		ID        string
-		Game      string
-		Players   int
-		Language  string
-		UserID    string
-		Bucket    string
-		Domain    string
-		LiveUntil int
-		PoolID    *string
+		ID             string
+		Game           string
+		Players        int
+		Language       string
+		UserID         string
+		Bucket         string
+		Domain         string
+		LiveUntil      int
+		IsReconnection bool
+		PoolID         string
 	}{
 		r.RequestContext.ConnectionID,
 		r.QueryStringParameters["game"],
@@ -44,7 +46,8 @@ func connect(
 		"novice",
 		r.RequestContext.DomainName,
 		tools.FutureTimestamp(7200),
-		poolID(r.QueryStringParameters),
+		pidExists,
+		pid,
 	}
 	putItem(tools.Table("connections"), connection)
 }
@@ -59,11 +62,4 @@ func userID(params map[string]string) string {
 		return ID
 	}
 	return uuid.New().String()
-}
-
-func poolID(params map[string]string) *string {
-	if ID, ok := params["pid"]; ok {
-		return &ID
-	}
-	return nil
 }
