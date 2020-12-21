@@ -20,6 +20,8 @@ import { ExternalLoginComponent } from './components/external-login/external-log
 import { BlanksDialog } from './components/wordlines/blanks/blanks.component';
 import { GameOverDialog } from './components/wordlines/game-over/game-over.component';
 import { TimerComponent } from './components/timer/timer.component';
+import { CookieService } from 'ngx-cookie-service';
+import { CookiesComponent } from './components/cookies/cookies.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +35,7 @@ import { TimerComponent } from './components/timer/timer.component';
     ExternalLoginComponent,
     GameOverDialog,
     TimerComponent,
+    CookiesComponent,
   ],
   imports: [
     BrowserModule,
@@ -44,7 +47,7 @@ import { TimerComponent } from './components/timer/timer.component';
     MatDividerModule,
     HttpClientModule
   ],
-  providers: [WebsocketService, ContextService],
+  providers: [WebsocketService, ContextService, CookieService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
