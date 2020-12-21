@@ -29,10 +29,18 @@
         </div>
 
         <div class="actions" *ngIf="state.tiles.length > 0 && state.yourMove && !state.isGameOver">
-            <div (click)="onPlaceClicked()">Сложи</div>
-            <div (click)="onExchangeClicked()">Размени</div>
-            <div (click)="onPassClicked()">Пропусни</div>
-            <div (click)="onCancelClicked()">Отмяна</div>
+            <div (click)="onPlaceClicked()">
+                <span class="material-icons">check_circle_outline</span>
+            </div>
+            <div (click)="onExchangeClicked()">
+                <span class="material-icons">cached</span>
+            </div>
+            <div (click)="onPassClicked()">
+                <span class="material-icons">skip_next</span>
+            </div>
+            <div (click)="onCancelClicked()">
+                <span class="material-icons">replay</span>
+            </div>
         </div>
     </div>
 </div>
