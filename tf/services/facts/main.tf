@@ -21,7 +21,7 @@ module "broadcast" {
   aws_region = var.aws_region
   aws_account_id = var.aws_account_id
   filename = "../../payloads/broadcast.zip"
-  function_name = "broadcast"
+  function_name = "${var.stage}_broadcast"
   handler = "broadcast"
   timeout = 2
   environment_variables = {
