@@ -8,7 +8,7 @@ export const english = [
 ]
 
 export function load(language: string): string[] {
-    switch (language.toLowerCase()) {
+    switch (language?.toLowerCase()) {
         case "bulgarian": return bulgarian;
         case "english": return english;
         default: return english;
