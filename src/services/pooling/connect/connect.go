@@ -26,6 +26,7 @@ func connect(
 	putItem func(*string, interface{}) (*dynamodb.PutItemOutput, error),
 	r *events.APIGatewayWebsocketProxyRequest) {
 	pid, pidExists := r.QueryStringParameters["pid"]
+	_, userIDExists := r.QueryStringParameters["userID"]
 	connection := struct {
 		ID             string
 		Game           string
@@ -46,7 +47,7 @@ func connect(
 		"novice",
 		r.RequestContext.DomainName,
 		tools.FutureTimestamp(7200),
-		pidExists,
+		pidExists && userIDExists,
 		pid,
 	}
 	putItem(tools.Table("connections"), connection)
