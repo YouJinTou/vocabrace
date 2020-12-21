@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/YouJinTou/vocabrace/services/com/state/data"
 
@@ -114,12 +115,16 @@ func saveState(i *saveStateInput) error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"ID": {S: aws.String(i.PoolID)},
 		},
-		UpdateExpression: aws.String(
-			"SET GameState = :s, ConnectionIDs = :c, History = if_not_exists(History, :h)"),
+		UpdateExpression: aws.String(`
+			"SET GameState = :s, 
+			ConnectionIDs = :c, 
+			History = if_not_exists(History, :h), 
+			LiveUntil = if_not_exists(LiveUntil, :l)`),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":s": {M: m},
 			":c": {SS: tools.ToStringPtrs(i.ConnectionIDs)},
 			":h": {L: []*dynamodb.AttributeValue{}},
+			":l": {N: aws.String(strconv.Itoa(tools.FutureTimestamp(24 * 3600 * 7)))},
 		},
 	})
 
