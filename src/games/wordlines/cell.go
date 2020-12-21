@@ -50,3 +50,11 @@ func (c *Cell) LetterMultiplier(l layout) int {
 	}
 	return 1
 }
+
+func cellTileIDs(cells []*Cell) []string {
+	IDs := []string{}
+	for _, c := range cells {
+		IDs = append(IDs, c.Tile.ID)
+	}
+	return IDs
+}

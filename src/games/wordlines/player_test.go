@@ -12,7 +12,7 @@ var toReceive = NewTiles(&Tile{Letter: "Q"}, &Tile{Letter: "X"})
 
 func TestExchangeTilesReturnsErrorAboutMissingTiles(t *testing.T) {
 	p := testPlayer()
-	_, err := p.ExchangeTiles([]string{"ZZ"}, NewTiles(&Tile{}))
+	_, _, err := p.ExchangeTiles([]string{"ZZ"}, NewTiles(&Tile{}))
 
 	if err == nil || err.Error() != "ZZ tile not found" {
 		t.Errorf("Should return error about missing tile.")
@@ -22,9 +22,9 @@ func TestExchangeTilesReturnsErrorAboutMissingTiles(t *testing.T) {
 func TestExchangeTilesCountsMatch(t *testing.T) {
 	p := testPlayer()
 	toRemove := []string{p.Tiles.GetAt(1).ID, p.Tiles.GetAt(5).ID}
-	tiles, _ := p.ExchangeTiles(toRemove, toReceive)
+	tiles, toReceiveTiles, _ := p.ExchangeTiles(toRemove, toReceive)
 
-	if tiles.Count() != toReceive.Count() {
+	if tiles.Count() != toReceiveTiles.Count() {
 		t.Errorf("Received %d tile(s) instead of %d", tiles.Count(), toReceive.Count())
 	}
 }
@@ -32,7 +32,7 @@ func TestExchangeTilesCountsMatch(t *testing.T) {
 func TestExchangeTilesReturnTilesMatch(t *testing.T) {
 	p := testPlayer()
 	toRemove := []string{p.Tiles.GetAt(1).ID, p.Tiles.GetAt(5).ID}
-	tiles, _ := p.ExchangeTiles(toRemove, toReceive)
+	tiles, _, _ := p.ExchangeTiles(toRemove, toReceive)
 
 	for i := 0; i < tiles.Count(); i++ {
 		if toRemove[i] != tiles.GetAt(i).ID {

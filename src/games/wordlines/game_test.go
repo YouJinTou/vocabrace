@@ -373,6 +373,59 @@ func Test_PlayerExchangesMoreTilesThanExistInBag_DrawsCorrectlyAndReturnsCorrect
 		t.Errorf("expected bag to have %d tiles, but it has %d",
 			expectedBagTiles, newGame.Bag.Count())
 	}
+
+	for _, gt := range d.TilesGivenToPlayer.Value {
+		found := false
+		for _, lt := range g.LastToMove().Tiles.Value {
+			if gt.ID == lt.ID {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("expected to find all player tiles")
+		}
+	}
+}
+
+func Test_PlayerPlacesMoreTilesThanThereAreInBag_ReturnsCorrectTiles(t *testing.T) {
+	g, _, _ := setupGame(2)
+	w := testCreateWord(BoardOrigin, true, g.ToMove().Tiles.Value...)
+	expectedToReceive := 1
+	expectedBagTiles := 0
+	g.Bag.Draw(g.Bag.Count() - expectedToReceive)
+	newGame, err := g.Place(w)
+
+	if err != nil {
+		t.Errorf("did not expect error: %s", err.Error())
+	}
+
+	d := newGame.GetDelta()
+
+	if d.TilesGivenToPlayer.Count() != expectedToReceive {
+		t.Errorf("expected %d tiles to have been received by the player, got %d",
+			expectedToReceive, d.TilesGivenToPlayer.Count())
+	}
+
+	if d.TilesReturnedToBag != nil {
+		t.Errorf("expected no tiles to have been put back into the bag")
+	}
+
+	if newGame.Bag.Count() != expectedBagTiles {
+		t.Errorf("expected bag to have %d tiles, but it has %d",
+			expectedBagTiles, newGame.Bag.Count())
+	}
+
+	for _, gt := range d.TilesGivenToPlayer.Value {
+		found := false
+		for _, lt := range g.LastToMove().Tiles.Value {
+			if gt.ID == lt.ID {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("expected to find all player tiles")
+		}
+	}
 }
 
 func getExpectedOrder(idx, total int) []string {

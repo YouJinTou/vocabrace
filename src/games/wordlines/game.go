@@ -126,12 +126,12 @@ func (g *Game) Exchange(ids []string) (Game, error) {
 	}
 
 	toReceive := g.Bag.Draw(len(ids))
-	toReturn, err := g.ToMove().ExchangeTiles(ids, toReceive)
+	toReturn, toReceiveTiles, err := g.ToMove().ExchangeTiles(ids, toReceive)
 	g.Bag.Put(toReturn)
 
 	g.delta = DeltaState{
 		LastAction:         "Exchange",
-		TilesGivenToPlayer: toReceive,
+		TilesGivenToPlayer: toReceiveTiles,
 		TilesReturnedToBag: toReturn,
 	}
 	g.EndCounter++
@@ -164,13 +164,11 @@ func (g *Game) Place(w *Word) (Game, error) {
 	g.ToMove().AwardPoints(points)
 
 	toReceive := g.Bag.Draw(w.Length())
-	toRemove := []string{}
-	for _, c := range w.Cells {
-		toRemove = append(toRemove, c.Tile.ID)
+	if err := g.ToMove().PlaceTiles(cellTileIDs(w.Cells), toReceive); err != nil {
+		return *g, err
 	}
-	_, err := g.ToMove().ExchangeTiles(toRemove, toReceive)
-	g.EndCounter = 0
 
+	g.EndCounter = 0
 	g.delta = DeltaState{
 		LastAction:         "Place",
 		PlacedTiles:        w,
@@ -179,7 +177,7 @@ func (g *Game) Place(w *Word) (Game, error) {
 
 	g.handleEnd()
 
-	return *g, err
+	return *g, nil
 }
 
 // SetCellTiles sets the incoming cells' tiles by looking them up by ID.
