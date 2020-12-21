@@ -51,6 +51,8 @@ func OnStart(i data.OnStartInput) error {
 	}
 
 	ws.SendManyUnique(o.Messages)
+
+	appendHistory(o.PoolID, o.Messages)
 	return nil
 }
 
@@ -77,6 +79,8 @@ func OnAction(i data.OnActionInput) error {
 	}
 
 	ws.SendManyUnique(o.Messages)
+
+	appendHistory(i.PoolID, o.Messages)
 	return nil
 }
 
@@ -110,10 +114,12 @@ func saveState(i *saveStateInput) error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"ID": {S: aws.String(i.PoolID)},
 		},
-		UpdateExpression: aws.String("SET GameState = :s, ConnectionIDs = :c"),
+		UpdateExpression: aws.String(
+			"SET GameState = :s, ConnectionIDs = :c, History = if_not_exists(History, :h)"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":s": {M: m},
 			":c": {SS: tools.ToStringPtrs(i.ConnectionIDs)},
+			":h": {L: []*dynamodb.AttributeValue{}},
 		},
 	})
 
@@ -127,4 +133,25 @@ func loadState(poolID string) map[string]*dynamodb.AttributeValue {
 	}
 
 	return i.Item["GameState"].M
+}
+
+func appendHistory(poolID string, messages []*ws.Message) {
+	sess := session.Must(session.NewSession())
+	dynamo := dynamodb.New(sess)
+	l, err := dynamodbattribute.MarshalList(messages)
+	if err != nil {
+		return
+	}
+	dynamo.UpdateItem(&dynamodb.UpdateItemInput{
+		TableName: tools.Table("pools"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {S: aws.String(poolID)},
+		},
+		UpdateExpression: aws.String("SET History = list_append(History, :d)"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":d": {L: []*dynamodb.AttributeValue{
+				&dynamodb.AttributeValue{L: l},
+			}},
+		},
+	})
 }
