@@ -93,7 +93,7 @@ func OnReconnect(i data.OnReconnectInput) error {
 	for _, turn := range i.History {
 		var found *ws.Message
 		for _, turnMessage := range turn {
-			if turnMessage.UserID == &i.Connection.UserID {
+			if *turnMessage.UserID == i.Connection.UserID {
 				found = turnMessage
 			}
 		}
