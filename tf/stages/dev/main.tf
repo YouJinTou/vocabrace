@@ -18,6 +18,13 @@ locals {
   stage = "dev"
 }
 
+module "facts" {
+  source = "../../services/facts"
+  stage = local.stage
+  aws_account_id = data.aws_caller_identity.current.account_id
+  aws_region = var.aws_region
+}
+
 module "iam" {
   source = "../../services/iam"
   stage = local.stage

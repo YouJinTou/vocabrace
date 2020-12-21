@@ -13,7 +13,7 @@ resource "aws_dynamodb_table" "facts" {
     type = "N"
   }
   stream_enabled = true
-  stream_view_type = "NEW_IMAGES"
+  stream_view_type = "NEW_IMAGE"
 }
 
 module "broadcast" {
@@ -30,8 +30,9 @@ module "broadcast" {
     ACCOUNT_ID: var.aws_account_id
     IS_SERVERLESS: true
   }
+  source_maximum_retries = 5
   enable_streaming = true
-  stream_arn = aws_dynamodb_table.store.stream_arn
+  stream_arn = aws_dynamodb_table.facts.stream_arn
 }
 
 resource "aws_sns_topic" "facts" {
