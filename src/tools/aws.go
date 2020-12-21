@@ -38,7 +38,7 @@ func SnsPublish(topic string, payload interface{}) error {
 		TopicArn: aws.String(arn),
 	})
 	if err != nil {
-		log.Print(err)
+		log.Printf("%s: %s", err.Error(), arn)
 	}
 	return err
 }
