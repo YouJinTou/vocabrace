@@ -71,7 +71,7 @@ export class Payload {
             return null;
         }
         let cells = [];
-        for (var c of m['n']['Cells']) {
+        for (var c of m['n']['c']) {
             cells.push(new Cell(c['i'], this.getTile(c['t']), getCellClass(c['i'])))
         }
         return cells;
