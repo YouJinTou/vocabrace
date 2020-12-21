@@ -12,9 +12,10 @@ import (
 
 // Message is used in sending data over a websocket.
 type Message struct {
-	Domain       string
-	ConnectionID string
-	Message      string
+	Domain       string  `json:"d"`
+	ConnectionID string  `json:"c"`
+	Message      string  `json:"m"`
+	UserID       *string `json:"u"`
 }
 
 // Send sends a message to a connection ID.

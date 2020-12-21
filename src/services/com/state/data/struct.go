@@ -9,7 +9,6 @@ import (
 type State interface {
 	OnStart(OnStartInput) (OnStartOutput, error)
 	OnAction(OnActionInput) (OnActionOutput, error)
-	OnReconnect(OnReconnectInput) (OnReconnectOutput, error)
 }
 
 // OnStartInput encapsulates data to be processed during the start of the game.
@@ -44,10 +43,5 @@ type OnActionOutput struct {
 // OnReconnectInput encapsulates data required to perform a reconnection.
 type OnReconnectInput struct {
 	Connection Connection
-	State      map[string]*dynamodb.AttributeValue
-}
-
-// OnReconnectOutput encapsulates data required by the client to visualize the current state.
-type OnReconnectOutput struct {
-	Message *ws.Message
+	History    [][]*ws.Message // A list of turns (one turn is a collection of messages)
 }

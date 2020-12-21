@@ -93,7 +93,6 @@ export class WordlinesOverviewComponent implements OnInit {
         if ('pid' in m) {
           this.contextService.setWordlines({
             players: 2,
-            userId: this.contextService.user.id,
             language: 'english',
             poolId: m['pid']
           });

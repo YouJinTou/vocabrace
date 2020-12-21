@@ -23,7 +23,7 @@ const GAME = 'wordlines';
 export class WordlinesComponent implements OnInit {
   @ViewChild(TimerComponent)
   private timer: TimerComponent;
-  timeout = 2;
+  timeout = 60;
   state = new State();
 
   constructor(
@@ -154,9 +154,10 @@ export class WordlinesComponent implements OnInit {
       'game': 'wordlines',
       'players': this.contextService.wordlines.players,
       'language': this.contextService.wordlines.language,
-      'userID': this.contextService.wordlines.userId,
+      'userID': this.contextService.user.id,
       'pid': this.contextService.wordlines.poolId
     };
+    console.log('params', params);
     this.wsService.connect(environment.wsEndpoint, params).subscribe({
       next: m => this.process(m),
       error: e => console.log(e)

@@ -64,6 +64,7 @@ func (s Controller) OnStart(i data.OnStartInput) (data.OnStartOutput, error) {
 			Domain:       c.Domain(),
 			ConnectionID: *c.IDByUserID(p.ID),
 			Message:      string(b),
+			UserID:       &p.ID,
 		})
 	}
 
@@ -118,6 +119,7 @@ func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) 
 		ConnectionID: i.Initiator,
 		Domain:       i.Connections.Domain(),
 		Message:      r.d.JSONWithPersonal(),
+		UserID:       i.Connections.UserIDByID(i.Initiator),
 	}}
 	for _, cid := range i.Connections.OtherIDs(i.Initiator) {
 		r.d.YourMove = game.ToMoveID == *i.Connections.UserIDByID(cid)
@@ -125,6 +127,7 @@ func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) 
 			ConnectionID: cid,
 			Domain:       i.Connections.Domain(),
 			Message:      r.d.JSONWithoutPersonal(),
+			UserID:       i.Connections.UserIDByID(cid),
 		})
 	}
 
@@ -132,19 +135,6 @@ func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) 
 		Messages: messages,
 		Game:     game,
 	}, nil
-}
-
-// OnReconnect executes logic for a reconnection.
-func (s Controller) OnReconnect(i data.OnReconnectInput) (data.OnReconnectOutput, error) {
-	game := &wordlines.Game{}
-	err := dynamodbattribute.UnmarshalMap(i.State, game)
-	b, _ := json.Marshal(game)
-	m := &ws.Message{
-		ConnectionID: i.Connection.ID,
-		Domain:       i.Connection.Domain,
-		Message:      string(b),
-	}
-	return data.OnReconnectOutput{Message: m}, err
 }
 
 func (s Controller) exchange(turn *turn, g *wordlines.Game) *result {
@@ -218,5 +208,6 @@ func (s Controller) Error(data data.OnActionInput, message string, err error) *w
 		ConnectionID: data.Initiator,
 		Domain:       data.Connections.Domain(),
 		Message:      string(b),
+		UserID:       data.Connections.UserIDByID(data.Initiator),
 	}
 }

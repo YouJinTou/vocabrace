@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+
+	"github.com/YouJinTou/vocabrace/services/com/ws"
+
 	"github.com/YouJinTou/vocabrace/services/com/state"
 
 	"github.com/YouJinTou/vocabrace/services/com/state/data"
@@ -30,11 +34,11 @@ func main() {
 func handle(ctx context.Context, e events.SNSEvent) {
 	for _, r := range e.Records {
 		p := unmarshalPayload(r.SNS.Message)
-		currentState, err := updatePool(p)
+		result, err := updatePool(p)
 		if err == nil {
 			state.OnReconnect(data.OnReconnectInput{
 				Connection: p.Connection,
-				State:      currentState,
+				History:    toHistory(result),
 			})
 		} else {
 			log.Printf(err.Error())
@@ -48,7 +52,7 @@ func unmarshalPayload(body string) payload {
 	return *p
 }
 
-func updatePool(p payload) (map[string]*dynamodb.AttributeValue, error) {
+func updatePool(p payload) ([]*dynamodb.AttributeValue, error) {
 	sess := session.Must(session.NewSession())
 	dynamo := dynamodb.New(sess)
 	o, err := dynamo.UpdateItem(&dynamodb.UpdateItemInput{
@@ -62,5 +66,11 @@ func updatePool(p payload) (map[string]*dynamodb.AttributeValue, error) {
 		},
 		ReturnValues: aws.String("ALL_NEW"),
 	})
-	return o.Attributes["GameState"].M, err
+	return o.Attributes["History"].L, err
+}
+
+func toHistory(list []*dynamodb.AttributeValue) [][]*ws.Message {
+	history := &[][]*ws.Message{}
+	dynamodbattribute.UnmarshalList(list, history)
+	return *history
 }

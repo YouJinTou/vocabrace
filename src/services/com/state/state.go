@@ -1,6 +1,8 @@
 package state
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -87,17 +89,30 @@ func OnAction(i data.OnActionInput) error {
 
 // OnReconnect executes communication logic during a reconnect.
 func OnReconnect(i data.OnReconnectInput) error {
-	handler, err := load(i.Connection.Game)
-	if err != nil {
-		return err
+	playerSpecificHistory := []*ws.Message{}
+	for _, turn := range i.History {
+		var found *ws.Message
+		for _, turnMessage := range turn {
+			if turnMessage.UserID == &i.Connection.UserID {
+				found = turnMessage
+			}
+		}
+		if found == nil {
+			return errors.New("could not load history")
+		}
+		m := &ws.Message{}
+		json.Unmarshal([]byte(found.Message), m)
+		playerSpecificHistory = append(playerSpecificHistory, m)
 	}
 
-	o, rErr := handler.OnReconnect(i)
-	if rErr != nil {
-		return err
+	payload, _ := json.Marshal(playerSpecificHistory)
+	message := &ws.Message{
+		ConnectionID: i.Connection.ID,
+		Domain:       i.Connection.Domain,
+		Message:      string(payload),
 	}
 
-	ws.Send(o.Message)
+	ws.Send(message)
 	return nil
 }
 
@@ -116,7 +131,7 @@ func saveState(i *saveStateInput) error {
 			"ID": {S: aws.String(i.PoolID)},
 		},
 		UpdateExpression: aws.String(`
-			"SET GameState = :s, 
+			SET GameState = :s, 
 			ConnectionIDs = :c, 
 			History = if_not_exists(History, :h), 
 			LiveUntil = if_not_exists(LiveUntil, :l)`),
