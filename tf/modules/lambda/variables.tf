@@ -100,7 +100,7 @@ variable stream_arn {
 
 variable source_maximum_retries {
     type = number
-    default = -1
+    default = 10000
 }
 
 variable enable_sns {
