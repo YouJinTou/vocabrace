@@ -30,16 +30,16 @@
 
         <div class="actions" *ngIf="state.tiles.length > 0 && state.yourMove && !state.isGameOver">
             <div (click)="onPlaceClicked()">
-                <span class="material-icons">check_circle_outline</span>
+                <span class="material-icons" title="Place">check_circle_outline</span>
             </div>
             <div (click)="onExchangeClicked()">
-                <span class="material-icons">cached</span>
+                <span class="material-icons" title="Exchange">cached</span>
             </div>
             <div (click)="onPassClicked()">
-                <span class="material-icons">skip_next</span>
+                <span class="material-icons" title="Pass">skip_next</span>
             </div>
             <div (click)="onCancelClicked()">
-                <span class="material-icons">replay</span>
+                <span class="material-icons" title="Cancel">replay</span>
             </div>
         </div>
     </div>
