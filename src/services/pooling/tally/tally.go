@@ -174,7 +174,6 @@ func reconnect(m map[string]events.DynamoDBAttributeValue) bool {
 		Language: language.String(),
 		UserID:   userID.String(),
 	}
-	fmt.Printf("Connection: %s", connection)
 	payload := struct {
 		Connection data.Connection
 		PoolID     string
