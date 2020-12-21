@@ -9,10 +9,10 @@ import (
 
 // Fact encapsulates a fact.
 type Fact struct {
-	ID        string `json:"i"`
-	Timestamp int    `json:"u"`
-	Type      string `json:"t"`
-	Data      string `json:"d"`
+	ID        string
+	Timestamp int
+	Type      string
+	Data      string
 }
 
 // NewFact creates a new fact.
