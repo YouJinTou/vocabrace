@@ -20,7 +20,7 @@ export class CookiesComponent implements OnInit {
 
   acceptAndClose() {
     this.accepted = true;
-    const expires = new Date(new Date().getTime() + (1000 * 5));
+    const expires = new Date(new Date().getTime() + (1000 * 86400 * 7));
     this.service.set('accepted', 'true', { expires: expires, sameSite: 'Strict' });
     this.contextService.setCookies({ accepted: this.accepted });
   }
