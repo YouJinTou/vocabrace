@@ -131,6 +131,7 @@ resource "aws_sns_topic_subscription" "subscription" {
   topic_arn = var.sns_arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.function.arn
+  filter_policy = var.subscription_filter_policy
 }
 
 resource "aws_lambda_permission" "sns" {

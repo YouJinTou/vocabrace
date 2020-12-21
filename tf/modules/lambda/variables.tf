@@ -112,3 +112,8 @@ variable sns_arn {
     type = string
     default = ""
 }
+
+variable subscription_filter_policy {
+    type = string
+    default = ""
+}
