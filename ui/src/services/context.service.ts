@@ -9,7 +9,8 @@ export class User {
   id: string
 }
 
-export class IsPlaying {
+export class Status {
+  game: string
   value: boolean
   pid: string
   players: number
@@ -25,20 +26,20 @@ export class Cookies {
 })
 export class ContextService {
   private userSource = new BehaviorSubject(new User());
-  private isPlayingSource = new BehaviorSubject(new IsPlaying());
+  private statusSource = new BehaviorSubject(new Status());
   private cookiesSource = new BehaviorSubject(new Cookies());
   user: User;
-  isPlaying: IsPlaying;
+  status: Status;
   cookies: Cookies;
   user$ = this.userSource.asObservable();
-  isPlaying$ = this.isPlayingSource.asObservable();
+  status$ = this.statusSource.asObservable();
   cookies$ = this.cookiesSource.asObservable();
 
   constructor(private cookieService: CookieService) {
     this.user = { username: '', loggedIn: false, id: '', name: '' };
     this.user$.subscribe(u => this.user = u);
-    this.isPlaying = { value: false, pid: '', language: '', players: 0 };
-    this.isPlaying$.subscribe(i => this.isPlaying = i);
+    this.status = { game: '', value: false, pid: '', language: '', players: 0 };
+    this.status$.subscribe(i => this.status = i);
     this.cookies$.subscribe(c => this.cookies = c);
   }
 
@@ -51,11 +52,11 @@ export class ContextService {
     this.userSource.next(this.user);
   }
 
-  setIsPlaying(isPlaying: IsPlaying) {
-    this.isPlayingSource.next(isPlaying);
+  setStatus(status: Status) {
+    this.statusSource.next(status);
     if (this.cookies.accepted) {
       const expires = new Date(new Date().getTime() + (1000 * 60 * 5));
-      this.cookieService.set('pid', isPlaying.pid, { expires: expires, sameSite: 'Strict' });
+      this.cookieService.set('pid', status.pid, { expires: expires, sameSite: 'Strict' });
     }
   }
 

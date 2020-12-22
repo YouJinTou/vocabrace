@@ -23,8 +23,8 @@ export class GamesOverviewComponent implements OnInit {
           let gameExists = r && r.PoolID != '' && r.PoolID != undefined && r.PoolID != null;
 
           if (gameExists) {
-            this.contextService.setIsPlaying({
-              value: true, pid: r.PoolID, language: r.Language, players: r.Players
+            this.contextService.setStatus({
+              game: '', value: true, pid: r.PoolID, language: r.Language, players: r.Players
             });
           }
         },

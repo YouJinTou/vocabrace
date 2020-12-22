@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ContextService, IsPlaying } from 'src/services/context.service';
+import { ContextService, Status } from 'src/services/context.service';
 
 @Component({
   selector: 'app-external-login',
@@ -7,12 +7,12 @@ import { ContextService, IsPlaying } from 'src/services/context.service';
   styleUrls: ['./external-login.component.css']
 })
 export class ExternalLoginComponent implements OnInit {
-  isPlaying: IsPlaying;
+  status: Status;
 
   constructor(private contextService: ContextService) { }
 
   ngOnInit(): void {
-    this.contextService.isPlaying$.subscribe(i => {
-      this.isPlaying = i;});
+    this.contextService.status$.subscribe(i => {
+      this.status = i;});
   }
 }

@@ -150,10 +150,10 @@ export class WordlinesComponent implements OnInit {
 
     const params = {
       'game': 'wordlines',
-      'players': this.contextService.isPlaying.players,
-      'language': this.contextService.isPlaying.language,
+      'players': this.contextService.status.players,
+      'language': this.contextService.status.language,
       'userID': this.contextService.user.id,
-      'pid': this.contextService.isPlaying.pid
+      'pid': this.contextService.status.pid
     };
     this.wsService.connect(environment.wsEndpoint, params).subscribe({
       next: m => {

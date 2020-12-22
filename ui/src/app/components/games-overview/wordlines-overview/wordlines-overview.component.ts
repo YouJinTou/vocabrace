@@ -21,15 +21,15 @@ export class WordlinesOverviewComponent implements OnInit {
     private router: Router) { }
 
   ngOnInit(): void {
-    this.contextService.isPlaying$.subscribe(r => this.gameExists = r.value);
+    this.contextService.status$.subscribe(r => this.gameExists = r.value);
   }
 
   onSelectChanged() {
     this.connect();
   }
-  
+
   backToGame() {
-    this.router.navigate(['wordlines', this.contextService.isPlaying.pid]);
+    this.router.navigate(['wordlines', this.contextService.status.pid]);
   }
 
   private connect() {
@@ -37,7 +37,7 @@ export class WordlinesOverviewComponent implements OnInit {
       return;
     }
 
-    if (!this.contextService.isPlaying.value) {
+    if (!this.contextService.status.value) {
       this.wsService.close();
     }
 
@@ -49,7 +49,8 @@ export class WordlinesOverviewComponent implements OnInit {
     }).subscribe({
       next: m => {
         if ('pid' in m) {
-          this.contextService.setIsPlaying({
+          this.contextService.setStatus({
+            game: 'wordlines',
             value: true,
             pid: m['pid'],
             language: this.selectedLanguage,
