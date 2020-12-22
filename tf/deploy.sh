@@ -41,6 +41,12 @@ build-lambda-zip -output publish.zip publish
 rm publish
 mv publish.zip $tf_root/payloads
 
+cd $services_root/pooling/api/getuserpool
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o getuserpool .
+build-lambda-zip -output getuserpool.zip getuserpool
+rm getuserpool
+mv getuserpool.zip $tf_root/payloads
+
 cd $services_root/iam
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o iam .
 build-lambda-zip -output iam.zip iam

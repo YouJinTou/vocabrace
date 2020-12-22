@@ -60,7 +60,7 @@ export class WordlinesComponent implements OnInit {
     if (!this.state.currentPlacedCells.length) {
       return
     }
-    
+
     const payload = {
       g: GAME,
       p: true,
@@ -103,7 +103,7 @@ export class WordlinesComponent implements OnInit {
   private process(m: any) {
     const p = new Payload(m, this.usernameService);
     this.state = this.state.apply(p);
-    
+
     if (this.state.isError) {
       return;
     }
@@ -132,7 +132,6 @@ export class WordlinesComponent implements OnInit {
     blanksRef.afterClosed().subscribe(result => {
       if (result) {
         this.state = this.state.setBlank(result);
-        console.log(this.state);
       }
     });
   }
@@ -147,19 +146,25 @@ export class WordlinesComponent implements OnInit {
   }
 
   private connect() {
-    console.log('history', this.wsService.history);
     this.wsService.history.map(h => this.process(h));
 
     const params = {
       'game': 'wordlines',
-      'players': this.contextService.wordlines.players,
-      'language': this.contextService.wordlines.language,
+      'players': 2,
+      'language': 'english',
       'userID': this.contextService.user.id,
-      'pid': this.contextService.wordlines.poolId
+      'pid': this.contextService.isPlaying.pid
     };
-    console.log('params', params);
     this.wsService.connect(environment.wsEndpoint, params).subscribe({
-      next: m => this.process(m),
+      next: m => {
+        if (Array.isArray(m)) {
+          m.forEach(x => {
+            this.process(JSON.parse(x));
+          });
+        } else {
+          this.process(m);
+        }
+      },
       error: e => console.log(e)
     });
   }

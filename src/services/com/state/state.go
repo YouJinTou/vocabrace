@@ -56,6 +56,8 @@ func OnStart(i data.OnStartInput) error {
 	ws.SendManyUnique(o.Messages)
 
 	appendHistory(o.PoolID, o.Messages)
+
+	updateUserPools(ssi, false)
 	return nil
 }
 
@@ -84,12 +86,16 @@ func OnAction(i data.OnActionInput) error {
 	ws.SendManyUnique(o.Messages)
 
 	appendHistory(i.PoolID, o.Messages)
+
+	if o.IsOver {
+		updateUserPools(si, true)
+	}
 	return nil
 }
 
 // OnReconnect executes communication logic during a reconnect.
 func OnReconnect(i data.OnReconnectInput) error {
-	playerSpecificHistory := []*ws.Message{}
+	playerSpecificHistory := []string{}
 	for _, turn := range i.History {
 		var found *ws.Message
 		for _, turnMessage := range turn {
@@ -100,9 +106,7 @@ func OnReconnect(i data.OnReconnectInput) error {
 		if found == nil {
 			return errors.New("could not load history")
 		}
-		m := &ws.Message{}
-		json.Unmarshal([]byte(found.Message), m)
-		playerSpecificHistory = append(playerSpecificHistory, m)
+		playerSpecificHistory = append(playerSpecificHistory, found.Message)
 	}
 
 	payload, _ := json.Marshal(playerSpecificHistory)
@@ -174,4 +178,24 @@ func appendHistory(poolID string, messages []*ws.Message) {
 			}},
 		},
 	})
+}
+
+func updateUserPools(i *saveStateInput, delete bool) {
+	table := tools.Table("connections")
+	o, _ := tools.BatchGetItem(table, "ID", i.ConnectionIDs)
+	for _, r := range o.Responses[*table] {
+		if delete {
+			tools.DeleteItem(tools.Table("user_pools"), "UserID", *r["UserID"].S, nil, nil)
+		} else {
+			players, _ := strconv.Atoi(*r["Players"].N)
+			v := struct {
+				UserID    string
+				PoolID    string
+				Players   int
+				Language  string
+				LiveUntil int
+			}{*r["UserID"].S, i.PoolID, players, *r["Language"].S, tools.FutureTimestamp(10000)}
+			tools.PutItem(tools.Table("user_pools"), v)
+		}
+	}
 }

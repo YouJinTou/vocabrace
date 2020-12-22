@@ -6,7 +6,8 @@ export const environment = {
   production: true,
   wsEndpoint: 'wss://n1b93gorug.execute-api.eu-central-1.amazonaws.com/dev',
   iamEndpoint: 'https://xq5hf24nc0.execute-api.eu-central-1.amazonaws.com/dev/iam',
-  gameOverEndpoint: 'https://xq5hf24nc0.execute-api.eu-central-1.amazonaws.com/dev/end'
+  gameOverEndpoint: 'https://xq5hf24nc0.execute-api.eu-central-1.amazonaws.com/dev/end',
+  poolingEndpoint: 'https://i94yuwsgm5.execute-api.eu-central-1.amazonaws.com/dev/pooling',
 };
 
 /*

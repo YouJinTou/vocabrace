@@ -9,15 +9,11 @@ export class User {
   id: string
 }
 
-export class Wordlines {
-  players: number
-  language: string
-  poolId: string
-}
-
 export class IsPlaying {
   value: boolean
   pid: string
+  players: number
+  language: string
 }
 
 export class Cookies {
@@ -29,34 +25,25 @@ export class Cookies {
 })
 export class ContextService {
   private userSource = new BehaviorSubject(new User());
-  private wordlinesSource = new BehaviorSubject(new Wordlines());
   private isPlayingSource = new BehaviorSubject(new IsPlaying());
   private cookiesSource = new BehaviorSubject(new Cookies());
   user: User;
-  wordlines: Wordlines;
   isPlaying: IsPlaying;
   cookies: Cookies;
   user$ = this.userSource.asObservable();
-  wordlines$ = this.wordlinesSource.asObservable();
   isPlaying$ = this.isPlayingSource.asObservable();
   cookies$ = this.cookiesSource.asObservable();
 
   constructor(private cookieService: CookieService) {
     this.user = { username: '', loggedIn: false, id: '', name: '' };
     this.user$.subscribe(u => this.user = u);
-    this.wordlines = { players: 0, language: '', poolId: '' };
-    this.isPlaying = { value: false, pid: '' };
+    this.isPlaying = { value: false, pid: '', language: '', players: 0 };
     this.isPlaying$.subscribe(i => this.isPlaying = i);
-    this.wordlines$.subscribe(w => this.wordlines = w);
     this.cookies$.subscribe(c => this.cookies = c);
   }
 
   setUser(user: User) {
     this.userSource.next(user);
-  }
-
-  setWordlines(wordlines: Wordlines) {
-    this.wordlinesSource.next(wordlines);
   }
 
   setLoginStatus(loggedIn: boolean) {

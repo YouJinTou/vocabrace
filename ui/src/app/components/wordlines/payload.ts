@@ -17,7 +17,7 @@ export class Payload {
     exchangeTiles: Tile[]
     returnedTiles: Tile[]
     placedCells: Cell[]
-    players: Player[]
+    players = [];
     tiles: Tile[]
     blanks: Tile[]
     tilesRemaining: number;

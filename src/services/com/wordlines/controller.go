@@ -134,6 +134,7 @@ func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) 
 	return data.OnActionOutput{
 		Messages: messages,
 		Game:     game,
+		IsOver:   game.IsOver(),
 	}, nil
 }
 

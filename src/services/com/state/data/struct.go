@@ -38,6 +38,7 @@ type OnActionOutput struct {
 	Messages []*ws.Message
 	Game     interface{}
 	Error    *ws.Message
+	IsOver   bool
 }
 
 // OnReconnectInput encapsulates data required to perform a reconnection.

@@ -31,6 +31,10 @@ export class WordlinesOverviewComponent implements OnInit {
       return;
     }
 
+    if (!this.contextService.isPlaying.value) {
+      this.wsService.close();
+    }
+
     this.wsService.connect(environment.wsEndpoint, {
       'game': 'wordlines',
       'players': parseInt(this.selectedPlayers),
@@ -39,12 +43,12 @@ export class WordlinesOverviewComponent implements OnInit {
     }).subscribe({
       next: m => {
         if ('pid' in m) {
-          this.contextService.setWordlines({
-            players: parseInt(this.selectedPlayers),
+          this.contextService.setIsPlaying({ 
+            value: true, 
+            pid: m['pid'],
             language: this.selectedLanguage,
-            poolId: m['pid']
+            players: parseInt(this.selectedPlayers), 
           });
-          this.contextService.setIsPlaying({ value: true, pid: m['pid'] });
           this.router.navigate(['wordlines', m['pid']]);
         }
       },

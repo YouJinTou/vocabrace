@@ -1,6 +1,8 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CookieService } from 'ngx-cookie-service';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 import { ContextService } from 'src/services/context.service';
 
 @Component({
@@ -13,16 +15,35 @@ export class GamesOverviewComponent implements OnInit {
 
   constructor(
     private contextService: ContextService,
-    private cookieService: CookieService,
+    private httpClient: HttpClient,
     private router: Router) { }
 
   ngOnInit(): void {
-    this.ongoingGameExists = this.contextService.isPlaying.value || (
-      this.contextService.user.loggedIn && this.cookieService.check('pid'));
+    if (this.contextService.user.loggedIn) {
+      this.getUserPool(this.contextService.user.id).subscribe({
+        next: r => {
+          this.ongoingGameExists = r && r.PoolID != '' && r.PoolID != undefined && r.PoolID != null;
+          
+          if (this.ongoingGameExists) {
+            console.log(r);
+            this.contextService.setIsPlaying({
+              value: true, pid: r.PoolID, language: r.Language, players: r.Players
+            });
+          }
+        },
+        error: e => {
+          console.log(e);
+        }
+      });
+    }
   }
 
   backToGame() {
-    const pid = this.contextService.isPlaying.pid || this.cookieService.get('pid');
-    this.router.navigate(['wordlines', pid]);
+    this.router.navigate(['wordlines', this.contextService.isPlaying.pid]);
+  }
+
+  getUserPool(userId: string): Observable<any> {
+    const url = `${environment.poolingEndpoint}/userpools/${userId}`
+    return this.httpClient.get<any>(url);
   }
 }
