@@ -1,3 +1,8 @@
 .options {
     width: 100%;
 }
+
+.game-exists-box {
+    background-color: lightblue;
+    height: 30px;
+}
