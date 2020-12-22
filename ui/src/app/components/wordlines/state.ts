@@ -249,10 +249,11 @@ export class State {
             copy.lastAction = 'place';
         } else if (p.wasExchange) {
             copy.lastAction = 'exchange';
+        } else if (p.isStart) {
+            copy.lastAction = '';
         } else {
-            copy.lastAction = 'pass';
+            copy.lastAction = 'pass'
         }
-        console.log(copy.lastAction);
         return copy;
     }
 
