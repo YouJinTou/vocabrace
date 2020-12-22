@@ -23,7 +23,7 @@ const GAME = 'wordlines';
 export class WordlinesComponent implements OnInit {
   @ViewChild(TimerComponent)
   private timer: TimerComponent;
-  timeout = 60;
+  timeout = 5;
   state = new State();
 
   constructor(

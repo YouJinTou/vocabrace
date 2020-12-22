@@ -1,3 +1,11 @@
 .wrapper {
     padding: 5px;
 }
+
+h1 {
+    font-size: 2rem;
+}
+
+mat-divider {
+    margin-bottom: 35px;
+}

@@ -12,7 +12,6 @@ export class HeaderComponent implements OnInit {
   constructor(private contextService: ContextService) { }
 
   ngOnInit(): void {
-    this.contextService.user$.subscribe(
-      u => this.greeting = u.loggedIn ? `Let's go, ${u.name}` : "Let's go!");
+    this.contextService.user$.subscribe(u => this.greeting = u.loggedIn ? u.name : '');
   }
 }

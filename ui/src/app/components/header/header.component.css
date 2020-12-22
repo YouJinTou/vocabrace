@@ -1,19 +1,9 @@
 .wrapper {
     padding: 5px;
     text-align: right;
-    background-color: rgb(153, 194, 255);
-    height: 5vh;
     display: grid;
     grid-template-columns: 1fr 1fr;
-}
-
-a:link {
-    color: white;
-    text-decoration: none;
-}
-
-a:visited {
-    color: white;
+    margin-bottom: 15px;
 }
 
 .home {
