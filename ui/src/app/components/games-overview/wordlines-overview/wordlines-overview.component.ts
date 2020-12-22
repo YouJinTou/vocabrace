@@ -11,6 +11,7 @@ import { WebsocketService } from 'src/services/websocket.service';
   styleUrls: ['./wordlines-overview.component.css']
 })
 export class WordlinesOverviewComponent implements OnInit {
+  gameExists = true;
   selectedPlayers: string;
   selectedLanguage: string;
 
@@ -20,10 +21,15 @@ export class WordlinesOverviewComponent implements OnInit {
     private router: Router) { }
 
   ngOnInit(): void {
+    this.contextService.isPlaying$.subscribe(r => this.gameExists = r.value);
   }
 
   onSelectChanged() {
     this.connect();
+  }
+  
+  backToGame() {
+    this.router.navigate(['wordlines', this.contextService.isPlaying.pid]);
   }
 
   private connect() {
@@ -43,11 +49,11 @@ export class WordlinesOverviewComponent implements OnInit {
     }).subscribe({
       next: m => {
         if ('pid' in m) {
-          this.contextService.setIsPlaying({ 
-            value: true, 
+          this.contextService.setIsPlaying({
+            value: true,
             pid: m['pid'],
             language: this.selectedLanguage,
-            players: parseInt(this.selectedPlayers), 
+            players: parseInt(this.selectedPlayers),
           });
           this.router.navigate(['wordlines', m['pid']]);
         }

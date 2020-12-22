@@ -150,8 +150,8 @@ export class WordlinesComponent implements OnInit {
 
     const params = {
       'game': 'wordlines',
-      'players': 2,
-      'language': 'english',
+      'players': this.contextService.isPlaying.players,
+      'language': this.contextService.isPlaying.language,
       'userID': this.contextService.user.id,
       'pid': this.contextService.isPlaying.pid
     };

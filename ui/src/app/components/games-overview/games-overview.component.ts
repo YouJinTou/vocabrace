@@ -11,8 +11,6 @@ import { ContextService } from 'src/services/context.service';
   styleUrls: ['./games-overview.component.css']
 })
 export class GamesOverviewComponent implements OnInit {
-  ongoingGameExists = false;
-
   constructor(
     private contextService: ContextService,
     private httpClient: HttpClient,
@@ -22,10 +20,9 @@ export class GamesOverviewComponent implements OnInit {
     if (this.contextService.user.loggedIn) {
       this.getUserPool(this.contextService.user.id).subscribe({
         next: r => {
-          this.ongoingGameExists = r && r.PoolID != '' && r.PoolID != undefined && r.PoolID != null;
-          
-          if (this.ongoingGameExists) {
-            console.log(r);
+          let gameExists = r && r.PoolID != '' && r.PoolID != undefined && r.PoolID != null;
+
+          if (gameExists) {
             this.contextService.setIsPlaying({
               value: true, pid: r.PoolID, language: r.Language, players: r.Players
             });
@@ -36,10 +33,6 @@ export class GamesOverviewComponent implements OnInit {
         }
       });
     }
-  }
-
-  backToGame() {
-    this.router.navigate(['wordlines', this.contextService.isPlaying.pid]);
   }
 
   getUserPool(userId: string): Observable<any> {

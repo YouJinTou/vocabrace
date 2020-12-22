@@ -1,18 +1,25 @@
 <div>
     <h3>Wordlines</h3>
-    <mat-form-field class="options" appearance="fill">
-        <mat-label>Players</mat-label>
-        <mat-select [(ngModel)]="selectedPlayers" (selectionChange)="onSelectChanged()">
-            <mat-option value="2">2</mat-option>
-            <mat-option value="3">3</mat-option>
-            <mat-option value="4">4</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <mat-form-field class="options" appearance="fill">
-        <mat-label>Language</mat-label>
-        <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onSelectChanged()">
-            <mat-option value="bulgarian">български</mat-option>
-            <mat-option value="english">english</mat-option>
-        </mat-select>
-    </mat-form-field>
+    <div *ngIf="!gameExists">
+        <mat-form-field class="options" appearance="fill">
+            <mat-label>Players</mat-label>
+            <mat-select [(ngModel)]="selectedPlayers" (selectionChange)="onSelectChanged()">
+                <mat-option value="2">2</mat-option>
+                <mat-option value="3">3</mat-option>
+                <mat-option value="4">4</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field class="options" appearance="fill">
+            <mat-label>Language</mat-label>
+            <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onSelectChanged()">
+                <mat-option value="bulgarian">български</mat-option>
+                <mat-option value="english">english</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <div *ngIf="gameExists" (click)="backToGame()">
+        <h3>
+            You have an ongoing game! Click to rejoin
+        </h3>
+    </div>
 </div>
