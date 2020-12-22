@@ -13,11 +13,16 @@ export class State {
     selectedBlank: Tile;
     yourMove: boolean;
     isError: boolean;
+    error: string;
     poolId: string;
     winnerName: string;
     toMoveId: string;
     tilesRemaining: number;
     currentPlacedCells: Cell[];
+    lastAction: string;
+    displayMessage: string;
+    clientId: string;
+    clientLastMoved: boolean;
 
     constructor() {
         this.cells = [];
@@ -59,6 +64,8 @@ export class State {
         copy = copy.handleExchange(p);
         copy = copy.handleSomeoneElsePlaced(p);
         copy = copy.handlePlayerPlaced(p);
+        copy = copy.setLastAction(p);
+        copy = copy.setDisplayMessage(p);
         copy.isGameOver = p.isGameOver;
         copy.yourMove = p.yourMove;
         copy.blanks = p.blanks;
@@ -66,6 +73,9 @@ export class State {
         copy.winnerName = p.winnerName;
         copy.toMoveId = p.toMoveId;
         copy.tilesRemaining = p.tilesRemaining;
+        copy.clientId = copy.clientId ? copy.clientId : 
+            copy.yourMove ? copy.toMoveId : '';
+        copy.clientLastMoved = copy.clientId == p.lastMovedId;
         return copy;
     }
 
@@ -175,30 +185,33 @@ export class State {
     }
 
     private getCells(): State {
-        if (this.cells.length == 0) {
+        let copy = this.copy();
+        if (copy.cells.length == 0) {
             let i = 0;
             for (let r = 0; r < 15; r++) {
                 for (let c = 0; c < 15; c++) {
                     let cell = new Cell(i, null, getCellClass(i));
-                    this.cells.push(cell);
+                    copy.cells.push(cell);
                     i++;
                 }
             }
         }
-        return this;
+        return copy;
     }
 
     private handleExchange(p: Payload): State {
         if (!(p.wasExchange && p.exchangeTiles.length > 0)) {
             return this;
         }
-        let result = this.tiles;
+
+        let copy = this.copy();
+        let result = copy.tiles;
         for (var rt of p.returnedTiles) {
             result = result.filter(t => rt.id != t.id);
         }
         result.push(...p.exchangeTiles);
-        this.tiles = result;
-        return this;
+        copy.tiles = result;
+        return copy;
     }
 
     private handleSomeoneElsePlaced(p: Payload): State {
@@ -206,10 +219,11 @@ export class State {
             return this;
         }
 
+        let copy = this.copy();
         for (var c of p.placedCells) {
-            this.cells[c.id] = c;
+            copy.cells[c.id] = c;
         }
-        return this;
+        return copy;
     }
 
     private handlePlayerPlaced(p: Payload): State {
@@ -217,11 +231,58 @@ export class State {
             return this;
         }
 
+        let copy = this.copy();
         for (var c of p.placedCells) {
-            this.tiles = this.tiles.filter(t => t.id != c.tile.id);
-            this.cells[c.id] = c;
+            copy.tiles = copy.tiles.filter(t => t.id != c.tile.id);
+            copy.cells[c.id] = c;
         }
-        this.tiles.push(...p.exchangeTiles);
-        return this;
+        copy.tiles.push(...p.exchangeTiles);
+        return copy;
+    }
+
+    private setLastAction(p: Payload): State {
+        let copy = this.copy();
+        if (p.wasPlace) {
+            copy.lastAction = 'place';
+        } else if (p.wasExchange) {
+            copy.lastAction = 'exchange';
+        } else {
+            copy.lastAction = 'pass';
+        }
+        return copy;
+    }
+
+    private setDisplayMessage(p: Payload): State {
+        let copy = this.copy();
+
+        if (copy.clientLastMoved) {
+            copy.displayMessage = 'Done.';
+            return copy;
+        }
+        
+        const lastMoved = copy.lastMovedName(p);
+        switch (copy.lastAction) {
+            case 'place':
+                copy.displayMessage = `${lastMoved} played a word.`
+                break;
+            case 'exchange':
+                copy.displayMessage = `${lastMoved} exchanged some tiles.`
+                break;
+            case 'pass':
+                copy.displayMessage = `${lastMoved} passed.`
+                break;
+            default:
+                copy.displayMessage = '';
+        }
+        return copy;
+    }
+
+    private lastMovedName(payload: Payload): string {
+        for (var p of this.players) {
+            if (p.id == payload.lastMovedId) {
+                return p.name;
+            }
+        }
+        return '';
     }
 }

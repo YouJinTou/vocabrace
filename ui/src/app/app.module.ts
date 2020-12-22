@@ -23,6 +23,7 @@ import { TimerComponent } from './components/timer/timer.component';
 import { CookieService } from 'ngx-cookie-service';
 import { CookiesComponent } from './components/cookies/cookies.component';
 import { CanDeactivateGuard } from 'src/services/can-deactivate-guard.service';
+import { NotificationComponent } from './components/notification/notification.component';
 
 @NgModule({
   declarations: [
@@ -37,6 +38,7 @@ import { CanDeactivateGuard } from 'src/services/can-deactivate-guard.service';
     GameOverDialog,
     TimerComponent,
     CookiesComponent,
+    NotificationComponent,
   ],
   imports: [
     BrowserModule,

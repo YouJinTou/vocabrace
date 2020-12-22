@@ -6,6 +6,7 @@ import { ContextService } from 'src/services/context.service';
 import { GameOverService } from 'src/services/game-over.service';
 import { UsernameService } from 'src/services/username.service';
 import { WebsocketService } from 'src/services/websocket.service';
+import { NotificationComponent } from '../notification/notification.component';
 import { TimerComponent } from '../timer/timer.component';
 import { BlanksDialog } from './blanks/blanks.component';
 import { Cell } from './cell';
@@ -22,8 +23,9 @@ const GAME = 'wordlines';
   styleUrls: ['./wordlines.component.css']
 })
 export class WordlinesComponent implements OnInit {
-  @ViewChild(TimerComponent)
-  private timer: TimerComponent;
+  private wasYourMove = false;
+  @ViewChild(TimerComponent) private timer: TimerComponent;
+  @ViewChild(NotificationComponent) private notification: NotificationComponent;
   timeout = 60;
   state = new State();
   tilesRemaining = [];
@@ -110,9 +112,16 @@ export class WordlinesComponent implements OnInit {
     const p = new Payload(m, this.usernameService);
     this.state = this.state.apply(p);
     this.tilesRemaining = Array(this.state.tilesRemaining).fill(1);
-
+    console.log(p);
     if (this.state.isError) {
+      this.notification.showError(this.state.error);
       return;
+    }
+
+    if (this.state.clientLastMoved) {
+      this.notification.showSuccess(this.state.displayMessage);
+    } else {
+      this.notification.showInfo(this.state.displayMessage);
     }
 
     this.onGameOver();
@@ -163,6 +172,7 @@ export class WordlinesComponent implements OnInit {
     };
     this.wsService.connect(environment.wsEndpoint, params).subscribe({
       next: m => {
+        console.log(m);
         if (Array.isArray(m)) {
           m.forEach(x => {
             this.process(JSON.parse(x));
@@ -171,7 +181,7 @@ export class WordlinesComponent implements OnInit {
           this.process(m);
         }
       },
-      error: e => console.log(e)
+      error: e => this.notification.showError(e)
     });
   }
 }

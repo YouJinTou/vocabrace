@@ -1,0 +1,30 @@
+.box {
+    height: 50px;
+    width: 325px;
+    position: fixed;
+    bottom: 15px;
+    text-align: center;
+    color: white;
+}
+
+.out {
+    right: -325px;
+    transition: 1s;
+}
+
+.in {
+    right: 0px;
+    transition: 1s;
+}
+
+.info {
+    background-color: rgb(14, 139, 255);
+}
+
+.success {
+    background-color: rgb(37, 160, 0);
+}
+
+.error {
+    background-color: rgb(255, 37, 37);
+}

@@ -6,6 +6,7 @@ import { Tile } from './tile'
 
 export class Payload {
     isError: boolean
+    error: string;
     isStart: boolean
     wasExchange: boolean
     wasPlace: boolean
@@ -27,7 +28,7 @@ export class Payload {
     isGameOver: boolean;
 
     constructor(m: any, private usernameService: UsernameService) {
-        this.isError = this.returnedError(m);
+        this.isError = this.setError(m);
         this.yourMove = true;
 
         if (this.isError) {
@@ -60,9 +61,18 @@ export class Payload {
         this.winnerName = this.getWinnerName();
     }
 
-    private returnedError(m: any): boolean {
+    private setError(m: any): boolean {
         let isServerError = 'message' in m && m['message'].indexOf('Internal server error') > -1
         let isBadMove = 'Type' in m && m['Type'] == 'ERROR';
+        if (isServerError) {
+            this.error = `
+                Looks like we screwed up.
+                The game probably can't continue.
+                We'll investigate.
+            `;
+        } else if (isBadMove) {
+            this.error = m['Message'];
+        }
         return isServerError || isBadMove;
     }
 
