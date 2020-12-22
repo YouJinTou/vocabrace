@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ContextService } from 'src/services/context.service';
@@ -11,10 +10,7 @@ import { ContextService } from 'src/services/context.service';
   styleUrls: ['./games-overview.component.css']
 })
 export class GamesOverviewComponent implements OnInit {
-  constructor(
-    private contextService: ContextService,
-    private httpClient: HttpClient,
-    private router: Router) { }
+  constructor(private contextService: ContextService, private httpClient: HttpClient) { }
 
   ngOnInit(): void {
     if (this.contextService.user.loggedIn) {
