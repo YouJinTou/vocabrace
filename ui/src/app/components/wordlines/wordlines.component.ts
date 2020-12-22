@@ -137,10 +137,19 @@ export class WordlinesComponent implements OnInit {
     setTimeout(() => {
       if (this.state.isError) {
         this.notification.showError(this.state.displayMessage);
-      } else if (this.state.clientLastMoved) {
+        return;
+      }
+
+      if (this.state.clientLastMoved) {
         this.notification.showSuccess(this.state.displayMessage);
       } else {
         this.notification.showInfo(this.state.displayMessage);
+      }
+
+      if (this.state.yourMove) {
+        setTimeout(() => {
+          this.notification.showInfo("It's your turn.");
+        }, 2000);
       }
     }, 0.5);
   }
