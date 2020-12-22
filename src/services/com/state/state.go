@@ -1,7 +1,6 @@
 package state
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -36,13 +35,13 @@ func load(game string) (data.State, error) {
 func OnStart(i data.OnStartInput) {
 	handler, err := load(i.Connections.Game())
 	if err != nil {
-		ws.SendManyUnique(startError(&i, "load", err))
+		sendErrors(i.Connections.IDs(), i.Connections.Domain(), "load", err)
 		return
 	}
 
 	o := handler.OnStart(i)
 	if o.Error != nil {
-		ws.SendManyUnique(startError(&i, "start", nil))
+		ws.SendManyUnique(*o.Error)
 		return
 	}
 
@@ -52,7 +51,7 @@ func OnStart(i data.OnStartInput) {
 		Game:          o.Game,
 	}
 	if err := saveState(ssi); err != nil {
-		ws.SendManyUnique(startError(&i, "save", err))
+		sendErrors(i.Connections.IDs(), i.Connections.Domain(), "save", err)
 		return
 	}
 
@@ -67,7 +66,7 @@ func OnStart(i data.OnStartInput) {
 func OnAction(i data.OnActionInput) {
 	handler, err := load(i.Connections.Game())
 	if err != nil {
-		ws.Send(actionError(&i, "load", err))
+		sendErrors(i.Connections.IDs(), i.Connections.Domain(), "load", err)
 		return
 	}
 
@@ -85,7 +84,7 @@ func OnAction(i data.OnActionInput) {
 		Game:          o.Game,
 	}
 	if err := saveState(si); err != nil {
-		ws.Send(actionError(&i, "save", err))
+		sendErrors(i.Connections.IDs(), i.Connections.Domain(), "save", err)
 		return
 	}
 
@@ -114,12 +113,7 @@ func OnReconnect(i data.OnReconnectInput) error {
 		playerSpecificHistory = append(playerSpecificHistory, found.Message)
 	}
 
-	payload, _ := json.Marshal(playerSpecificHistory)
-	message := &ws.Message{
-		ConnectionID: i.Connection.ID,
-		Domain:       i.Connection.Domain,
-		Message:      string(payload),
-	}
+	message := ws.NewMessage(i.Connection.Domain, i.Connection.ID, playerSpecificHistory, nil)
 
 	ws.Send(message)
 	return nil
@@ -205,24 +199,16 @@ func updateUserPools(i *saveStateInput, delete bool) {
 	}
 }
 
-func startError(i *data.OnStartInput, m string, err error) []*ws.Message {
+func errorMessages(cids []string, domain, message string, err error) []*ws.Message {
 	messages := []*ws.Message{}
-	for _, c := range i.Connections.IDs() {
-		messages = append(messages, &ws.Message{
-			ConnectionID: c,
-			Domain:       i.Connections.Domain(),
-			Message:      fmt.Sprintf("%s: %s", m, err.Error()),
-			UserID:       i.Connections.UserIDByID(c),
-		})
+	for _, c := range cids {
+		m := ws.NewErrorMessage(domain, c, fmt.Sprintf("%s: %s", message, err.Error()), nil)
+		messages = append(messages, m)
 	}
 	return messages
 }
 
-func actionError(i *data.OnActionInput, m string, err error) *ws.Message {
-	return &ws.Message{
-		ConnectionID: i.Initiator,
-		Domain:       i.Connections.Domain(),
-		Message:      fmt.Sprintf("%s: %s", m, err.Error()),
-		UserID:       &i.InitiatorUserID,
-	}
+func sendErrors(cids []string, domain, message string, err error) {
+	messages := errorMessages(cids, domain, message, err)
+	ws.SendManyUnique(messages)
 }

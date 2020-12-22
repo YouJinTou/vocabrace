@@ -39,24 +39,20 @@ type DeltaState struct {
 	Language           string         `json:"z"`
 }
 
-// JSONWithPersonal jsonifies a delta state with return data for the player.
-func (d *DeltaState) JSONWithPersonal() string {
+// WithPersonal jsonifies a delta state with return data for the player.
+func (d *DeltaState) WithPersonal() DeltaState {
 	p := DeltaState{}
 	copier.Copy(&p, d)
-	b, _ := json.Marshal(p)
-	result := string(b)
-	return result
+	return p
 }
 
-// JSONWithoutPersonal jsonifies a delta state without return data for the player.
-func (d *DeltaState) JSONWithoutPersonal() string {
+// WithoutPersonal jsonifies a delta state without return data for the player.
+func (d *DeltaState) WithoutPersonal() DeltaState {
 	p := DeltaState{}
 	copier.Copy(&p, d)
 	p.TilesGivenToPlayer = NewTiles()
 	p.TilesReturnedToBag = NewTiles()
-	b, _ := json.Marshal(p)
-	result := string(b)
-	return result
+	return p
 }
 
 // NewClassicGame creates a new classic game.

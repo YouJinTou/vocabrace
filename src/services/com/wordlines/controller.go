@@ -60,13 +60,8 @@ func (s Controller) OnStart(i data.OnStartInput) data.OnStartOutput {
 	for _, p := range game.Players {
 		startState.Tiles = p.Tiles
 		startState.YourMove = game.ToMoveID == p.ID
-		b, _ := json.Marshal(startState)
-		messages = append(messages, &ws.Message{
-			Domain:       c.Domain(),
-			ConnectionID: *c.IDByUserID(p.ID),
-			Message:      string(b),
-			UserID:       &p.ID,
-		})
+		messages = append(messages,
+			ws.NewMessage(c.Domain(), *c.IDByUserID(p.ID), startState, &p.ID))
 	}
 
 	return data.OnStartOutput{
@@ -109,20 +104,19 @@ func (s Controller) OnAction(i data.OnActionInput) data.OnActionOutput {
 		return data.OnActionOutput{Error: s.error(i, "invalid move", r.err)}
 	}
 
-	messages := []*ws.Message{&ws.Message{
-		ConnectionID: i.Initiator,
-		Domain:       i.Connections.Domain(),
-		Message:      r.d.JSONWithPersonal(),
-		UserID:       i.Connections.UserIDByID(i.Initiator),
-	}}
+	messages := []*ws.Message{ws.NewMessage(
+		i.Connections.Domain(),
+		i.Initiator,
+		r.d.WithPersonal(),
+		i.Connections.UserIDByID(i.Initiator)),
+	}
 	for _, cid := range i.Connections.OtherIDs(i.Initiator) {
 		r.d.YourMove = game.ToMoveID == *i.Connections.UserIDByID(cid)
-		messages = append(messages, &ws.Message{
-			ConnectionID: cid,
-			Domain:       i.Connections.Domain(),
-			Message:      r.d.JSONWithoutPersonal(),
-			UserID:       i.Connections.UserIDByID(cid),
-		})
+		messages = append(messages, ws.NewMessage(
+			i.Connections.Domain(),
+			cid,
+			r.d.WithoutPersonal(),
+			i.Connections.UserIDByID(cid)))
 	}
 
 	return data.OnActionOutput{
@@ -193,10 +187,10 @@ func (s Controller) validateTurn(data data.OnActionInput, g *wordlines.Game) err
 }
 
 func (s Controller) error(data data.OnActionInput, message string, err error) *ws.Message {
-	return &ws.Message{
-		ConnectionID: data.Initiator,
-		Domain:       data.Connections.Domain(),
-		Message:      fmt.Sprintf("%s: %s", message, err.Error()),
-		UserID:       data.Connections.UserIDByID(data.Initiator),
-	}
+	return ws.NewErrorMessage(
+		data.Connections.Domain(),
+		data.Initiator,
+		fmt.Sprintf("%s: %s", message, err.Error()),
+		data.Connections.UserIDByID(data.Initiator),
+	)
 }

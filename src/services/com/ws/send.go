@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
@@ -16,6 +17,34 @@ type Message struct {
 	ConnectionID string  `json:"c"`
 	Message      string  `json:"m"`
 	UserID       *string `json:"u"`
+}
+
+// NewMessage creates a new message.
+func NewMessage(domain, connectionID string, payload interface{}, userID *string) *Message {
+	b, _ := json.Marshal(payload)
+	s := string(b)
+	return &Message{
+		Domain:       domain,
+		ConnectionID: connectionID,
+		Message:      s,
+		UserID:       userID,
+	}
+}
+
+// NewErrorMessage creates a new error message.
+func NewErrorMessage(domain, connectionID, message string, userID *string) *Message {
+	p := struct {
+		Message string
+		Type    string
+	}{Message: message, Type: "ERROR"}
+	b, _ := json.Marshal(p)
+	s := string(b)
+	return &Message{
+		Domain:       domain,
+		ConnectionID: connectionID,
+		Message:      s,
+		UserID:       userID,
+	}
 }
 
 // Send sends a message to a connection ID.
