@@ -21,7 +21,7 @@ export class WordlinesOverviewComponent implements OnInit {
     private router: Router) { }
 
   ngOnInit(): void {
-    this.contextService.status$.subscribe(r => this.gameExists = r.value);
+    this.contextService.status$.subscribe(r => this.gameExists = r.value && r.game == 'wordlines');
   }
 
   onSelectChanged() {
