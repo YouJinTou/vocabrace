@@ -5,7 +5,7 @@
 .players {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-    gap: 1px;
+    gap: 5px;
     padding: 3px;
 }
 
@@ -18,6 +18,10 @@
     grid-template-columns: 1fr 1fr;
     column-gap: 2px;
     margin-bottom: 10px;
+}
+
+.player-name {
+    font-weight: 500;
 }
 
 .player-highlight {
@@ -128,4 +132,5 @@
 
 .tile-remaining-player {
     margin-right: 3px;
+    word-break: break-word;
 }
