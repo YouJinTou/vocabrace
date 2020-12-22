@@ -4,8 +4,19 @@
 }
 
 .game-exists-box {
-    background-color: lightblue;
-    height: 30px;
+    background-color: rgb(14, 139, 255);
+    height: 75px;
+    display: table;
+    width: 100%;
+}
+
+.game-exists-box > div {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: white;
 }
 
 mat-form-field {
