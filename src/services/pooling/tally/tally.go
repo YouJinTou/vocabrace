@@ -75,7 +75,7 @@ func pool(connectionID string, connectionIDs []*string, division div) {
 		division.Bucket,
 		division.Language,
 	}
-	tools.SnsPublish(fmt.Sprintf("%s_pools", os.Getenv("STAGE")), payload)
+	tools.SnsPublish("pools", payload)
 }
 
 func poolInput(division, connectionID string) *dynamodb.UpdateItemInput {
@@ -179,6 +179,6 @@ func reconnect(m map[string]events.DynamoDBAttributeValue) bool {
 		PoolID     string
 	}{connection, pid.String()}
 
-	err := tools.SnsPublish(fmt.Sprintf("%s_reconnect", os.Getenv("STAGE")), payload)
+	err := tools.SnsPublish("reconnect", payload)
 	return err == nil
 }

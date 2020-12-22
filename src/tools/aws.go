@@ -32,7 +32,8 @@ func SnsPublish(topic string, payload interface{}) error {
 	svc := sns.New(sess)
 	b, _ := json.Marshal(payload)
 	s := string(b)
-	arn := BuildSnsArn(os.Getenv("REGION"), os.Getenv("ACCOUNT_ID"), topic)
+	t := fmt.Sprintf("%s_%s", os.Getenv("STAGE"), topic)
+	arn := BuildSnsArn(os.Getenv("REGION"), os.Getenv("ACCOUNT_ID"), t)
 	_, err := svc.Publish(&sns.PublishInput{
 		Message:  aws.String(s),
 		TopicArn: aws.String(arn),
