@@ -25,6 +25,7 @@ export class State {
         this.tiles = [];
         this.blanks = [];
         this.currentPlacedCells = [];
+        this.tilesRemaining = 0;
     }
 
     copy(cells?: Cell[], players?: Player[], tiles?: Tile[]): State {
