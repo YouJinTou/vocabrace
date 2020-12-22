@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 
@@ -39,7 +40,7 @@ type result struct {
 }
 
 // OnStart executes logic at the start of the game.
-func (s Controller) OnStart(i data.OnStartInput) (data.OnStartOutput, error) {
+func (s Controller) OnStart(i data.OnStartInput) data.OnStartOutput {
 	c := i.Connections
 	players := s.loadPlayers(c)
 	game := wordlines.NewSpiralGame(c.Language(), players, wordlines.NewDynamoValidator())
@@ -68,23 +69,20 @@ func (s Controller) OnStart(i data.OnStartInput) (data.OnStartOutput, error) {
 		})
 	}
 
-	o := data.OnStartOutput{
+	return data.OnStartOutput{
 		PoolID:   startState.PoolID,
 		Messages: messages,
 		Game:     game,
 	}
-	return o, nil
 }
 
 // OnAction executes logic at each turn.
-func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) {
+func (s Controller) OnAction(i data.OnActionInput) data.OnActionOutput {
 	turn := turn{}
 	bErr := json.Unmarshal([]byte(i.Body), &turn)
 
 	if bErr != nil {
-		return data.OnActionOutput{
-			Error: s.Error(i, "Invalid payload.", bErr),
-		}, bErr
+		return data.OnActionOutput{Error: s.error(i, "invalid payload", bErr)}
 	}
 
 	game := &wordlines.Game{}
@@ -93,9 +91,7 @@ func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) 
 	game.SetLayout("spiral")
 
 	if vErr := s.validateTurn(i, game); vErr != nil {
-		return data.OnActionOutput{
-			Error: s.Error(i, "Invalid turn.", vErr),
-		}, vErr
+		return data.OnActionOutput{Error: s.error(i, "invalid turn", vErr)}
 	}
 
 	var r *result
@@ -110,9 +106,7 @@ func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) 
 	}
 
 	if r.err != nil {
-		return data.OnActionOutput{
-			Error: s.Error(i, "Bad request.", r.err),
-		}, r.err
+		return data.OnActionOutput{Error: s.error(i, "invalid move", r.err)}
 	}
 
 	messages := []*ws.Message{&ws.Message{
@@ -135,7 +129,7 @@ func (s Controller) OnAction(i data.OnActionInput) (data.OnActionOutput, error) 
 		Messages: messages,
 		Game:     game,
 		IsOver:   game.IsOver(),
-	}, nil
+	}
 }
 
 func (s Controller) exchange(turn *turn, g *wordlines.Game) *result {
@@ -195,20 +189,14 @@ func (s Controller) validateTurn(data data.OnActionInput, g *wordlines.Game) err
 	if data.InitiatorUserID != g.ToMoveID {
 		return errors.New("invalid player turn")
 	}
-
 	return nil
 }
 
-func (s Controller) Error(data data.OnActionInput, message string, err error) *ws.Message {
-	msg := struct {
-		Body string
-		Type string
-	}{message, "ERROR"}
-	b, _ := json.Marshal(msg)
+func (s Controller) error(data data.OnActionInput, message string, err error) *ws.Message {
 	return &ws.Message{
 		ConnectionID: data.Initiator,
 		Domain:       data.Connections.Domain(),
-		Message:      string(b),
+		Message:      fmt.Sprintf("%s: %s", message, err.Error()),
 		UserID:       data.Connections.UserIDByID(data.Initiator),
 	}
 }

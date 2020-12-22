@@ -33,15 +33,17 @@ func load(game string) (data.State, error) {
 }
 
 // OnStart executes communication logic at the start of a game.
-func OnStart(i data.OnStartInput) error {
+func OnStart(i data.OnStartInput) {
 	handler, err := load(i.Connections.Game())
 	if err != nil {
-		return err
+		ws.SendManyUnique(startError(&i, "load", err))
+		return
 	}
 
-	o, sErr := handler.OnStart(i)
-	if sErr != nil {
-		return sErr
+	o := handler.OnStart(i)
+	if o.Error != nil {
+		ws.SendManyUnique(startError(&i, "start", nil))
+		return
 	}
 
 	ssi := &saveStateInput{
@@ -50,7 +52,8 @@ func OnStart(i data.OnStartInput) error {
 		Game:          o.Game,
 	}
 	if err := saveState(ssi); err != nil {
-		return err
+		ws.SendManyUnique(startError(&i, "save", err))
+		return
 	}
 
 	ws.SendManyUnique(o.Messages)
@@ -58,20 +61,22 @@ func OnStart(i data.OnStartInput) error {
 	appendHistory(o.PoolID, o.Messages)
 
 	updateUserPools(ssi, false)
-	return nil
 }
 
 // OnAction executes communication logic when a player takes an action.
-func OnAction(i data.OnActionInput) error {
+func OnAction(i data.OnActionInput) {
 	handler, err := load(i.Connections.Game())
 	if err != nil {
-		return err
+		ws.Send(actionError(&i, "load", err))
+		return
 	}
 
 	i.State = loadState(i.PoolID)
-	o, aErr := handler.OnAction(i)
-	if aErr != nil {
-		return aErr
+	o := handler.OnAction(i)
+
+	if o.Error != nil {
+		ws.Send(o.Error)
+		return
 	}
 
 	si := &saveStateInput{
@@ -80,7 +85,8 @@ func OnAction(i data.OnActionInput) error {
 		Game:          o.Game,
 	}
 	if err := saveState(si); err != nil {
-		return err
+		ws.Send(actionError(&i, "save", err))
+		return
 	}
 
 	ws.SendManyUnique(o.Messages)
@@ -90,7 +96,6 @@ func OnAction(i data.OnActionInput) error {
 	if o.IsOver {
 		updateUserPools(si, true)
 	}
-	return nil
 }
 
 // OnReconnect executes communication logic during a reconnect.
@@ -197,5 +202,27 @@ func updateUserPools(i *saveStateInput, delete bool) {
 			}{*r["UserID"].S, i.PoolID, players, *r["Language"].S, tools.FutureTimestamp(10000)}
 			tools.PutItem(tools.Table("user_pools"), v)
 		}
+	}
+}
+
+func startError(i *data.OnStartInput, m string, err error) []*ws.Message {
+	messages := []*ws.Message{}
+	for _, c := range i.Connections.IDs() {
+		messages = append(messages, &ws.Message{
+			ConnectionID: c,
+			Domain:       i.Connections.Domain(),
+			Message:      fmt.Sprintf("%s: %s", m, err.Error()),
+			UserID:       i.Connections.UserIDByID(c),
+		})
+	}
+	return messages
+}
+
+func actionError(i *data.OnActionInput, m string, err error) *ws.Message {
+	return &ws.Message{
+		ConnectionID: i.Initiator,
+		Domain:       i.Connections.Domain(),
+		Message:      fmt.Sprintf("%s: %s", m, err.Error()),
+		UserID:       &i.InitiatorUserID,
 	}
 }

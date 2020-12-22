@@ -24,9 +24,7 @@ func main() {
 func handle(ctx context.Context, e events.SNSEvent) {
 	for _, r := range e.Records {
 		if c, err := getInput(r.SNS.Message, data.GetConnections); err == nil {
-			if sErr := state.OnStart(c); sErr != nil {
-				log.Printf(sErr.Error())
-			}
+			state.OnStart(c)
 		} else {
 			log.Printf(err.Error())
 		}

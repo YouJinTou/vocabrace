@@ -7,8 +7,8 @@ import (
 
 // State exposes methods that allow logic to occur on start/action.
 type State interface {
-	OnStart(OnStartInput) (OnStartOutput, error)
-	OnAction(OnActionInput) (OnActionOutput, error)
+	OnStart(OnStartInput) OnStartOutput
+	OnAction(OnActionInput) OnActionOutput
 }
 
 // OnStartInput encapsulates data to be processed during the start of the game.
@@ -21,6 +21,7 @@ type OnStartOutput struct {
 	PoolID   string
 	Messages []*ws.Message
 	Game     interface{}
+	Error    *[]*ws.Message
 }
 
 // OnActionInput encapsulates data for each turn.

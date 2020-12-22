@@ -46,16 +46,13 @@ func handle(_ context.Context, req *events.APIGatewayWebsocketProxyRequest) (
 		return events.APIGatewayProxyResponse{StatusCode: 500}, gErr
 	}
 
-	aErr := state.OnAction(data.OnActionInput{
+	state.OnAction(data.OnActionInput{
 		PoolID:          pool.ID,
 		Body:            p.Body,
 		Connections:     cons,
 		Initiator:       req.RequestContext.ConnectionID,
 		InitiatorUserID: *cons.UserIDByID(req.RequestContext.ConnectionID),
 	})
-	if aErr != nil {
-		return events.APIGatewayProxyResponse{StatusCode: 400}, aErr
-	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
