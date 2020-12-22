@@ -23,8 +23,9 @@ const GAME = 'wordlines';
 export class WordlinesComponent implements OnInit {
   @ViewChild(TimerComponent)
   private timer: TimerComponent;
-  timeout = 5;
+  timeout = 60;
   state = new State();
+  tilesRemaining = [];
 
   constructor(
     public blanksDialog: MatDialog,
@@ -103,6 +104,7 @@ export class WordlinesComponent implements OnInit {
   private process(m: any) {
     const p = new Payload(m, this.usernameService);
     this.state = this.state.apply(p);
+    this.tilesRemaining = Array(this.state.tilesRemaining).fill(1);
 
     if (this.state.isError) {
       return;

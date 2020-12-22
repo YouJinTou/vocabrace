@@ -17,6 +17,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 2px;
+    margin-bottom: 10px;
 }
 
 .player-highlight {
@@ -96,13 +97,27 @@
 }
 
 .actions {
-    display: grid;
-    background-color: rgb(241, 241, 241);
-    margin-top: 8px;
+    margin-top: 25px;
     text-align: center;
-    grid-template-columns: repeat(5, 1fr);
 }
 
 .timer {
     text-align: right;
+}
+
+.action {
+    display: inline-block;
+    margin-right: 35px;
+}
+
+.action:hover {
+    cursor: pointer;
+}
+
+.tile-remaining {
+    height: 12px;
+    width: 3px;
+    display: inline-block;
+    margin-right: 1px;
+    background-color: #ff9900fd;
 }

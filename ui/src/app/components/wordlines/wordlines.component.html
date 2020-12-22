@@ -1,5 +1,7 @@
 <div class="wrapper">
-    {{state.tilesRemaining}}
+    <div>
+        <div class="tile-remaining" *ngFor="let t of tilesRemaining"></div>
+    </div>
     <div class="players">
         <div class="player" *ngFor="let p of state.players">
             <div [ngClass]="{'player-data': true, 'player-highlight': state.toMoveId === p.id}">
@@ -29,16 +31,16 @@
         </div>
 
         <div class="actions" *ngIf="state.tiles.length > 0 && state.yourMove && !state.isGameOver">
-            <div (click)="onPlaceClicked()">
+            <div class="action" (click)="onPlaceClicked()">
                 <span class="material-icons" title="Place">check_circle_outline</span>
             </div>
-            <div (click)="onExchangeClicked()">
+            <div class="action" (click)="onExchangeClicked()">
                 <span class="material-icons" title="Exchange">cached</span>
             </div>
-            <div (click)="onPassClicked()">
+            <div class="action" (click)="onPassClicked()">
                 <span class="material-icons" title="Pass">skip_next</span>
             </div>
-            <div (click)="onCancelClicked()">
+            <div class="action" (click)="onCancelClicked()">
                 <span class="material-icons" title="Cancel">replay</span>
             </div>
         </div>
