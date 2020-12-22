@@ -1,10 +1,20 @@
 .box {
+    display: table;
     height: 50px;
     width: 325px;
     position: fixed;
     bottom: 15px;
-    text-align: center;
     color: white;
+    z-index: 9999;
+}
+
+.box > div {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 5px;
 }
 
 .out {

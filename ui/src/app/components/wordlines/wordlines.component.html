@@ -8,6 +8,9 @@
                 <div>
                     {{p.name}} {{p.points}}
                 </div>
+                <div class="player-tiles-count">
+                    <div class="tile-remaining tile-remaining-player" *ngFor="let t of state.tiles"></div>
+                </div>
                 <app-timer class="timer" *ngIf="state.toMoveId === p.id" [timeout]="timeout" (timedOut)="onTimeout()">
                 </app-timer>
             </div>
@@ -45,4 +48,6 @@
             </div>
         </div>
     </div>
+
+    <app-notification></app-notification>
 </div>

@@ -121,3 +121,11 @@
     margin-right: 1px;
     background-color: #ff9900fd;
 }
+
+.player-tiles-count {
+    text-align: right;
+}
+
+.tile-remaining-player {
+    margin-right: 3px;
+}

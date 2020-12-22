@@ -35,7 +35,6 @@ export class NotificationComponent implements OnInit {
     this.showClass = "in";
     setTimeout(() => {
       this.showClass = "out";
-    }, 1750);
+    }, 3000);
   }
-
 }

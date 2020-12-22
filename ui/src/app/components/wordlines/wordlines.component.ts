@@ -23,7 +23,6 @@ const GAME = 'wordlines';
   styleUrls: ['./wordlines.component.css']
 })
 export class WordlinesComponent implements OnInit {
-  private wasYourMove = false;
   @ViewChild(TimerComponent) private timer: TimerComponent;
   @ViewChild(NotificationComponent) private notification: NotificationComponent;
   timeout = 60;
@@ -114,18 +113,12 @@ export class WordlinesComponent implements OnInit {
     this.tilesRemaining = Array(this.state.tilesRemaining).fill(1);
     console.log(p);
     if (this.state.isError) {
-      this.notification.showError(this.state.error);
       return;
-    }
-
-    if (this.state.clientLastMoved) {
-      this.notification.showSuccess(this.state.displayMessage);
-    } else {
-      this.notification.showInfo(this.state.displayMessage);
     }
 
     this.onGameOver();
     this.startTimer();
+    this.showNotification();
   }
 
   private startTimer() {
@@ -136,6 +129,18 @@ export class WordlinesComponent implements OnInit {
     setTimeout(() => {
       if (this.timer) {
         this.timer.restart();
+      }
+    }, 0.5);
+  }
+
+  private showNotification() {
+    setTimeout(() => {
+      if (this.state.isError) {
+        this.notification.showError(this.state.displayMessage);
+      } else if (this.state.clientLastMoved) {
+        this.notification.showSuccess(this.state.displayMessage);
+      } else {
+        this.notification.showInfo(this.state.displayMessage);
       }
     }, 0.5);
   }

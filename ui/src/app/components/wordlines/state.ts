@@ -13,7 +13,6 @@ export class State {
     selectedBlank: Tile;
     yourMove: boolean;
     isError: boolean;
-    error: string;
     poolId: string;
     winnerName: string;
     toMoveId: string;
@@ -49,6 +48,10 @@ export class State {
         s.toMoveId = this.toMoveId;
         s.poolId = this.poolId;
         s.tilesRemaining = this.tilesRemaining;
+        s.lastAction = this.lastAction;
+        s.displayMessage = this.displayMessage;
+        s.clientId = this.clientId;
+        s.clientLastMoved = this.clientLastMoved;
         return s;
     }
 
@@ -64,8 +67,6 @@ export class State {
         copy = copy.handleExchange(p);
         copy = copy.handleSomeoneElsePlaced(p);
         copy = copy.handlePlayerPlaced(p);
-        copy = copy.setLastAction(p);
-        copy = copy.setDisplayMessage(p);
         copy.isGameOver = p.isGameOver;
         copy.yourMove = p.yourMove;
         copy.blanks = p.blanks;
@@ -76,6 +77,8 @@ export class State {
         copy.clientId = copy.clientId ? copy.clientId : 
             copy.yourMove ? copy.toMoveId : '';
         copy.clientLastMoved = copy.clientId == p.lastMovedId;
+        copy = copy.setLastAction(p);
+        copy = copy.setDisplayMessage(p);
         return copy;
     }
 
@@ -249,17 +252,28 @@ export class State {
         } else {
             copy.lastAction = 'pass';
         }
+        console.log(copy.lastAction);
         return copy;
     }
 
     private setDisplayMessage(p: Payload): State {
         let copy = this.copy();
 
+        if (p.isError) {
+            copy.displayMessage = p.error;
+            return copy;
+        }
+
+        if (p.isStart) {
+            copy.displayMessage = 'Game started.';
+            return copy;
+        }
+
         if (copy.clientLastMoved) {
             copy.displayMessage = 'Done.';
             return copy;
         }
-        
+
         const lastMoved = copy.lastMovedName(p);
         switch (copy.lastAction) {
             case 'place':
