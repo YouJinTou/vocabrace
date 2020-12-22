@@ -5,12 +5,6 @@ cd ../tf
 tf_root=$PWD
 services_root="$tf_root""/../src/services"
 
-cd $services_root/broadcast
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o broadcast .
-build-lambda-zip -output broadcast.zip broadcast
-rm broadcast
-mv broadcast.zip $tf_root/payloads
-
 cd $services_root/pooling/connect
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o connect .
 build-lambda-zip -output connect.zip connect
