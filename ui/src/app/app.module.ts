@@ -22,6 +22,7 @@ import { GameOverDialog } from './components/wordlines/game-over/game-over.compo
 import { TimerComponent } from './components/timer/timer.component';
 import { CookieService } from 'ngx-cookie-service';
 import { CookiesComponent } from './components/cookies/cookies.component';
+import { CanDeactivateGuard } from 'src/services/can-deactivate-guard.service';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,7 @@ import { CookiesComponent } from './components/cookies/cookies.component';
     MatDividerModule,
     HttpClientModule
   ],
-  providers: [WebsocketService, ContextService, CookieService],
+  providers: [WebsocketService, ContextService, CookieService, CanDeactivateGuard],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

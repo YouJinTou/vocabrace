@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Observable, of } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ContextService } from 'src/services/context.service';
 import { GameOverService } from 'src/services/game-over.service';
@@ -37,6 +38,10 @@ export class WordlinesComponent implements OnInit {
 
   ngOnInit(): void {
     this.connect();
+  }
+
+  canDeactivate(): Observable<boolean> {
+    return of(confirm('You will not be able to return. Continue?'));
   }
 
   onTimeout() {
@@ -149,7 +154,6 @@ export class WordlinesComponent implements OnInit {
 
   private connect() {
     this.wsService.history.map(h => this.process(h));
-
     const params = {
       'game': 'wordlines',
       'players': this.contextService.status.players,
