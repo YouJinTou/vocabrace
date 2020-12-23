@@ -1,13 +1,13 @@
 <div class="wrapper">
-    <div>
-        <div class="tile-remaining" *ngFor="let t of tilesRemaining"></div>
+    <div class="bag">
+        <div class="tiles-remaining bag-tiles-remaining" *ngFor="let t of tilesRemaining"></div>
     </div>
     <div class="players">
         <div class="player" *ngFor="let p of state.players">
             <div [ngClass]="{'player-data': true, 'player-highlight': state.toMoveId === p.id}">
                 <div><span class="player-name">{{p.name}}</span> {{p.points}}</div>
                 <div class="player-tiles-remaining">
-                    <div class="tile-remaining tile-remaining-player" *ngFor="let t of state.tiles"></div>
+                    <div class="tiles-remaining tiles-remaining-player" *ngFor="let t of state.tiles"></div>
                 </div>
                 <app-timer class="timer" *ngIf="state.toMoveId === p.id" [timeout]="timeout"
                     (timedOut)="onTimeout()">

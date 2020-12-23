@@ -187,8 +187,8 @@ export class WordlinesComponent implements OnInit {
     this.wsService.history.map(h => this.process(h));
     const params = {
       'game': 'wordlines',
-      'players': this.contextService.status.players,
-      'language': this.contextService.status.language,
+      'players': 2,
+      'language': 'bulgarian',
       'userID': this.contextService.user.id,
       'pid': this.contextService.status.pid
     };

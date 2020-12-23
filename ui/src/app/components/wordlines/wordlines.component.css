@@ -1,5 +1,5 @@
 .wrapper {
-    margin-top: 25px;
+    max-height: 500px;
 }
 
 .players {
@@ -7,6 +7,7 @@
     grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
     gap: 5px;
     padding: 3px;
+    max-width: 580px;
 }
 
 .player-data {
@@ -39,10 +40,13 @@
     grid-template-rows: repeat(15, 1fr);
     gap: 1px;
     color: black;
+    max-width: 580px;
+    max-height: 480px;
+    height: 430px;
 }
 
 .cell {
-    height: 30px;
+    height: 28px;
     position: relative;
 }
 
@@ -65,6 +69,7 @@
 .controls {
     margin-top: 10px;
     color: black;
+    max-width: 600px;
 }
 
 .tiles {
@@ -116,16 +121,70 @@
     margin-right: 35px;
 }
 
-.tile-remaining {
-    height: 12px;
-    width: 3px;
+.tiles-remaining {
     display: inline-block;
-    margin-right: 1px;
     background-color: #ff9900fd;
+    height: 12px;
 }
 
-.tile-remaining-player {
-    margin-right: 3px;
+.bag-tiles-remaining {
+    margin-right: 1px;
+    width: 2px;
+}
+
+.player-tiles-remaining {
+    margin-right: 5px;
     word-break: break-word;
+}
+
+.tiles-remaining-player {
     width: 12px;
+    margin-right: 3px;
+}
+
+@media (min-width: 340px) {
+    .bag-tiles-remaining {
+        width: 3px;
+    }
+}
+
+@media (min-width: 480px) {
+    .bag-tiles-remaining {
+        width: 4px;
+    }
+}
+
+@media (min-width: 768px) {
+    .wrapper {
+        display: grid;
+        grid-template-areas:
+        "bag bag bag bag"
+        "board board board players"
+        "controls controls controls players"
+    }
+
+    .bag {
+        grid-area: bag;
+    }
+
+    .players {
+        grid-area: players;
+        display: grid;
+        grid-template-columns: 1fr;
+        margin-left: 10px;
+    }
+
+    .board {
+        grid-area: board;
+    }
+
+    .controls {
+        grid-area: controls;
+    }
+}
+
+@media (min-width: 840px) {
+    .bag-tiles-remaining {
+        width: 5px;
+    }
 }
