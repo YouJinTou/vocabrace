@@ -5,13 +5,16 @@
     <div class="players">
         <div class="player" *ngFor="let p of state.players">
             <div [ngClass]="{'player-data': true, 'player-highlight': state.toMoveId === p.id}">
-                <div><span class="player-name">{{p.name}}</span> {{p.points}}</div>
-                <div class="player-tiles-remaining">
-                    <div class="tiles-remaining tiles-remaining-player" *ngFor="let t of state.tiles"></div>
+                <div><span class="player-name">{{p.name}}</span></div>
+                <div class="player-tiles-timer">
+                    <div class="player-tiles-remaining">
+                        <div class="tiles-remaining tiles-remaining-player" *ngFor="let t of state.tiles"></div>
+                    </div>
+                    <div>{{p.points}}</div>
+                    <app-timer class="timer" *ngIf="state.toMoveId === p.id" [timeout]="timeout"
+                        (timedOut)="onTimeout()">
+                    </app-timer>
                 </div>
-                <app-timer class="timer" *ngIf="state.toMoveId === p.id" [timeout]="timeout"
-                    (timedOut)="onTimeout()">
-                </app-timer>
             </div>
         </div>
     </div>
