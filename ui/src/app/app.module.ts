@@ -18,7 +18,6 @@ import { ContextService } from 'src/services/context.service';
 import { HeaderComponent } from './components/header/header.component';
 import { ExternalLoginComponent } from './components/external-login/external-login.component';
 import { BlanksDialog } from './components/wordlines/blanks/blanks.component';
-import { GameOverDialog } from './components/wordlines/game-over/game-over.component';
 import { TimerComponent } from './components/timer/timer.component';
 import { CookieService } from 'ngx-cookie-service';
 import { CookiesComponent } from './components/cookies/cookies.component';
@@ -35,7 +34,6 @@ import { NotificationComponent } from './components/notification/notification.co
     FacebookComponent,
     HeaderComponent,
     ExternalLoginComponent,
-    GameOverDialog,
     TimerComponent,
     CookiesComponent,
     NotificationComponent,

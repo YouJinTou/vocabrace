@@ -10,7 +10,6 @@ import { NotificationComponent } from '../notification/notification.component';
 import { TimerComponent } from '../timer/timer.component';
 import { BlanksDialog } from './blanks/blanks.component';
 import { Cell } from './cell';
-import { GameOverDialog } from './game-over/game-over.component';
 import { Payload } from './payload';
 import { State } from './state';
 import { Tile } from './tile';
@@ -178,7 +177,8 @@ export class WordlinesComponent implements OnInit {
       return;
     }
 
-    this.gameOverDialog.open(GameOverDialog, { data: this.state });
+    this.notification.showInfo('Game over. Winner: ' + this.state.winnerName);
+
     this.gameOverService.onGameOver(this.state);
   }
 
