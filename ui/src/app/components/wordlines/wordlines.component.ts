@@ -111,14 +111,15 @@ export class WordlinesComponent implements OnInit {
     const p = new Payload(m, this.usernameService);
     this.state = this.state.apply(p);
     this.tilesRemaining = Array(this.state.tilesRemaining).fill(1);
-    console.log(p);
+
+    this.showNotification();
+    
     if (this.state.isError) {
       return;
     }
 
     this.onGameOver();
     this.startTimer();
-    this.showNotification();
   }
 
   private startTimer() {
@@ -186,7 +187,6 @@ export class WordlinesComponent implements OnInit {
     };
     this.wsService.connect(environment.wsEndpoint, params).subscribe({
       next: m => {
-        console.log(m);
         if (Array.isArray(m)) {
           m.forEach(x => {
             this.process(JSON.parse(x));

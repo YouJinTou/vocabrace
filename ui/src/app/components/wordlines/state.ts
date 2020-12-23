@@ -58,6 +58,11 @@ export class State {
     public apply(p: Payload): State {
         let copy = this.copy();
         copy.isError = p.isError;
+        copy.clientId = copy.clientId ? copy.clientId :
+            copy.yourMove ? copy.toMoveId : '';
+        copy.clientLastMoved = copy.clientId == p.lastMovedId;
+        copy = copy.setLastAction(p);
+        copy = copy.setDisplayMessage(p);
         if (p.isError) {
             return copy.cancel();
         }
@@ -74,11 +79,6 @@ export class State {
         copy.winnerName = p.winnerName;
         copy.toMoveId = p.toMoveId;
         copy.tilesRemaining = p.tilesRemaining;
-        copy.clientId = copy.clientId ? copy.clientId : 
-            copy.yourMove ? copy.toMoveId : '';
-        copy.clientLastMoved = copy.clientId == p.lastMovedId;
-        copy = copy.setLastAction(p);
-        copy = copy.setDisplayMessage(p);
         return copy;
     }
 
@@ -259,9 +259,8 @@ export class State {
 
     private setDisplayMessage(p: Payload): State {
         let copy = this.copy();
-
         if (p.isError) {
-            copy.displayMessage = p.error;
+            copy.displayMessage = this.formatErrorMessage(p.error);
             return copy;
         }
 
@@ -299,5 +298,27 @@ export class State {
             }
         }
         return '';
+    }
+
+    private formatErrorMessage(error: string): string {
+        console.log(error);
+        if (error.indexOf('cross the origin') > -1) {
+            return 'First move should cross the origin.';
+        }
+
+        if (error.indexOf('minimum field size of 1') > -1) {
+            return 'Place at least two tiles.';
+        }
+        
+        if (error.indexOf('adjacent tiles not found') > -1) {
+            return 'Word must touch at least one tile.';
+        }
+
+        if (error.indexOf('invalid words: ["') > -1) {
+            let result = error.match(/invalid words: \[(.*)\]/)
+            return result[0].charAt(0).toUpperCase() + result[0].slice(1);
+        }
+
+        return error;
     }
 }
