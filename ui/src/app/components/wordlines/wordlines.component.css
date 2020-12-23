@@ -14,10 +14,15 @@
     border-top: 2px solid lightgreen;
     background-color: rgb(197, 197, 197);
     color: black;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 2px;
     margin-bottom: 10px;
+}
+
+.player-tiles-remaining {
+    display: inline-block;
+}
+
+.timer {
+    display: inline-block;
 }
 
 .player-name {
@@ -105,10 +110,6 @@
     text-align: center;
 }
 
-.timer {
-    text-align: right;
-}
-
 .action {
     display: inline-block;
     margin-right: 35px;
@@ -122,11 +123,8 @@
     background-color: #ff9900fd;
 }
 
-.player-tiles-count {
-    text-align: right;
-}
-
 .tile-remaining-player {
     margin-right: 3px;
     word-break: break-word;
+    width: 12px;
 }
