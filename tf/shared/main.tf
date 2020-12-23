@@ -11,25 +11,3 @@ provider "aws" {
   region                  = var.aws_region
   profile                 = var.aws_profile
 }
-
-resource "aws_dynamodb_table" "wordlines_bulgarian" {
-  name           = "wordlines_bulgarian"
-  read_capacity  = 5
-  write_capacity = 1
-  hash_key       = "Word"
-  attribute {
-    name = "Word"
-    type = "S"
-  }
-}
-
-resource "aws_dynamodb_table" "wordlines_english" {
-  name           = "wordlines_english"
-  read_capacity  = 5
-  write_capacity = 1
-  hash_key       = "Word"
-  attribute {
-    name = "Word"
-    type = "S"
-  }
-}

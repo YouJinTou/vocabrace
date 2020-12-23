@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/YouJinTou/vocabrace/tools"
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 // WordChecker performs validation checks on words.
@@ -40,5 +41,21 @@ func (dc DynamoChecker) ValidateWords(language string, words []string) ([]string
 		}
 	}
 
+	saveMissing(notFound)
+
 	return notFound, err
+}
+
+func saveMissing(notFound []string) {
+	if len(notFound) == 0 {
+		return
+	}
+	type missing struct {
+		Word      string
+		LiveUntil int
+	}
+	for _, w := range notFound {
+		item := missing{Word: w, LiveUntil: tools.FutureTimestamp(170000)}
+		tools.PutItem(aws.String("wordlines_missing_words"), item)
+	}
 }
