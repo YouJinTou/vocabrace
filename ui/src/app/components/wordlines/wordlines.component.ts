@@ -155,7 +155,7 @@ export class WordlinesComponent implements OnInit {
       if (this.state.yourMove) {
         setTimeout(() => {
           this.notification.showInfo("It's your turn.");
-        }, 2000);
+        }, 2500);
       }
     }, 0.5);
   }
@@ -177,7 +177,8 @@ export class WordlinesComponent implements OnInit {
       return;
     }
 
-    this.notification.showInfo('Game over. Winner: ' + this.state.winnerName);
+    setTimeout(
+      () => this.notification.showInfo('Game over. Winner: ' + this.state.winnerName, 10000), 100);
 
     this.gameOverService.onGameOver(this.state);
   }

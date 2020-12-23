@@ -64,7 +64,7 @@ export class Payload {
     private setError(m: any): boolean {
         let isServerError = 'message' in m && m['message'].indexOf('Internal server error') > -1
         let isBadMove = 'Type' in m && m['Type'] == 'ERROR';
-        console.log('is bad move', isBadMove);
+        
         if (isServerError) {
             this.error = `
                 Looks like we screwed up.

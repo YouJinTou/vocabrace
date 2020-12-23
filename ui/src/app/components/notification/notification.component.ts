@@ -15,26 +15,26 @@ export class NotificationComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  showError(message: string) {
+  showError(message: string, millis?: number) {
     this.backgroundClass = "error";
-    this.show(message);
+    this.show(message, millis);
   }
 
-  showSuccess(message: string) {
+  showSuccess(message: string, millis?: number) {
     this.backgroundClass = "success";
-    this.show(message);
+    this.show(message, millis);
   }
 
-  showInfo(message: string) {
+  showInfo(message: string, millis?: number) {
     this.backgroundClass = "info";
-    this.show(message);
+    this.show(message, millis);
   }
 
-  private show(message: string) {
+  private show(message: string, millis?: number) {
     this.message = message;
     this.showClass = "in";
     setTimeout(() => {
       this.showClass = "out";
-    }, 3000);
+    }, millis ?? 3000);
   }
 }
