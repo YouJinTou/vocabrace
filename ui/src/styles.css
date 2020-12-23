@@ -28,3 +28,11 @@ a:hover {
 .active {
     border-bottom: 2px solid #d64f00;
 }
+
+.hover-active {
+}
+
+.hover-active:hover {
+    border-bottom: 2px solid #d64f00;
+    cursor: pointer;
+}

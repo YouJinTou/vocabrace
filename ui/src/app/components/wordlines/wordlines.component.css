@@ -114,10 +114,6 @@
     margin-right: 35px;
 }
 
-.action:hover {
-    cursor: pointer;
-}
-
 .tile-remaining {
     height: 12px;
     width: 3px;

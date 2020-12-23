@@ -33,16 +33,16 @@
         </div>
 
         <div class="actions" *ngIf="state.tiles.length > 0 && state.yourMove && !state.isGameOver">
-            <div class="action" (click)="onPlaceClicked()">
+            <div class="action hover-active" (click)="onPlaceClicked()">
                 <span class="material-icons" title="Place">check_circle_outline</span>
             </div>
-            <div class="action" (click)="onExchangeClicked()">
+            <div class="action hover-active" (click)="onExchangeClicked()">
                 <span class="material-icons" title="Exchange">cached</span>
             </div>
-            <div class="action" (click)="onPassClicked()">
+            <div class="action hover-active" (click)="onPassClicked()">
                 <span class="material-icons" title="Pass">skip_next</span>
             </div>
-            <div class="action" (click)="onCancelClicked()">
+            <div class="action hover-active" (click)="onCancelClicked()">
                 <span class="material-icons" title="Cancel">replay</span>
             </div>
         </div>
