@@ -25,6 +25,7 @@ const GAME = 'wordlines';
 export class WordlinesComponent implements OnInit {
   @ViewChild(TimerComponent) private timer: TimerComponent;
   @ViewChild(NotificationComponent) private notification: NotificationComponent;
+  private wasTimeout = false;
   timeout = 60;
   state = new State();
   tilesRemaining = [];
@@ -46,6 +47,7 @@ export class WordlinesComponent implements OnInit {
   }
 
   onTimeout() {
+    this.wasTimeout = true;
     if (this.state.yourMove) {
       this.onPassClicked();
       this.state = this.state.cancel();
@@ -113,7 +115,7 @@ export class WordlinesComponent implements OnInit {
     this.tilesRemaining = Array(this.state.tilesRemaining).fill(1);
 
     this.showNotification();
-    
+
     if (this.state.isError) {
       return;
     }
@@ -141,10 +143,14 @@ export class WordlinesComponent implements OnInit {
         return;
       }
 
-      if (this.state.clientLastMoved) {
-        this.notification.showSuccess(this.state.displayMessage);
+      if (this.wasTimeout) {
+        this.notification.showInfo('Timed out.');
       } else {
-        this.notification.showInfo(this.state.displayMessage);
+        if (this.state.clientLastMoved) {
+          this.notification.showSuccess(this.state.displayMessage);
+        } else {
+          this.notification.showInfo(this.state.displayMessage);
+        }
       }
 
       if (this.state.yourMove) {
