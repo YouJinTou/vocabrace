@@ -1,5 +1,5 @@
 .wrapper {
-    max-height: 500px;
+    max-height: 480px;
 }
 
 .players {
@@ -15,7 +15,7 @@
     border-top: 2px solid lightgreen;
     background-color: rgb(197, 197, 197);
     color: black;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .player-tiles-remaining {
@@ -114,7 +114,7 @@
 }
 
 .actions {
-    margin-top: 13px;
+    margin-top: 8px;
     text-align: center;
 }
 
@@ -157,9 +157,21 @@
     .bag-tiles-remaining {
         width: 3px;
     }
+
+    .controls {
+        margin-top: 15px;
+    }
 }
 
 @media (min-width: 480px) {
+    .player-data {
+        margin-bottom: 10px;
+    }
+
+    .wrapper {
+        max-height: 500px;
+    }
+
     .board {
         height: 430px;
     }
