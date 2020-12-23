@@ -25,7 +25,7 @@ export class WordlinesComponent implements OnInit {
   @ViewChild(TimerComponent) private timer: TimerComponent;
   @ViewChild(NotificationComponent) private notification: NotificationComponent;
   private wasTimeout = false;
-  timeout = 60;
+  timeout = 90;
   state = new State();
   tilesRemaining = [];
 
