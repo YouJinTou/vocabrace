@@ -356,6 +356,7 @@ func (g *Game) handleEnd() {
 	}
 	g.delta.Points = g.playerPoints()
 	g.delta.TilesRemaining = g.Bag.Count()
+	g.delta.Language = g.Language
 }
 
 func (g *Game) tallyFinalPoints() {
